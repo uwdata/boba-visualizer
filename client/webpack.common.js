@@ -1,10 +1,15 @@
 'use strict'
 const { VueLoaderPlugin } = require('vue-loader')
+const path = require('path')
 
 module.exports = {
   entry: [
     './src/main.js'
   ],
+  output: {
+    filename: 'bundle.js',
+    path: path.resolve(__dirname, 'dist')
+  },
   module: {
     rules: [
       {
@@ -29,6 +34,12 @@ module.exports = {
       {
         test: /\.js$/,
         use: 'babel-loader'
+      },
+      {
+        test: /\.(png|svg|jpg|gif)$/,
+        use: [
+          'file-loader'
+        ]
       }
     ]
   },

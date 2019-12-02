@@ -14,13 +14,16 @@
   "scripts": {
     "build": "npm run prebuild && npm run webpack-prod",
     "dev": "npm run prebuild && npm run webpack-dev",
-    "prebuild": "rm -rf dist && mkdir dist && cp -R assets/ dist",
+    "prebuild": "rm -rf dist && mkdir dist && cp -R assets/ dist && cp index.html dist",
     "lint": "eslint --ext .js,.vue src",
     "webpack-dev": "webpack --config webpack.dev.js",
     "webpack-prod": "webpack --progress --hide-modules --config webpack.prod.js",
-    "start": "python -m SimpleHTTPServer 8080"
+    "start": "cd dist && python -m SimpleHTTPServer 8080"
   },
   "dependencies": {
+    "axios": "^0.19.0",
+    "bootstrap": "^4.4.1",
+    "bootstrap-vue": "^2.1.0",
     "vue": "^2.6.10",
     "vue-router": "^3.1.3"
   },

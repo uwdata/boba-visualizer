@@ -1,8 +1,19 @@
 <template>
-  <h1>Hello World!</h1>
+  <div id="app">
+    <router-view
+      class="view"
+      transition
+      transition-mode="out-in">
+    </router-view>
+  </div>
 </template>
 
-<style lang="stylus" scoped>
-  h1
-    color red
-</style>
+<script>
+  export default {
+    name: 'app',
+    data () {
+      return {
+      }
+    }
+  }
+</script>
