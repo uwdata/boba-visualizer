@@ -1,0 +1,4 @@
+include client/dist/*
+include README.rst
+include LICENSE
+include HISTORY.rst

@@ -1,4 +1,13 @@
+# javascript
 node_modules/
 dist/
+
+# IDE
 .idea/
+
+# virtual env
 env/
+
+# packaging
+*.egg-info/
+__pycache__/
