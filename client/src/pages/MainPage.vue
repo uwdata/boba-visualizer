@@ -26,7 +26,9 @@
         <div class="bb-menu-bar"></div>
 
         <!--Visualization-->
-        <div class="h-100"></div>
+        <div class="h-100">
+          <aggregate-vis></aggregate-vis>
+        </div>
       </div>
 
     </div>
@@ -36,8 +38,9 @@
 <script>
   import HelpButton from '../components/HelpButton.vue'
   import TitleMenu from '../components/TitleMenu.vue'
+  import AggregateVis from '../components/AggregateVis.vue'
   export default {
-    components: {TitleMenu, HelpButton}
+    components: {AggregateVis, TitleMenu, HelpButton}
   }
 </script>
 
