@@ -1,8 +1,73 @@
 <template>
-  <div>
-    <h1>Hello World!</h1>
-    <div>
-      <b-button variant="danger">Button</b-button>
+  <div class="bb-outer">
+
+    <!--Header-->
+    <header class="navbar bb-navbar">
+      <span class="ml-3 font-weight-bold">boba</span>
+      <title-menu></title-menu>
+      <help-button class="mr-3"></help-button>
+    </header>
+
+    <!--Main View-->
+    <div class="row m-0 bb-main-view">
+
+      <!--Left Panel-->
+      <div class="col-3 p-0 bb-left-panel d-flex flex-column">
+        <!--Menu-->
+        <div class="bb-menu-bar"></div>
+
+        <!--ADG-->
+        <div class="h-100"></div>
+      </div>
+
+      <!--Right Panel-->
+      <div class="col-9 p-0 d-flex flex-column">
+        <!--Menu-->
+        <div class="bb-menu-bar"></div>
+
+        <!--Visualization-->
+        <div class="h-100"></div>
+      </div>
+
     </div>
   </div>
 </template>
+
+<script>
+  import HelpButton from '../components/HelpButton.vue'
+  import TitleMenu from '../components/TitleMenu.vue'
+  export default {
+    components: {TitleMenu, HelpButton}
+  }
+</script>
+
+<style lang="stylus">
+  html, body
+    height 100%
+    overflow hidden
+
+  .bb-outer
+    overflow-x hidden
+    overflow-y hiddenc
+
+  .bb-navbar
+    color #fff
+    min-height 4rem
+    background-color #24292e
+    box-shadow 0 0.5rem 1rem rgba(0,0,0,.05), inset 0 -1px 0 rgba(0,0,0,.1)
+
+  .bb-left-panel
+    border-right: 1px solid rgba(0, 0, 0, 0.1)
+    background-color #fafafa
+
+  .bb-main-view
+    width 100%
+    height calc(100vh - 4rem)
+
+  .bb-menu-bar
+    height 4rem
+    background-color #fff
+    border-bottom 1px solid rgba(0,0,0,0.1)
+    box-shadow 0.5rem 0 2rem rgba(0,0,0,.03)
+
+</style>
