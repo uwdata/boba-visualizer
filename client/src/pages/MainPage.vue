@@ -58,6 +58,9 @@
       // fetch data from server
       store.fetchUniverses()
         .then(() => {
+          return store.fetchPredictions()
+        })
+        .then(() => {
           this.loading = false
 
           // notify other components that data is ready

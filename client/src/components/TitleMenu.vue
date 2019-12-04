@@ -27,7 +27,7 @@
   export default {
     name: "TitleMenu",
 
-    data: function () {
+    data () {
       return {
         dataset: 'hurricane',
         decisions: '--',

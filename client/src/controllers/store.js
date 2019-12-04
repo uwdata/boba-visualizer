@@ -13,6 +13,10 @@ class Store {
 
     // available decisions and their options
     this.decisions = {}
+
+    // predicted outcomes
+    this.predictions = []
+    this.predicted_diff = []
   }
 
   /**
@@ -58,8 +62,53 @@ class Store {
     })
   }
 
+  /**
+   * Get the predicted outcomes.
+   * @returns {Promise<any>}
+   */
+  fetchPredictions () {
+    return new Promise((resolve, reject) => {
+      if (this.predictions.length) {
+        resolve(this.predictions)
+        return
+      }
+
+      http.post('/api/get_pred', {})
+        .then((response) => {
+          let msg = response.data
+
+          if (msg && msg.status === 'success') {
+            // predicted outcomes
+            this.predictions = _.map(msg.data, (d) => {
+              let obj = {}
+              _.each(d, (val, idx) => {
+                obj[msg.header[idx]] = Number(val)
+              })
+              return obj
+            })
+
+            // compute predicted difference
+            // fixme: hard code
+            this.predicted_diff = []
+            _.each(_.range(0, msg.data.length, 2), (i) => {
+              let tup = [msg.data[i], msg.data[i + 1]]
+              let male = _.find(tup, (arr) => arr[1] === "0")
+              let female = _.find(tup, (arr) => arr[1] === "1")
+              this.predicted_diff.push({uid: Number(male[0]), diff: female[2] - male[2]})
+            })
+
+            resolve()
+          } else {
+            reject(msg.message || 'Internal server error.')
+          }
+        }, () => {
+          reject('Network error.')
+        })
+    })
+  }
+
   getUniverseById (uid) {
-    if (uid < 0 || uid > this.universes.length) {
+    if (uid == null || uid < 0 || uid > this.universes.length) {
       console.error('UID ')
     }
 
