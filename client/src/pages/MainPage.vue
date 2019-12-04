@@ -8,6 +8,9 @@
       <help-button class="mr-3"></help-button>
     </header>
 
+    <!--Loading Spinner-->
+    <loading-spinner :loading="loading"></loading-spinner>
+
     <!--Main View-->
     <div class="row m-0 bb-main-view">
 
@@ -36,11 +39,34 @@
 </template>
 
 <script>
+  import {store, bus, log_debug} from '../controllers/config'
   import HelpButton from '../components/HelpButton.vue'
   import TitleMenu from '../components/TitleMenu.vue'
   import AggregateVis from '../components/AggregateVis.vue'
+  import LoadingSpinner from '../components/LoadingSpinner.vue'
+
   export default {
-    components: {AggregateVis, TitleMenu, HelpButton}
+    components: {LoadingSpinner, AggregateVis, TitleMenu, HelpButton},
+
+    data () {
+      return {
+        loading: true
+      }
+    },
+
+    mounted: function () {
+      // fetch data from server
+      store.fetchUniverses()
+        .then(() => {
+          this.loading = false
+
+          // notify other components that data is ready
+          bus.$emit('data-ready')
+        }, (e) => {
+          this.loading = false
+          console.error(e)
+        })
+    }
   }
 </script>
 

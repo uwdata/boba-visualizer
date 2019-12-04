@@ -3,26 +3,49 @@
     <!--Data set-->
     <div class="w-50 mr-5">
       <div class="bb-menu-item">dataset</div>
-      <div>hurricane</div>
+      <div>{{dataset}}</div>
     </div>
 
     <!--Decisions-->
     <div class="w-50 mr-5">
       <div class="bb-menu-item">decisions</div>
-      <div>8</div>
+      <div>{{decisions}}</div>
     </div>
 
     <!--Size-->
     <div class="w-50">
       <div class="bb-menu-item">universes</div>
-      <div>1,000</div>
+      <div>{{universes}}</div>
     </div>
   </div>
 </template>
 
 <script>
+  import {bus, store} from '../controllers/config'
+  import _ from 'lodash'
+
   export default {
-    name: "TitleMenu"
+    name: "TitleMenu",
+
+    data: function () {
+      return {
+        dataset: 'hurricane',
+        decisions: '--',
+        universes: '--'
+      }
+    },
+
+    mounted: function () {
+      // register event listener
+      bus.$on('data-ready', this.updateData)
+    },
+
+    methods: {
+      updateData () {
+        this.decisions = _.size(store.decisions).toLocaleString()
+        this.universes = _.size(store.universes).toLocaleString()
+      }
+    }
   }
 </script>
 

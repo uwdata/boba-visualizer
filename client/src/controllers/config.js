@@ -1,25 +1,25 @@
 'use strict'
 
 import Store from './store'
+import Vue from 'vue'
 
 const DEBUG = process.env.NODE_ENV === 'development'
 
-/**
- * Only outputs if we are in dev build.
- */
+// print only if we are in dev build
 function log_debug (...args) {
   if (DEBUG) {
     console.log(...args)
   }
 }
 
-/***
- * Shared store.
- * @type {Store}
- */
+// shared store
 let store = new Store()
+
+// global event bus
+let bus = new Vue()
 
 export {
   log_debug,
-  store
+  store,
+  bus
 }
