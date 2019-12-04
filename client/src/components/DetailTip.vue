@@ -8,11 +8,30 @@
 </template>
 
 <script>
-  import {store} from '../controllers/config'
+  import {bus, store} from '../controllers/config'
 
   export default {
     name: "DetailTip",
-    props: ['detail'],
+    props: ['top', 'left'],
+
+    data () {
+      return {
+        detail: null
+      }
+    },
+
+    mounted () {
+      // register event listener
+      bus.$on('agg-vis.dot-mouseover', (d) => {
+        this.detail = {uid: d.data.uid, diff: d.data.diff, x: d.x, y: d.y,
+          left: 0}
+      })
+
+      bus.$on('agg-vis.dot-mouseout', () => {
+        this.detail = null
+      })
+    },
+
     computed: {
       universe () {
         if (this.detail == null) {
@@ -30,8 +49,8 @@
         }
 
         return {
-          top: (this.detail.y - 50) + 'px',
-          left: (this.detail.x - this.detail.left) + 'px'
+          top: (this.detail.y - this.top + 100) + 'px',
+          left: (this.detail.x - this.left) + 'px'
         }
       }
     }

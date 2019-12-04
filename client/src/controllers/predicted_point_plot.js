@@ -1,4 +1,5 @@
 import * as d3 from 'd3'
+import {bus} from './config'
 
 /**
  * A plot for blending predicted point estimates
@@ -21,10 +22,6 @@ class PredictedPoint {
     // assigned when calling draw
     this.parent = ''
     this.data = []
-
-    // callbacks
-    this.onDotMouseover = () => {}
-    this.onDotMouseout = () => {}
   }
 
   draw (parent, data) {
@@ -87,11 +84,12 @@ class PredictedPoint {
       .on('mouseout', dotMouseout)
 
     function dotMouseover(d) {
-      that.onDotMouseover(d, d3.event.clientX, d3.event.clientY)
+      bus.$emit('agg-vis.dot-mouseover',
+        {data: d, x: d3.event.clientX, y: d3.event.clientY})
     }
 
     function dotMouseout(d) {
-      that.onDotMouseout(d)
+      bus.$emit('agg-vis.dot-mouseout', {data: d})
     }
   }
 }

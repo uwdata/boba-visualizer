@@ -1,8 +1,8 @@
 <template>
-  <div class="h-100">
+  <div class="h-100" ref="parent">
     <div class="mt-3 mb-4 text-center">Predicted Difference: Female - Male</div>
     <div id="agg-vis-container" ref="chart" class="h-100"></div>
-    <detail-tip :detail="detail"></detail-tip>
+    <detail-tip :left="left" :top="top"></detail-tip>
   </div>
 </template>
 
@@ -39,25 +39,19 @@
     data () {
       return {
         chart: new PredictedPoint(),
-        detail: null
+        left: 0,
+        top: 0
       }
     },
 
     mounted: function () {
+      // update sizes and positions
       set_chart_size.call(this, this.chart)
+      this.left = this.$refs.parent.getBoundingClientRect().left
+      this.top = this.$refs.parent.getBoundingClientRect().top
 
       // register event listener
       bus.$on('data-ready', draw.bind(this))
-
-      // callbacks for SVG events
-      this.chart.onDotMouseover = (d, x, y) => {
-        this.detail = {uid: d.uid, diff: d.diff, x: x, y: y,
-          left: this.$refs.chart.getBoundingClientRect().left}
-      }
-
-      this.chart.onDotMouseout = () => {
-        this.detail = null
-      }
     }
   }
 </script>
