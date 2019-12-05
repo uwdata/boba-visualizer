@@ -17,7 +17,7 @@
 <script>
   import _ from 'lodash'
   import {bus, log_debug, store} from '../controllers/config'
-  import PredictedPoint from '../controllers/predicted_point_plot'
+  import BandPlot from '../controllers/band_plot'
   import DetailTip from './DetailTip.vue'
 
   function clear () {
@@ -47,7 +47,7 @@
     components: {DetailTip},
     data () {
       return {
-        chart: new PredictedPoint(),
+        chart: new BandPlot(),
         left: 0,
         top: 0,
         brushed: []

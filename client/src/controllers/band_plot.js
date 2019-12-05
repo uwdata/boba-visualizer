@@ -1,12 +1,12 @@
 import * as d3 from 'd3'
 import {bus} from './config'
-import PPPScale from './vis/ppp_scale'
+import BandScale from './vis/band_scale'
 import BrushX from './vis/brushX'
 
 /**
  * A plot for blending predicted point estimates
  */
-class PredictedPoint {
+class BandPlot {
 
   constructor () {
     this.outerWidth = 1050
@@ -28,6 +28,7 @@ class PredictedPoint {
 
     // components
     this.scale = null
+    this.brush = null
   }
 
   draw (parent, data) {
@@ -37,7 +38,6 @@ class PredictedPoint {
     let outerWidth = this.outerWidth
     let outerHeight = this.outerHeight
     let margin = this.margin
-    let width = outerWidth - margin.left - margin.right
 
     let scale_params = {
       'outerWidth': this.outerWidth,
@@ -45,7 +45,7 @@ class PredictedPoint {
       'margin': this.margin,
       'x_field': 'diff'
     }
-    let scale = new PPPScale(data, scale_params)
+    let scale = new BandScale(data, scale_params)
     this.scale = scale
 
     let xAxis = d3.axisBottom(scale.x).tickSize(-scale.height())
@@ -65,6 +65,7 @@ class PredictedPoint {
     // brush
     let brush = new BrushX(data, scale, '.dot')
     brush.attach(svg)
+    this.brush = brush
 
     if (this.axis) {
       // X Axis
@@ -80,7 +81,7 @@ class PredictedPoint {
     // dots
     let objects = svg.append('svg')
       .classed('objects', true)
-      .attr('width', width)
+      .attr('width', scale.width())
       .attr('height', scale.height())
 
     let dots = objects.selectAll('.dot')
@@ -111,4 +112,4 @@ class PredictedPoint {
   }
 }
 
-export default PredictedPoint
+export default BandPlot

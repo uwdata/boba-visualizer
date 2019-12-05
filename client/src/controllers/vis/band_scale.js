@@ -1,7 +1,7 @@
 import * as d3 from 'd3'
 import BaseScale from './base_scale'
 
-class PPPScale extends BaseScale {
+class BandScale extends BaseScale {
   constructor (data, params) {
     super(params)
 
@@ -31,4 +31,4 @@ class PPPScale extends BaseScale {
   }
 }
 
-export default PPPScale
+export default BandScale
