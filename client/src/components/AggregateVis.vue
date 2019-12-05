@@ -6,19 +6,16 @@
     <!--chart-->
     <div class="mt-3 mb-4 text-center">Predicted Difference: Female - Male</div>
     <div id="agg-vis-container" ref="chart"></div>
-
-    <!--table of brushed points-->
-    <div class="h-100 mt-3 p-3">
-      <b-table stripe hover :items="brushed"></b-table>
-    </div>
+    <option-ratio-view></option-ratio-view>
   </div>
 </template>
 
 <script>
-  import _ from 'lodash'
   import {bus, log_debug, store} from '../controllers/config'
   import BandPlot from '../controllers/band_plot'
+  import StackedDotPlot from '../controllers/stacked_dot_plot'
   import DetailTip from './DetailTip.vue'
+  import OptionRatioView from './OptionRatioView.vue'
 
   function clear () {
     // remove all nodes
@@ -44,13 +41,12 @@
 
   export default {
     name: "AggregateVis",
-    components: {DetailTip},
+    components: {OptionRatioView, DetailTip},
     data () {
       return {
-        chart: new BandPlot(),
+        chart: new StackedDotPlot(),
         left: 0,
-        top: 0,
-        brushed: []
+        top: 0
       }
     },
 
@@ -62,19 +58,13 @@
 
       // register event listener
       bus.$on('data-ready', draw.bind(this))
-      bus.$on('brush', (arr) => {
-        this.brushed = _.map(arr, (d) => {
-          let uni = store.getUniverseById(d.uid)
-          return uni
-        })
-      })
     }
   }
 </script>
 
 <style lang="stylus">
   #agg-vis-container
-    height 70px
+    height 300px
 
   .dot.brushed
     fill #f00 !important

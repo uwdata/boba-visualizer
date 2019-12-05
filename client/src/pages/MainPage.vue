@@ -30,7 +30,8 @@
 
         <!--Visualization-->
         <div class="h-100">
-          <aggregate-vis></aggregate-vis>
+          <div><aggregate-vis></aggregate-vis></div>
+          <div class="h-100"></div>
         </div>
       </div>
 

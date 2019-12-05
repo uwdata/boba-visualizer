@@ -49,7 +49,12 @@ class Store {
             // wrangle decisions
             this.decisions = {}
             _.each(_.slice(msg.header, DEC_INDEX), (d) => {
-              this.decisions[d] = d
+              this.decisions[d] = new Set()
+            })
+            _.each(this.universes, (u) => {
+              _.each(_.keys(this.decisions), (d) => {
+                this.decisions[d].add(u[d])
+              })
             })
 
             resolve()
@@ -113,6 +118,28 @@ class Store {
     }
 
     return this.universes[uid - 1]
+  }
+
+  getOptionRatio (uids) {
+    // initialize a dict
+    let res = {}
+    _.each(this.decisions, (v, k) => {
+      res[k] = {}
+      v.forEach((opt) => {
+        res[k][opt] = 0
+      })
+    })
+
+    // count the options
+    let us = _.map(uids, (u) => this.getUniverseById(u))
+    _.each(us, (uni) => {
+      _.each(_.keys(this.decisions), (dec) => {
+        let opt = uni[dec]
+        res[dec][opt] += 1
+      })
+    })
+
+    return res
   }
 }
 
