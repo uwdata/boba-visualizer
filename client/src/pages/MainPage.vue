@@ -75,12 +75,13 @@
 
 <style lang="stylus">
   html, body
+    margin 0
     height 100%
     overflow hidden
 
   .bb-outer
     overflow-x hidden
-    overflow-y hiddenc
+    overflow-y hidden
 
   .bb-navbar
     color #fff

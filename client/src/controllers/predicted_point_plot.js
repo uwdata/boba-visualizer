@@ -1,5 +1,7 @@
 import * as d3 from 'd3'
 import {bus} from './config'
+import PPPScale from './vis/ppp_scale'
+import BrushX from './vis/brushX'
 
 /**
  * A plot for blending predicted point estimates
@@ -8,20 +10,24 @@ class PredictedPoint {
 
   constructor () {
     this.outerWidth = 1050
-    this.outerHeight = 600
+    this.outerHeight = 70
     this.margin = {
-      top: 10,
+      top: 0,
       right: 70,
-      bottom: 10,
+      bottom: 20,
       left: 70
     }
-    this.backgroud = '#fff'
+    this.background = '#fff'
     this.axis = true
     this.dot_radius = 4
+    this.jitter = true
 
     // assigned when calling draw
     this.parent = ''
     this.data = []
+
+    // components
+    this.scale = null
   }
 
   draw (parent, data) {
@@ -32,33 +38,39 @@ class PredictedPoint {
     let outerHeight = this.outerHeight
     let margin = this.margin
     let width = outerWidth - margin.left - margin.right
-    let height = 50
-    let that = this
 
-    let x = d3.scaleLinear()
-      .range([0, width]).nice()
+    let scale_params = {
+      'outerWidth': this.outerWidth,
+      'outerHeight': this.outerHeight,
+      'margin': this.margin,
+      'x_field': 'diff'
+    }
+    let scale = new PPPScale(data, scale_params)
+    this.scale = scale
 
-    let xMax = d3.max(data, (d) => d.diff) * 1.05
-    let xMin = d3.min(data, (d) => d.diff) * 1.05
-
-    x.domain([xMin, xMax])
-    let xAxis = d3.axisBottom(x).tickSize(-height)
+    let xAxis = d3.axisBottom(scale.x).tickSize(-scale.height())
 
     let svg = d3.select(parent)
       .append('svg')
       .attr('width', outerWidth)
       .attr('height', outerHeight)
+      .append('g')
+      .attr('transform', `translate(${margin.left},${margin.top})`)
 
     let rect = svg.append('rect')
-      .attr('width', outerWidth)
-      .attr('height', outerHeight)
-      .attr('fill', this.backgroud)
+      .attr('width', scale.width())
+      .attr('height', scale.height())
+      .attr('fill', this.background)
+
+    // brush
+    let brush = new BrushX(data, scale, '.dot')
+    brush.attach(svg)
 
     if (this.axis) {
       // X Axis
       svg.append("g")
         .classed("x axis", true)
-        .attr('transform', `translate(0,${height})`)
+        .attr('transform', `translate(0,${scale.height()})`)
         .call(xAxis)
         .call(g => g.selectAll('.tick line')
           .attr('stroke-opacity', 0.5)
@@ -69,7 +81,7 @@ class PredictedPoint {
     let objects = svg.append('svg')
       .classed('objects', true)
       .attr('width', width)
-      .attr('height', height)
+      .attr('height', scale.height())
 
     let dots = objects.selectAll('.dot')
       .data(data)
@@ -77,8 +89,13 @@ class PredictedPoint {
       .append('circle')
       .classed('dot', true)
       .attr('r', () => this.dot_radius)
-      .attr('cx', (d) => x(d.diff))
-      .attr('cy', () => (height - this.dot_radius) / 2)
+      .attr('cx', (d) => scale.x(d.diff))
+      .attr('cy', (d) => {
+        let y = (scale.height() - this.dot_radius) / 2
+        let j = this.jitter ? (Math.random() - 0.5)  * scale.height() : 0
+        d._y = y + j // save this for brushing
+        return y + j
+      })
       .attr('fill-opacity', 0.3)
       .on('mouseover', dotMouseover)
       .on('mouseout', dotMouseout)
