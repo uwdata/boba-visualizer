@@ -59,6 +59,9 @@
       // fetch data from server
       store.fetchUniverses()
         .then(() => {
+          return store.fetchOverview()
+        })
+        .then(() => {
           return store.fetchPredictions()
         })
         .then(() => {

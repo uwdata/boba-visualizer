@@ -37,13 +37,13 @@
 
         let ors = store.getOptionRatio(_.map(arr, (d) => d.uid))
         this.decisions = _.map(ors, (opts, dec) => {
-          let total = _.reduce(opts, (sum, n) => sum + n, 0)
+          let total = _.reduce(opts, (sum, opt) => sum + opt.count, 0)
           let i = 0
-          let res = _.map(opts, (v, k) => {
+          let res = _.map(opts, (opt) => {
             let color = tableau10.substr(++i * 6, 6)
-            let w = Math.round(v / total * 100)
+            let w = Math.round(opt.count / total * 100)
             let alpha = w > 100/_.size(opts) + 5 ? 1 : 0.5
-            return {name: k, width: w, more: alpha === 1,
+            return {name: opt.name, width: w, more: alpha === 1,
               style: `width: ${w}%; background-color: #${color}; opacity: ${alpha};`}
           })
           return {name: dec, value: res}

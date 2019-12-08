@@ -1,15 +1,8 @@
 import os
 from flask import jsonify
 from server import app
-from .util import print_fail, read_csv
+from .util import check_path, read_csv, read_json
 
-
-def check_path(fn):
-    """ Check if path exists """
-    if not os.path.exists(fn):
-        msg = 'Error: {} does not exist.'.format(fn)
-        print_fail(msg)
-        return {'status': 'fail', 'message': msg}
 
 # entry
 @app.route('/')
@@ -20,12 +13,9 @@ def index():
 @app.route('/api/get_universes', methods=['POST'])
 def get_universes():
     fn = os.path.join(app.data_folder, 'summary.csv')
-    err = check_path(fn)
-    if err:
-        return jsonify(err), 200
-
-    res = read_csv(fn, 0)
-    reply = {'status': 'success', 'data': res[1:], 'header': res[0]}
+    err, res = read_csv(fn, 0)
+    reply = err if err else {'status': 'success', 'data': res[1:],
+                             'header': res[0]}
     return jsonify(reply), 200
 
 # read prediction
@@ -33,10 +23,15 @@ def get_universes():
 @app.route('/api/get_pred', methods=['POST'])
 def get_pred():
     fn = os.path.join(app.data_folder, 'prediction.csv')
-    err = check_path(fn)
-    if err:
-        return jsonify(err), 200
+    err, res = read_csv(fn, 0)
+    reply = err if err else {'status': 'success', 'data': res[1:],
+                             'header': res[0]}
+    return jsonify(reply), 200
 
-    res = read_csv(fn, 0)
-    reply = {'status': 'success', 'data': res[1:], 'header': res[0]}
+# read the overview, including decisions and ADG
+@app.route('/api/get_overview', methods=['POST'])
+def get_overview():
+    fn = os.path.join(app.data_folder, 'overview.json')
+    err, res = read_json(fn)
+    reply = err if err else {'status': 'success', 'data': res}
     return jsonify(reply), 200

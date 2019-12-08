@@ -2,6 +2,7 @@
 
 import http from 'axios'
 import _ from 'lodash'
+import {log_debug} from './config'
 
 /**
  * Shared data store across pages.
@@ -14,6 +15,9 @@ class Store {
     // available decisions and their options
     this.decisions = {}
 
+    // ADG
+    this.graph = {}
+
     // predicted outcomes
     this.predictions = []
     this.predicted_diff = []
@@ -24,11 +28,9 @@ class Store {
    * @returns {Promise<any>}
    */
   fetchUniverses () {
-    const DEC_INDEX = 2 // decisions start from the 2nd column
-
     return new Promise((resolve, reject) => {
       if (this.universes.length) {
-        resolve(this.universes)
+        resolve()
         return
       }
 
@@ -44,17 +46,6 @@ class Store {
                 obj[msg.header[idx]] = val
               })
               return obj
-            })
-
-            // wrangle decisions
-            this.decisions = {}
-            _.each(_.slice(msg.header, DEC_INDEX), (d) => {
-              this.decisions[d] = new Set()
-            })
-            _.each(this.universes, (u) => {
-              _.each(_.keys(this.decisions), (d) => {
-                this.decisions[d].add(u[d])
-              })
             })
 
             resolve()
@@ -74,7 +65,7 @@ class Store {
   fetchPredictions () {
     return new Promise((resolve, reject) => {
       if (this.predictions.length) {
-        resolve(this.predictions)
+        resolve()
         return
       }
 
@@ -112,21 +103,66 @@ class Store {
     })
   }
 
+  /**
+   * Get the multiverse overview, including decisions and ADG.
+   * @returns {Promise<any>}
+   */
+  fetchOverview () {
+    return new Promise((resolve, reject) => {
+      if (_.size(this.graph)) {
+        resolve()
+        return
+      }
+
+      http.post('/api/get_overview', {})
+        .then((response) => {
+          let msg = response.data
+
+          if (msg && msg.status === 'success') {
+            // decisions
+            this.decisions = {}
+            _.each(msg.data.decisions, (dec) => {
+              this.decisions[dec.var] = dec.options
+            })
+
+            // graph
+            this.graph = msg.data.graph
+            log_debug(this.graph)
+
+            resolve()
+          } else {
+            reject(msg.message || 'Internal server error.')
+          }
+        }, () => {
+          reject('Network error.')
+        })
+    })
+  }
+
+  /**
+   * Given an uid, return the universe object.
+   * @param uid
+   * @returns {*}
+   */
   getUniverseById (uid) {
     if (uid == null || uid < 0 || uid > this.universes.length) {
-      console.error('UID ')
+      console.error(`UID ${uid} is not valid`)
+      return
     }
 
     return this.universes[uid - 1]
   }
 
+  /**
+   * Given an array of uid, count the occurrence of each options.
+   * @param uids
+   */
   getOptionRatio (uids) {
     // initialize a dict
     let res = {}
     _.each(this.decisions, (v, k) => {
-      res[k] = {}
-      v.forEach((opt) => {
-        res[k][opt] = 0
+      res[k] = _.map(v, (opt) => {
+        return {name: opt, count: 0}
       })
     })
 
@@ -135,7 +171,14 @@ class Store {
     _.each(us, (uni) => {
       _.each(_.keys(this.decisions), (dec) => {
         let opt = uni[dec]
-        res[dec][opt] += 1
+        let i = _.indexOf(this.decisions[dec], opt)
+
+        // sanity check
+        if (res[dec][i].name !== opt) {
+          console.error(`Option mismatch: ${opt} in ${dec}`, res, this.decisions)
+        }
+
+        res[dec][i].count += 1
       })
     })
 
