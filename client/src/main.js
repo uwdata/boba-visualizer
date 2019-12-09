@@ -5,6 +5,7 @@ import BootstrapVue from 'bootstrap-vue'
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 import '@fortawesome/fontawesome-free/js/all.min.js'
+import '../assets/style.css'
 import {log_debug} from './controllers/config'
 
 Vue.use(BootstrapVue)

@@ -4,8 +4,8 @@
     <detail-tip :left="left" :top="top"></detail-tip>
 
     <!--chart-->
-    <div class="mt-3 mb-4 text-center">Predicted Difference: Female - Male</div>
-    <div id="agg-vis-container" ref="chart"></div>
+    <div id="agg-vis-container" ref="chart" class="mt-3"></div>
+    <div class="text-center text-small">Predicted Difference: Female - Male</div>
     <option-ratio-view></option-ratio-view>
   </div>
 </template>
