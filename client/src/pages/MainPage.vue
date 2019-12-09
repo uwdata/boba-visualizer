@@ -20,7 +20,9 @@
         <div class="bb-menu-bar"></div>
 
         <!--ADG-->
-        <div class="h-100"></div>
+        <div class="h-100">
+          <adg-view></adg-view>
+        </div>
       </div>
 
       <!--Right Panel-->
@@ -45,13 +47,14 @@
   import TitleMenu from '../components/TitleMenu.vue'
   import AggregateVis from '../components/AggregateVis.vue'
   import LoadingSpinner from '../components/LoadingSpinner.vue'
+  import AdgView from '../components/AdgView.vue'
 
   export default {
-    components: {LoadingSpinner, AggregateVis, TitleMenu, HelpButton},
+    components: {AdgView, LoadingSpinner, AggregateVis, TitleMenu, HelpButton},
 
     data () {
       return {
-        loading: true
+        loading: false //fixme
       }
     },
 
