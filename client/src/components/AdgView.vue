@@ -1,5 +1,5 @@
 <template>
-  <div class="h-100">
+  <div>
     <div id="adg-container" ref="chart" class="h-100"></div>
   </div>
 </template>
@@ -54,10 +54,12 @@
     fill #fff
     stroke #000
     stroke-width 2
+    cursor pointer
 
   .adg_node_label
     font-size 14px
     text-transform capitalize
+    cursor pointer
 
   .adg_edge
     stroke #bbb

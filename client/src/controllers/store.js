@@ -2,7 +2,6 @@
 
 import http from 'axios'
 import _ from 'lodash'
-import {log_debug} from './config'
 
 /**
  * Shared data store across pages.
@@ -21,6 +20,9 @@ class Store {
     // predicted outcomes
     this.predictions = []
     this.predicted_diff = []
+
+    // filter based on decisions
+    this.filter = {}
   }
 
   /**
@@ -124,10 +126,10 @@ class Store {
             _.each(msg.data.decisions, (dec) => {
               this.decisions[dec.var] = dec.options
             })
+            this.resetFilter()
 
             // graph
             this.graph = msg.data.graph
-            log_debug(this.graph)
 
             resolve()
           } else {
@@ -183,6 +185,21 @@ class Store {
     })
 
     return res
+  }
+
+  /**
+   * Reset the filter based on decisions
+   */
+  resetFilter () {
+    let f = {}
+    _.each(this.decisions, (opts, dec) => {
+      f[dec] = {}
+      _.each(opts, (opt) => {
+        f[dec][opt] = true
+      })
+    })
+
+    this.filter = f
   }
 }
 

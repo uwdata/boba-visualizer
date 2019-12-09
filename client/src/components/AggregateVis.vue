@@ -11,6 +11,7 @@
 </template>
 
 <script>
+  import _ from 'lodash'
   import {bus, log_debug, store} from '../controllers/config'
   import BandPlot from '../controllers/band_plot'
   import StackedDotPlot from '../controllers/stacked_dot_plot'
@@ -32,7 +33,19 @@
 
   function draw () {
     // prepare data
-    let data = store.predicted_diff
+    let data = []
+    _.each(store.predicted_diff, (d) => {
+      let uni = store.getUniverseById(d.uid)
+      let pass = true
+      _.each(store.filter, (x, dec) => {
+        let opt = uni[dec]
+        pass = pass && (store.filter[dec][opt])
+      })
+
+      if (pass) {
+        data.push(d)
+      }
+    })
 
     // redraw
     clear.call(this)
@@ -58,6 +71,7 @@
 
       // register event listener
       bus.$on('data-ready', draw.bind(this))
+      bus.$on('filter', draw.bind(this))
     }
   }
 </script>

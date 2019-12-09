@@ -49,6 +49,10 @@
           return {name: dec, value: res}
         })
       })
+
+      bus.$on('filter', () => {
+        this.decisions = []
+      })
     }
   }
 </script>

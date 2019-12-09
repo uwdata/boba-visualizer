@@ -21,7 +21,8 @@
 
         <!--ADG-->
         <div class="h-100">
-          <adg-view></adg-view>
+          <adg-view class="h-50"></adg-view>
+          <filter-option-view class="h-50"></filter-option-view>
         </div>
       </div>
 
@@ -42,15 +43,17 @@
 </template>
 
 <script>
-  import {store, bus, log_debug} from '../controllers/config'
+  import {store, bus} from '../controllers/config'
   import HelpButton from '../components/HelpButton.vue'
   import TitleMenu from '../components/TitleMenu.vue'
   import AggregateVis from '../components/AggregateVis.vue'
   import LoadingSpinner from '../components/LoadingSpinner.vue'
   import AdgView from '../components/AdgView.vue'
+  import FilterOptionView from '../components/FilterOptionView.vue'
 
   export default {
-    components: {AdgView, LoadingSpinner, AggregateVis, TitleMenu, HelpButton},
+    components: {FilterOptionView, AdgView, LoadingSpinner, AggregateVis,
+      TitleMenu, HelpButton},
 
     data () {
       return {

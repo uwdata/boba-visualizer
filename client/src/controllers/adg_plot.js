@@ -1,6 +1,7 @@
 import * as d3 from 'd3'
 import _ from 'lodash'
 import GraphScale from './vis/graph_scale'
+import {bus} from './config'
 
 /**
  * A plot for ADG.
@@ -96,6 +97,7 @@ class ADGPlot {
       .attr('r', () => this.node_radius)
       .attr('cx', (d) => d._x)
       .attr('cy', (d) => scale.y(d.order))
+      .on('click', this._nodeClick)
 
     // node label
     objects.selectAll('.adg_node_label')
@@ -106,6 +108,11 @@ class ADGPlot {
       .text((d) => d.name)
       .attr('x', (d) => d._x + this.node_radius + 10)
       .attr('y', (d) => scale.y(d.order) + 5)
+      .on('click', this._nodeClick)
+  }
+
+  _nodeClick (d) {
+    bus.$emit('adg-node-click', d.name)
   }
 }
 
