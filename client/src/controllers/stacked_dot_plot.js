@@ -2,7 +2,7 @@ import * as d3 from 'd3'
 import _ from 'lodash'
 import BandScale from './vis/band_scale'
 import BrushX from './vis/brushX'
-import {bus} from './config'
+import {bus, store} from './config'
 
 class StackedDotPlot {
   constructor () {
@@ -41,7 +41,8 @@ class StackedDotPlot {
       'margin': this.margin,
       'x_field': 'diff'
     }
-    let scale = new BandScale(data, scale_params)
+    // fixme: here I hack to make the scale consistent
+    let scale = new BandScale(store.predicted_diff, scale_params)
     this.scale = scale
 
     // compute the bins

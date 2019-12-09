@@ -31,10 +31,15 @@
         <!--Menu-->
         <div class="bb-menu-bar"></div>
 
-        <!--Visualization-->
+        <!--Visualizations-->
         <div class="h-100">
-          <div><aggregate-vis></aggregate-vis></div>
-          <div class="h-100"></div>
+          <!--Aggregate Visualization-->
+          <aggregate-vis class="h-50"></aggregate-vis>
+
+          <!--Option distribution-->
+          <div class="h-50">
+            <option-ratio-view></option-ratio-view>
+          </div>
         </div>
       </div>
 
@@ -50,10 +55,11 @@
   import LoadingSpinner from '../components/LoadingSpinner.vue'
   import AdgView from '../components/AdgView.vue'
   import FilterOptionView from '../components/FilterOptionView.vue'
+  import OptionRatioView from '../components/OptionRatioView.vue'
 
   export default {
     components: {FilterOptionView, AdgView, LoadingSpinner, AggregateVis,
-      TitleMenu, HelpButton},
+      TitleMenu, HelpButton, OptionRatioView},
 
     data () {
       return {

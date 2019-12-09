@@ -1,12 +1,12 @@
 <template>
-  <div class="h-100" ref="parent">
+  <div ref="parent" class="d-flex flex-column">
     <!--tool-tip-->
     <detail-tip :left="left" :top="top"></detail-tip>
 
     <!--chart-->
-    <div id="agg-vis-container" ref="chart" class="mt-3"></div>
+    <div id="agg-vis-container" ref="chart" class="mt-3 h-100"></div>
     <div class="text-center text-small">Predicted Difference: Female - Male</div>
-    <option-ratio-view></option-ratio-view>
+
   </div>
 </template>
 
@@ -16,7 +16,6 @@
   import BandPlot from '../controllers/band_plot'
   import StackedDotPlot from '../controllers/stacked_dot_plot'
   import DetailTip from './DetailTip.vue'
-  import OptionRatioView from './OptionRatioView.vue'
 
   function clear () {
     // remove all nodes
@@ -54,7 +53,7 @@
 
   export default {
     name: "AggregateVis",
-    components: {OptionRatioView, DetailTip},
+    components: {DetailTip},
     data () {
       return {
         chart: new StackedDotPlot(),
@@ -77,9 +76,6 @@
 </script>
 
 <style lang="stylus">
-  #agg-vis-container
-    height 300px
-
   .dot.brushed
     fill #f00 !important
 </style>
