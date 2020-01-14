@@ -1,6 +1,6 @@
 import * as d3 from 'd3'
 import _ from 'lodash'
-import BandScale from './vis/band_scale'
+import DotPlotScale from './vis/dot_plot_scale'
 import BrushX from './vis/brushX'
 import {bus, store} from './config'
 
@@ -17,6 +17,7 @@ class StackedDotPlot {
     this.background = '#fff'
     this.axis = true
     this.dot_radius = 4
+    this.jitter = true
 
     // assigned when calling draw
     this.parent = ''
@@ -42,7 +43,7 @@ class StackedDotPlot {
       'x_field': 'diff'
     }
     // fixme: here I hack to make the scale consistent
-    let scale = new BandScale(store.predicted_diff, scale_params)
+    let scale = new DotPlotScale(store.predicted_diff, scale_params)
     this.scale = scale
 
     // prepare the canvas
@@ -83,7 +84,7 @@ class StackedDotPlot {
       .attr('height', scale.height())
 
     // dots
-    this._drawHistoDots(objects)
+    this._drawJittered(objects)  // replace different chart types here
       .on('mouseover', dotMouseover)
       .on('mouseout', dotMouseout)
 
@@ -98,10 +99,39 @@ class StackedDotPlot {
   }
 
   /**
+   * Draw jittered plot. When dots overlap, displace the y position by adding
+   * a small amount of uniform random error.
+   * @param parent
+   * @returns {*|void} D3 selections of all dots.
+   * @private
+   */
+  _drawJittered (parent) {
+    let scale = this.scale
+    let data = this.data
+
+    let dots = parent.selectAll('.dot')
+      .data(data)
+      .enter()
+      .append('circle')
+      .classed('dot', true)
+      .attr('r', () => this.dot_radius)
+      .attr('cx', (d) => scale.x(d.diff))
+      .attr('cy', (d) => {
+        let y = (scale.height() - this.dot_radius) / 2
+        let j = this.jitter ? (Math.random() - 0.5)  * scale.height() : 0
+        d._y = y + j // save this for brushing
+        return y + j
+      })
+      .attr('fill-opacity', 0.3)
+
+    return dots
+  }
+
+  /**
    * Draw histogram dot plot. Note that we're using the true x value, instead
    * of the binned x value. Also, we allow dots to overlap along the y-axis.
    * @param parent
-   * @returns {*|void}
+   * @returns {*|void} D3 selections of all dots.
    * @private
    */
   _drawHistoDots (parent) {

@@ -1,7 +1,7 @@
 import * as d3 from 'd3'
 import BaseScale from './base_scale'
 
-class BandScale extends BaseScale {
+class DotPlotScale extends BaseScale {
   constructor (data, params) {
     super(params)
 
@@ -31,4 +31,4 @@ class BandScale extends BaseScale {
   }
 }
 
-export default BandScale
+export default DotPlotScale

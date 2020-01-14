@@ -13,7 +13,6 @@
 <script>
   import _ from 'lodash'
   import {bus, log_debug, store} from '../controllers/config'
-  import BandPlot from '../controllers/band_plot'
   import StackedDotPlot from '../controllers/stacked_dot_plot'
   import DetailTip from './DetailTip.vue'
 
