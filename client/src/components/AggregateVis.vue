@@ -77,4 +77,7 @@
 <style lang="stylus">
   .dot.brushed
     fill #f00 !important
+
+  .dot
+    fill #333
 </style>

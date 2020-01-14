@@ -44,6 +44,7 @@ class StackedDotPlot {
     }
     // fixme: here I hack to make the scale consistent
     let scale = new DotPlotScale(store.predicted_diff, scale_params)
+    // let scale = new DotPlotScale(data, scale_params)
     this.scale = scale
 
     // prepare the canvas
@@ -84,7 +85,7 @@ class StackedDotPlot {
       .attr('height', scale.height())
 
     // dots
-    this._drawJittered(objects)  // replace different chart types here
+    this._drawDensityDots(objects)  // replace different chart types here
       .on('mouseover', dotMouseover)
       .on('mouseout', dotMouseout)
 
@@ -96,6 +97,65 @@ class StackedDotPlot {
     function dotMouseout(d) {
       bus.$emit('agg-vis.dot-mouseout', {data: d})
     }
+  }
+
+  /**
+   * Draw density dot plots (from Allison & Cicchetti, 1976) without smoothing
+   * Opacity will be adjusted based on the amount of overlap
+   * @param parent
+   * @returns {*}
+   * @private
+   */
+  _drawDensityDots (parent) {
+    let scale = this.scale
+    let data = this.data
+    let bin_size = this.dot_radius * 2  // x-axis bin size
+
+    // sort data
+    _.each(data, (d, idx) => {
+      d._index = idx
+    })
+    let sorted = _.sortBy(data, (d) => d.diff)
+
+    // dot density algorithm
+    let i = 0
+    let x = null
+    let count = 0
+    while (i < sorted.length) {
+      let xi = sorted[i].diff
+      if (x != null && scale.x(xi) < scale.x(x) + bin_size) {
+        count += 1
+      } else {
+        x = xi
+        count = 0
+      }
+
+      let idx =sorted[i]._index
+      data[idx]._x = x
+      data[idx]._y = count
+
+      i += 1
+    }
+
+    // compute y based on counts
+    let step = Math.min(scale.height() / (d3.max(data, (d) => d._y) + 1),
+      this.dot_radius * 2)
+    _.each(data, (d) => {
+      d._y = scale.height() - d._y * step - step * 0.5
+    })
+
+    let opacity = Math.max(0.3, Math.min(0.8, step / this.dot_radius * 0.5))
+    let dots = parent.selectAll('.dot')
+      .data(data)
+      .enter()
+      .append('circle')
+      .classed('dot', true)
+      .attr('r', () => this.dot_radius)
+      .attr('cx', (d) => scale.x(d._x))
+      .attr('cy', (d) => d._y)
+      .attr('fill-opacity', opacity)
+
+    return dots
   }
 
   /**
