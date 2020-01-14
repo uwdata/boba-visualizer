@@ -45,22 +45,6 @@ class StackedDotPlot {
     let scale = new BandScale(store.predicted_diff, scale_params)
     this.scale = scale
 
-    // compute the bins
-    let hist = d3.histogram()
-      .value((d) => d.diff)
-      .domain(scale.x.domain())
-      .thresholds(Math.floor(scale.width() / this.dot_radius))
-
-    let bins = hist(data)
-    let step = scale.height() / d3.max(bins, (d) => d.length)
-
-    // compute the y position for each point
-    _.each(bins, (arr) => {
-      _.each(arr, (d, idx) => {
-        d._y = scale.height() - Math.floor(idx * step)
-      })
-    })
-
     // prepare the canvas
     let svg = d3.select(parent)
       .append('svg')
@@ -93,21 +77,13 @@ class StackedDotPlot {
           .attr('stroke-dasharray', '2, 2'))
     }
 
-    // dots
     let objects = svg.append('svg')
       .classed('objects', true)
       .attr('width', scale.width())
       .attr('height', scale.height())
 
-    let dots = objects.selectAll('.dot')
-      .data(data)
-      .enter()
-      .append('circle')
-      .classed('dot', true)
-      .attr('r', () => this.dot_radius)
-      .attr('cx', (d) => scale.x(d.diff))
-      .attr('cy', (d) => d._y)
-      .attr('fill-opacity', 0.3)
+    // dots
+    this._drawHistoDots(objects)
       .on('mouseover', dotMouseover)
       .on('mouseout', dotMouseout)
 
@@ -119,6 +95,47 @@ class StackedDotPlot {
     function dotMouseout(d) {
       bus.$emit('agg-vis.dot-mouseout', {data: d})
     }
+  }
+
+  /**
+   * Draw histogram dot plot. Note that we're using the true x value, instead
+   * of the binned x value. Also, we allow dots to overlap along the y-axis.
+   * @param parent
+   * @returns {*|void}
+   * @private
+   */
+  _drawHistoDots (parent) {
+    let scale = this.scale
+    let data = this.data
+
+    // compute the bins
+    let hist = d3.histogram()
+      .value((d) => d.diff)
+      .domain(scale.x.domain())
+      .thresholds(Math.floor(scale.width() / this.dot_radius))
+
+    let bins = hist(data)
+    let step = scale.height() / d3.max(bins, (d) => d.length)
+
+    // compute the y position for each point
+    _.each(bins, (arr) => {
+      _.each(arr, (d, idx) => {
+        d._y = scale.height() - Math.floor(idx * step)
+      })
+    })
+
+    // draw
+    let dots = parent.selectAll('.dot')
+      .data(data)
+      .enter()
+      .append('circle')
+      .classed('dot', true)
+      .attr('r', () => this.dot_radius)
+      .attr('cx', (d) => scale.x(d.diff))
+      .attr('cy', (d) => d._y)
+      .attr('fill-opacity', 0.3)
+
+    return dots
   }
 }
 
