@@ -8,20 +8,35 @@ import _ from 'lodash'
  */
 class Store {
   constructor () {
-    // decisions made in each universe
+    /**
+     * Metadata of each universe, including the decisions made.
+     * Each universe is an object in the array, using the following format.
+     * @example [{uid: 1, dec_A: "a1", dec_B: "b2"}]
+     */
     this.universes = []
 
-    // available decisions and their options
+    /**
+     * Available decisions and their options.
+     * The key is the decision name and the value is the option array.
+     * @example {dec_A: ["a1", "a2"], dec_B: ["b1", "b2"]}
+     */
     this.decisions = {}
 
-    // ADG
+    /**
+     * ADG, with the same data structure as in overview.json
+     */
     this.graph = {}
 
     // predicted outcomes
     this.predictions = []
     this.predicted_diff = []
 
-    // filter based on decisions
+    /**
+     * Filter based on decisions.
+     * Key is the decision name, value is a map of options.
+     * If false, all universes with this option will be dropped in the plot.
+     * @example {dec_A: {a1: true, a2: false}}
+     */
     this.filter = {}
   }
 
