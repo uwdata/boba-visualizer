@@ -1,8 +1,7 @@
 import * as d3 from 'd3'
 import * as dagre from 'dagre'
 import _ from 'lodash'
-import GraphScale from './vis/graph_scale'
-import {bus, store} from './config'
+import {bus, store, util} from './config'
 
 /**
  * A plot for ADG.
@@ -20,10 +19,11 @@ class ADGPlot {
     this.node_radius = 10
     this.node_stroke_width = 2
     this.font_size = 14
+    this.font_family = 'system-ui'
 
     // drawing individual options
-    this.show_options = false
-    this.max_options = 4
+    this.show_options = true
+    this.max_options = 3
     this.option_font_size = 9
     this.max_node_width = 100
 
@@ -165,7 +165,8 @@ class ADGPlot {
         .append('text')
         .classed('adg_node_label', true)
         .text((d) => d.label)
-        .attr('x', (d) => d.x - d.width / 2 + (d.width - d.label.length * this.font_size * 0.5) / 2)
+        .attr('x', (d) => d.x - d.width / 2 + (d.width -
+          util.getTextWidth(d.label, `${this.font_size}px ${this.font_family}`)) / 2)
         .attr('y', (d) => d.y - d.height / 2 + this.font_size + 5)
 
       // options
@@ -258,14 +259,14 @@ class ADGPlot {
     })
 
     // Add edges to the graph
-    let label_w = Math.max(..._.map(this.nodes, (nd) => nd.name.length))
-      * this.font_size * 0.7
+    let label_w = Math.max(..._.map(this.nodes, (nd) =>
+      util.getTextWidth(nd.name, `${this.font_size}px ${this.font_family}`)))
     _.each(this.edges, (ed) => {
       let params = {
         v: ed.source + '',
         w: ed.target + '',
         type: ed.type,
-        width: label_w,
+        width: label_w + 25,
         labeloffset: 25
       }
 
@@ -283,9 +284,10 @@ class ADGPlot {
     // Add nodes to the graph.
     _.each(this.nodes, (nd) => {
       let dec = store.getDecisionByName(nd.name)
-      let lo = Math.max(..._.map(dec.options, (opt) => opt.length))
-      let nw = Math.min(this.max_node_width, 10 +
-        Math.max(nd.name.length * this.font_size * 0.7, lo * this.option_font_size * 0.7))
+      let lo = Math.max(..._.map(dec.options, (opt) =>
+        util.getTextWidth(opt, `${this.option_font_size} ${this.font_family}`)))
+      let nw = Math.min(this.max_node_width, 20 +
+        Math.max(util.getTextWidth(nd.name, `${this.font_size}px ${this.font_family}`), lo))
       let nh = 20 + this.font_size + Math.min(this.max_options + 1,
         dec.options.length) * this.option_font_size
       let params = {

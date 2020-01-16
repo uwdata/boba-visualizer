@@ -2,6 +2,7 @@
 
 import Store from './store'
 import Vue from 'vue'
+import Util from './util'
 
 const DEBUG = process.env.NODE_ENV === 'development'
 
@@ -11,6 +12,9 @@ function log_debug (...args) {
     console.log(...args)
   }
 }
+
+// shared utilities
+let util = new Util()
 
 // shared store
 let store = new Store()
@@ -25,5 +29,6 @@ export {
   log_debug,
   store,
   bus,
+  util,
   tableau10
 }
