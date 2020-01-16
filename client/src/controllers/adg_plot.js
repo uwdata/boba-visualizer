@@ -21,6 +21,12 @@ class ADGPlot {
     this.node_stroke_width = 2
     this.font_size = 14
 
+    // drawing individual options
+    this.show_options = false
+    this.max_options = 4
+    this.option_font_size = 9
+    this.max_node_width = 100
+
     // assigned when calling draw
     this.parent = ''
     this.nodes = []
@@ -67,8 +73,8 @@ class ADGPlot {
 
     let objects = inner.append('svg')
       .classed('objects', true)
-      .attr('width', Math.max(outerWidth, graph.graph().width))
-      .attr('height', Math.max(outerHeight, graph.graph().height))
+      .attr('width', Math.max(outerWidth, graph.graph().width + 5))
+      .attr('height', Math.max(outerHeight, graph.graph().height + 5))
 
     // arrow
     svg.append('svg:defs').append('svg:marker')
@@ -116,27 +122,92 @@ class ADGPlot {
       return _.assign({single: !s}, nd)
     })
 
-    // nodes
-    objects.selectAll('.adg_node')
-      .data(nodes)
-      .enter()
-      .append('circle')
-      .classed('adg_node', true)
-      .attr('r', (d) => d.radius - this.node_stroke_width)
-      .attr('cx', (d) => d.x)
-      .attr('cy', (d) => d.y)
-      .on('click', this._nodeClick)
+    if (!this.show_options) {
+      // nodes
+      objects.selectAll('.adg_node')
+        .data(nodes)
+        .enter()
+        .append('circle')
+        .classed('adg_node', true)
+        .attr('r', (d) => d.radius - this.node_stroke_width)
+        .attr('cx', (d) => d.x)
+        .attr('cy', (d) => d.y)
+        .on('click', this._nodeClick)
 
-    // node label
-    objects.selectAll('.adg_node_label')
-      .data(nodes)
-      .enter()
-      .append('text')
-      .classed('adg_node_label', true)
-      .text((d) => d.label)
-      .attr('x', (d) => d.x + d.radius + (d.single ? 10 : 3))
-      .attr('y', (d) => d.y + 5)
-      .on('click', this._nodeClick)
+      // node label
+      objects.selectAll('.adg_node_label')
+        .data(nodes)
+        .enter()
+        .append('text')
+        .classed('adg_node_label', true)
+        .text((d) => d.label)
+        .attr('x', (d) => d.x + d.radius + (d.single ? 10 : 3))
+        .attr('y', (d) => d.y + 5)
+        .on('click', this._nodeClick)
+    } else {
+      // nodes
+      objects.selectAll('.adg_node')
+        .data(nodes)
+        .enter()
+        .append('rect')
+        .classed('adg_node', true)
+        .attr('x', (d) => d.x - d.width / 2 + 1)
+        .attr('y', (d) => d.y - d.height / 2 + 1)
+        .attr('width', (d) => d.width)
+        .attr('height', (d) => d.height)
+        .attr('rx', () => this.font_size)
+        .on('click', this._nodeClick)
+
+      // title
+      objects.selectAll('.adg_node_label')
+        .data(nodes)
+        .enter()
+        .append('text')
+        .classed('adg_node_label', true)
+        .text((d) => d.label)
+        .attr('x', (d) => d.x - d.width / 2 + (d.width - d.label.length * this.font_size * 0.5) / 2)
+        .attr('y', (d) => d.y - d.height / 2 + this.font_size + 5)
+
+      // options
+      _.each(nodes, (nd) => {
+        let x_start = nd.x - nd.width / 2
+        let y_start = nd.y - nd.height / 2 + this.font_size * 2 - this.option_font_size + 5
+
+        let tp = objects.append('text')
+          .classed('adg_option_label', true)
+          .attr('y', y_start)
+
+        // render each option as tspan
+        let max_char = Math.floor(this.max_node_width / (this.option_font_size * 0.6))
+        _.each(nd.options, (opt, idx) => {
+          if (idx < this.max_options) {
+            opt = opt.length > max_char ? opt.substring(0, max_char - 3) + '...' : opt
+
+            tp.append('tspan')
+              .text(opt)
+              .attr('x',  x_start + 20)
+              .attr('dy', '1em')
+
+            // also draw a symbol
+            objects.append('rect')
+              .classed('adg_option', true)
+              .attr('x', x_start + 10)
+              .attr('y', y_start + this.option_font_size * idx + 4)
+              .attr('height', 5)
+              .attr('width', 5)
+              .attr('rx', 2)
+          }
+        })
+
+        // clip
+        if (nd.options.length > this.max_options) {
+          tp.append('tspan')
+            .text(`... ${nd.options.length - this.max_options} more`)
+            .attr('x', x_start + 20)
+            .attr('dy', '1em')
+        }
+      })
+    }
 
     // center the graph
     this._fitGraph()
@@ -161,6 +232,84 @@ class ADGPlot {
     this.svg.call(this.zoom.transform, zooming)
   }
 
+  _createGraphSimple (g) {
+    // Set an object for the graph label
+    g.setGraph({
+      nodesep: 10, // number of pixels that separate nodes horizontally
+      ranksep: this.node_radius  // number of pixels between each rank
+    })
+
+    // Add nodes to the graph.
+    _.each(this.nodes, (nd) => {
+      let dec = store.getDecisionByName(nd.name)
+
+      // node size encodes the number of options
+      let scale = Math.sqrt(dec.options.length / 2)
+      let r = Math.round(this.node_radius * scale)
+      let params = {
+        label: nd.name,
+        options: dec.options,
+        radius: r,
+        width: r * 2,
+        height: r * 2
+      }
+
+      g.setNode(nd.id, params)
+    })
+
+    // Add edges to the graph
+    let label_w = Math.max(..._.map(this.nodes, (nd) => nd.name.length))
+      * this.font_size * 0.7
+    _.each(this.edges, (ed) => {
+      let params = {
+        v: ed.source + '',
+        w: ed.target + '',
+        type: ed.type,
+        width: label_w,
+        labeloffset: 25
+      }
+
+      g.setEdge(ed.source, ed.target, params)
+    })
+  }
+
+  _createGraphWithOptions (g) {
+    // Set an object for the graph label
+    g.setGraph({
+      nodesep: 10, // number of pixels that separate nodes horizontally
+      ranksep: this.node_radius * 2  // number of pixels between each rank
+    })
+
+    // Add nodes to the graph.
+    _.each(this.nodes, (nd) => {
+      let dec = store.getDecisionByName(nd.name)
+      let lo = Math.max(..._.map(dec.options, (opt) => opt.length))
+      let nw = Math.min(this.max_node_width, 10 +
+        Math.max(nd.name.length * this.font_size * 0.7, lo * this.option_font_size * 0.7))
+      let nh = 20 + this.font_size + Math.min(this.max_options + 1,
+        dec.options.length) * this.option_font_size
+      let params = {
+        label: nd.name,
+        options: dec.options,
+        width: nw,
+        height: nh
+      }
+
+      g.setNode(nd.id, params)
+    })
+
+    // Add edges to the graph
+    _.each(this.edges, (ed) => {
+      let params = {
+        v: ed.source + '',
+        w: ed.target + '',
+        type: ed.type
+      }
+
+      g.setEdge(ed.source, ed.target, params)
+    })
+  }
+
   /**
    * Use a layout algorithm to compute the coordinates of nodes and edges.
    * @returns {dagre.graphlib.Graph}
@@ -170,42 +319,15 @@ class ADGPlot {
     // Create a new directed graph
     let g = new dagre.graphlib.Graph()
 
-    // Set an object for the graph label
-    g.setGraph({
-      nodesep: 10, // number of pixels that separate nodes horizontally
-      ranksep: this.node_radius  // number of pixels between each rank
-    })
-
     // Default to assigning a new object as a label for each new edge.
     g.setDefaultEdgeLabel(() => {return {}})
 
-    // Add nodes to the graph.
-    _.each(this.nodes, (nd) => {
-      let dec = store.getDecisionByName(nd.name)
-
-      // node size encodes the number of options
-      let scale = Math.sqrt(dec.options.length / 2)
-      let r = Math.round(this.node_radius * scale)
-
-      g.setNode(nd.id, {
-        label: nd.name,
-        options: dec.options,
-        radius: r,
-        width: r * 2,
-        height: r * 2})
-    })
-
-    // Add edges to the graph
-    let label_w = Math.max(..._.map(this.nodes, (nd) => nd.name.length))
-      * this.font_size * 0.7
-    _.each(this.edges, (ed) => {
-      g.setEdge(ed.source, ed.target, {
-        v: ed.source + '',
-        w: ed.target + '',
-        type: ed.type,
-        width: label_w,
-        labeloffset: 25})
-    })
+    // Add nodes and edges to the graph, depending on vis type.
+    if (this.show_options) {
+      this._createGraphWithOptions(g)
+    } else {
+      this._createGraphSimple(g)
+    }
 
     // compute edge width
     _.each(g.sinks(), (nd) => {

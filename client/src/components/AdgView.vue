@@ -61,6 +61,14 @@
     text-transform capitalize
     cursor pointer
 
+  .adg_option
+    fill #bbb
+    stroke #bbb
+
+  .adg_option_label
+    font-size 9px
+    fill #666
+
   .adg_edge
     fill none
 
