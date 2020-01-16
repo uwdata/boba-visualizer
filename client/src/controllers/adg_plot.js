@@ -17,7 +17,7 @@ class ADGPlot {
       bottom: 15,
       left: 15
     }
-    this.node_radius = 8
+    this.node_radius = 10
     this.node_stroke_width = 2
     this.font_size = 14
 
@@ -67,24 +67,48 @@ class ADGPlot {
 
     let objects = inner.append('svg')
       .classed('objects', true)
-      .attr('width', outerWidth)
-      .attr('height', outerHeight)
+      .attr('width', Math.max(outerWidth, graph.graph().width))
+      .attr('height', Math.max(outerHeight, graph.graph().height))
+
+    // arrow
+    svg.append('svg:defs').append('svg:marker')
+      .attr('id', 'arrow')
+      .attr('viewBox', '0 -5 10 10')
+      .attr('refX', 8)  // so it comes towards the center
+      .attr('markerWidth', 5)
+      .attr('markerHeight', 5)
+      .attr('orient', 'auto')
+      .append('svg:path')
+      .attr('d', 'M0,-5L10,0L0,5')
 
     // edge
     _.each(graph._edgeLabels, (ed) => {
       let line = d3.line()
         .x((d) => d.x)
         .y((d) => d.y)
-        .curve(d3.curveCatmullRom.alpha(0.5))
+        .curve(d3.curveBasis)
 
-      objects.append('path')
+      let path = objects.append('path')
         .datum(ed.points)
         .classed('adg_edge', true)
+        .classed('edge_' + ed.type, true)
         .attr('d', line)
+
+      if (ed.type === 'procedural') {
+        path.attr('marker-end', (d) => "url(#arrow)")
+      }
+    })
+
+    // find the nodes that are not alone on a rank so we can place label closer
+    let nodes = _.map(graph._nodes, (nd) => nd)
+    nodes = _.sortBy(nodes, (nd) => nd.y)
+    nodes = _.map(nodes, (nd, i) => {
+      let s = i > 0 ? Math.abs(nodes[i - 1].y - nd.y) < 0.1 : false
+      s = s || (i + 1 < nodes.length ? Math.abs(nodes[i + 1].y - nd.y) < 0.1 : false)
+      return _.assign({single: !s}, nd)
     })
 
     // nodes
-    let nodes = _.map(graph._nodes, (nd) => nd)
     objects.selectAll('.adg_node')
       .data(nodes)
       .enter()
@@ -102,7 +126,7 @@ class ADGPlot {
       .append('text')
       .classed('adg_node_label', true)
       .text((d) => d.label)
-      .attr('x', (d) => d.x + d.radius + 10)
+      .attr('x', (d) => d.x + d.radius + (d.single ? 10 : 3))
       .attr('y', (d) => d.y + 5)
       .on('click', this._nodeClick)
 
@@ -119,13 +143,10 @@ class ADGPlot {
     let margin = this.margin
     let w = this.outerWidth - margin.left - margin.right
     let h = this.outerHeight - margin.top - margin.bottom
-    let label_w = Math.max(..._.map(this.nodes, (nd) => nd.name.length))
-      * this.font_size * 0.6 + 10
-    let graph_w = graph.width + label_w
 
     // compute scaling
-    let initial_scale = Math.min(h / graph.height, w / graph_w, 1)
-    let left = (w - graph_w * initial_scale) / 2 + margin.left
+    let initial_scale = Math.min(h / graph.height, w / graph.width, 1)
+    let left = (w - graph.width * initial_scale) / 2 + margin.left
     let top = (h - graph.height * initial_scale) / 2 + margin.top
     let zooming = d3.zoomIdentity.translate(left, top)
       .scale(initial_scale)
@@ -144,7 +165,7 @@ class ADGPlot {
     // Set an object for the graph label
     g.setGraph({
       nodesep: 10, // number of pixels that separate nodes horizontally
-      ranksep: this.node_radius * 4  // number of pixels between each rank
+      ranksep: this.node_radius  // number of pixels between each rank
     })
 
     // Default to assigning a new object as a label for each new edge.
@@ -155,19 +176,25 @@ class ADGPlot {
       let dec = store.getDecisionByName(nd.name)
 
       // node size encodes the number of options
-      let scale = Math.sqrt(dec.options.length) * 2
+      let scale = Math.sqrt(dec.options.length / 2)
+      let r = this.node_radius * scale
 
       g.setNode(nd.id, {
         label: nd.name,
         options: dec.options,
-        radius: (this.node_radius * scale) / 2,
-        width: this.node_radius * scale,
-        height: this.node_radius * scale})
+        radius: r,
+        width: r * 2,
+        height: r * 2})
     })
 
     // Add edges to the graph
+    let label_w = Math.max(..._.map(this.nodes, (nd) => nd.name.length))
+      * this.font_size * 0.7
     _.each(this.edges, (ed) => {
-      g.setEdge(ed.source, ed.target)
+      g.setEdge(ed.source, ed.target, {
+        type: ed.type,
+        width: label_w,
+        labeloffset: 25})
     })
 
     // compute layout
