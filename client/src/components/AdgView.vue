@@ -63,11 +63,11 @@
 
   .adg_edge
     fill none
-    stroke-width 2
 
   .adg_edge.edge_order
     stroke #bbb
 
   .adg_edge.edge_procedural
     stroke #000
+    stroke-width 2
 </style>

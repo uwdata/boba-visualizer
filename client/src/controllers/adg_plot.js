@@ -88,6 +88,12 @@ class ADGPlot {
         .y((d) => d.y)
         .curve(d3.curveBasis)
 
+      // force the edge to start and end from node center
+      ed.points.unshift(_.pick(graph.node(ed.v), ['x', 'y']))
+      if (ed.type !== 'procedural') {
+        ed.points.push(_.pick(graph.node(ed.w), ['x', 'y']))
+      }
+
       let path = objects.append('path')
         .datum(ed.points)
         .classed('adg_edge', true)
@@ -95,7 +101,9 @@ class ADGPlot {
         .attr('d', line)
 
       if (ed.type === 'procedural') {
-        path.attr('marker-end', (d) => "url(#arrow)")
+        path.attr('marker-end', () => "url(#arrow)")
+      } else {
+        path.attr('stroke-width', ed.stroke_width)
       }
     })
 
@@ -103,8 +111,8 @@ class ADGPlot {
     let nodes = _.map(graph._nodes, (nd) => nd)
     nodes = _.sortBy(nodes, (nd) => nd.y)
     nodes = _.map(nodes, (nd, i) => {
-      let s = i > 0 ? Math.abs(nodes[i - 1].y - nd.y) < 0.1 : false
-      s = s || (i + 1 < nodes.length ? Math.abs(nodes[i + 1].y - nd.y) < 0.1 : false)
+      let s = i > 0 ? Math.abs(nodes[i - 1].y - nd.y) < 15 : false
+      s = s || (i + 1 < nodes.length ? Math.abs(nodes[i + 1].y - nd.y) < 15 : false)
       return _.assign({single: !s}, nd)
     })
 
@@ -177,7 +185,7 @@ class ADGPlot {
 
       // node size encodes the number of options
       let scale = Math.sqrt(dec.options.length / 2)
-      let r = this.node_radius * scale
+      let r = Math.round(this.node_radius * scale)
 
       g.setNode(nd.id, {
         label: nd.name,
@@ -192,9 +200,23 @@ class ADGPlot {
       * this.font_size * 0.7
     _.each(this.edges, (ed) => {
       g.setEdge(ed.source, ed.target, {
+        v: ed.source + '',
+        w: ed.target + '',
         type: ed.type,
         width: label_w,
         labeloffset: 25})
+    })
+
+    // compute edge width
+    _.each(g.sinks(), (nd) => {
+      this._accumulateSize(nd, g)
+    })
+    _.each(g.nodes(), (nd) => {
+      let size = Math.log2(g.node(nd).acc_count) * 2
+      _.each(g.outEdges(nd), (ed) => {
+        let params = g.edge(ed.v, ed.w)
+        g.setEdge(ed.v, ed.w, _.assign({stroke_width: Math.round(size)}, params))
+      })
     })
 
     // compute layout
@@ -205,6 +227,34 @@ class ADGPlot {
 
   _nodeClick (d) {
     bus.$emit('adg-node-click', d.label)
+  }
+
+  /**
+   * A recursive function to compute the accumulated number of options
+   * @param node The current node id.
+   * @param g The graph object.
+   * @private
+   */
+  _accumulateSize (node, g) {
+    let n = g.node(node)
+    if (n.acc_count != null) {
+      return
+    }
+
+    let preds = g.predecessors(node)
+    if (!preds.length) {
+      let size = n.options.length
+      g.setNode(node, _.assign({'acc_count': size}, n))
+      return
+    }
+
+    _.each(preds, (p) => {
+      this._accumulateSize(p, g)
+    })
+
+    preds = _.map(preds, (p) => g.node(p).acc_count)
+    let size = n.options.length * _.reduce(preds, (sum, n) => sum + n, 0)
+    g.setNode(node, _.assign({'acc_count': size}, n))
   }
 }
 
