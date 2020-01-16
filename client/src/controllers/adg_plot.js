@@ -2,7 +2,7 @@ import * as d3 from 'd3'
 import * as dagre from 'dagre'
 import _ from 'lodash'
 import GraphScale from './vis/graph_scale'
-import {bus} from './config'
+import {bus, store} from './config'
 
 /**
  * A plot for ADG.
@@ -17,9 +17,9 @@ class ADGPlot {
       bottom: 15,
       left: 15
     }
-    this.background = '#fafafa'
     this.node_radius = 8
     this.node_stroke_width = 2
+    this.font_size = 14
 
     // assigned when calling draw
     this.parent = ''
@@ -90,7 +90,7 @@ class ADGPlot {
       .enter()
       .append('circle')
       .classed('adg_node', true)
-      .attr('r', () => this.node_radius - this.node_stroke_width)
+      .attr('r', (d) => d.radius - this.node_stroke_width)
       .attr('cx', (d) => d.x)
       .attr('cy', (d) => d.y)
       .on('click', this._nodeClick)
@@ -102,7 +102,7 @@ class ADGPlot {
       .append('text')
       .classed('adg_node_label', true)
       .text((d) => d.label)
-      .attr('x', (d) => d.x + this.node_radius + 10)
+      .attr('x', (d) => d.x + d.radius + 10)
       .attr('y', (d) => d.y + 5)
       .on('click', this._nodeClick)
 
@@ -119,10 +119,13 @@ class ADGPlot {
     let margin = this.margin
     let w = this.outerWidth - margin.left - margin.right
     let h = this.outerHeight - margin.top - margin.bottom
+    let label_w = Math.max(..._.map(this.nodes, (nd) => nd.name.length))
+      * this.font_size * 0.6 + 10
+    let graph_w = graph.width + label_w
 
     // compute scaling
-    let initial_scale = Math.min(h / graph.height, w / graph.width, 1)
-    let left = (w - graph.width * initial_scale) / 2 + margin.left
+    let initial_scale = Math.min(h / graph.height, w / graph_w, 1)
+    let left = (w - graph_w * initial_scale) / 2 + margin.left
     let top = (h - graph.height * initial_scale) / 2 + margin.top
     let zooming = d3.zoomIdentity.translate(left, top)
       .scale(initial_scale)
@@ -149,8 +152,17 @@ class ADGPlot {
 
     // Add nodes to the graph.
     _.each(this.nodes, (nd) => {
-      g.setNode(nd.id, {label: nd.name, width: this.node_radius * 2,
-        height: this.node_radius * 2})
+      let dec = store.getDecisionByName(nd.name)
+
+      // node size encodes the number of options
+      let scale = Math.sqrt(dec.options.length) * 2
+
+      g.setNode(nd.id, {
+        label: nd.name,
+        options: dec.options,
+        radius: (this.node_radius * scale) / 2,
+        width: this.node_radius * scale,
+        height: this.node_radius * scale})
     })
 
     // Add edges to the graph

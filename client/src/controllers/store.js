@@ -216,6 +216,10 @@ class Store {
 
     this.filter = f
   }
+
+  getDecisionByName (name) {
+    return {name: name, options: this.decisions[name]}
+  }
 }
 
 export default Store
