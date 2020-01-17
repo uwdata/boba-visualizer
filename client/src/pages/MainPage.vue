@@ -20,8 +20,8 @@
         <div class="bb-menu-bar"></div>
 
         <!--ADG-->
-        <div class="h-100">
-          <adg-view class="h-50"></adg-view>
+        <div class="h-100 d-flex flex-column">
+          <adg-view class="h-100"></adg-view>
           <filter-option-view class="h-50"></filter-option-view>
         </div>
       </div>

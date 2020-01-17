@@ -72,6 +72,10 @@
   .adg_edge
     fill none
 
+  .adg_edge.edge_option
+    stroke #bbb
+    stroke-wdith 1
+
   .adg_edge.edge_order
     stroke #bbb
 

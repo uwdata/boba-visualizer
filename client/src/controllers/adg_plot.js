@@ -22,10 +22,11 @@ class ADGPlot {
     this.font_family = 'system-ui'
 
     // drawing individual options
-    this.show_options = true
+    this.show_options = 1 // 0 - simple, 1 - annotated options, 2 - options inside nodes
     this.max_options = 3
     this.option_font_size = 9
     this.max_node_width = 100
+    this.annotation_width = 100
 
     // assigned when calling draw
     this.parent = ''
@@ -115,14 +116,14 @@ class ADGPlot {
 
     // find the nodes that are not alone on a rank so we can place label closer
     let nodes = _.map(graph._nodes, (nd) => nd)
-    nodes = _.sortBy(nodes, (nd) => nd.y)
+    nodes = _.sortBy(nodes, ['y', 'x'])
     nodes = _.map(nodes, (nd, i) => {
-      let s = i > 0 ? Math.abs(nodes[i - 1].y - nd.y) < 15 : false
-      s = s || (i + 1 < nodes.length ? Math.abs(nodes[i + 1].y - nd.y) < 15 : false)
-      return _.assign({single: !s}, nd)
+      let leftmost = i > 0 ? Math.abs(nodes[i - 1].y - nd.y) > 15 : true
+      let rightmost = i + 1 < nodes.length ? Math.abs(nodes[i + 1].y - nd.y) > 15 : true
+      return _.assign({leftmost: leftmost, rightmost: rightmost}, nd)
     })
 
-    if (!this.show_options) {
+    if (this.show_options < 2) {
       // nodes
       objects.selectAll('.adg_node')
         .data(nodes)
@@ -141,10 +142,71 @@ class ADGPlot {
         .append('text')
         .classed('adg_node_label', true)
         .text((d) => d.label)
-        .attr('x', (d) => d.x + d.radius + (d.single ? 10 : 3))
+        .attr('x', (d) => d.x + d.radius + (d.rightmost && d.leftmost ? 10 : 3))
         .attr('y', (d) => d.y + 5)
         .on('click', this._nodeClick)
-    } else {
+    }
+
+    if (this.show_options === 1) {
+      let w_edge = 10
+      let r_node = 2
+      let padding = 3
+      let w_text = this.annotation_width - w_edge - r_node * 2 - padding
+
+      // draw options beside each node
+      _.each(nodes, (nd) => {
+        // skip nodes that do not have space on the left ...
+        // fixme
+        if (!nd.leftmost) {
+          return
+        }
+
+        let total = Math.min(this.max_options + 1, nd.options.length)
+        let x_start = nd.x - nd.radius
+        let y_start = nd.y - (total - 1) * this.option_font_size / 2
+        let max_char = Math.floor(w_text / (this.option_font_size * 0.6))
+
+        _.each(nd.options, (opt, idx) => {
+          if (idx < total) {
+            let xx = x_start
+            let yy = y_start + idx * this.option_font_size
+            let dummy = nd.options.length > this.max_options && idx === this.max_options
+
+            // draw things from right to left
+            // first is the edge
+            objects.append('path')
+              .classed('adg_edge', true)
+              .classed('edge_option', true)
+              .attr('d', `M${xx} ${nd.y} L ${xx - w_edge} ${yy}`)
+
+            // then, draw the symbol
+            if (!dummy) {
+              xx -= w_edge + r_node
+              objects.append('circle')
+                .classed('adg_option', true)
+                .attr('cx', xx)
+                .attr('cy', yy)
+                .attr('r', r_node)
+            }
+
+            // last, draw the option label
+            if (dummy) {
+              opt = `... ${nd.options.length - this.max_options} more  `
+            }
+            opt = opt.length > max_char ? opt.substring(0, max_char - 3) + '...' : opt
+            let tw = util.getTextWidth(opt, `${this.option_font_size}px ${this.font_family}`)
+            xx -= padding + tw
+            objects.append('text')
+              .text(opt)
+              .classed('adg_option_label', true)
+              .attr('x', xx)
+              .attr('y', yy + 3)
+          }
+        })
+      })
+    }
+
+    if (this.show_options === 2) {
       // nodes
       objects.selectAll('.adg_node')
         .data(nodes)
@@ -325,7 +387,7 @@ class ADGPlot {
     g.setDefaultEdgeLabel(() => {return {}})
 
     // Add nodes and edges to the graph, depending on vis type.
-    if (this.show_options) {
+    if (this.show_options === 2) {
       this._createGraphWithOptions(g)
     } else {
       this._createGraphSimple(g)
@@ -346,7 +408,45 @@ class ADGPlot {
     // compute layout
     dagre.layout(g)
 
+    // hack to create space for annotation
+    if (this.show_options === 1) {
+      this._shiftGraph(g, this.annotation_width, 0)
+    }
+
     return g
+  }
+
+  /**
+   * A helper function to move the graph after layout is computed.
+   * Expect a non-negative value for both dx and dy.
+   * @param g
+   * @param dx
+   * @param dy
+   * @private
+   */
+  _shiftGraph (g, dx, dy) {
+    // move nodes
+    _.each(g.nodes(), (id) => {
+      let n = g.node(id)
+      n.x += dx
+      n.y += dy
+      g.setNode(id, n)
+    })
+
+    // move edges
+    _.each(g.edges(), (ed) => {
+      let edge = g.edge(ed.v, ed.w)
+      edge.points = _.map(edge.points, (pt) => {
+        return {x: pt.x + dx, y: pt.y + dy}
+      })
+      g.setEdge(ed.v, ed.w, edge)
+    })
+
+    // edit graph width and height
+    let labels = g.graph()
+    labels.width += dx
+    labels.height += dy
+    g.setGraph(labels)
   }
 
   _nodeClick (d) {
