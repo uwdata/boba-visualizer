@@ -4,8 +4,7 @@
     <detail-tip :left="left" :top="top"></detail-tip>
 
     <!--chart-->
-    <div id="agg-vis-container" ref="chart" class="mt-3 h-100"></div>
-    <div class="text-center text-small">Predicted Difference: Female - Male</div>
+    <div id="agg-vis-container" ref="chart" class="mt-3 ml-2 h-100"></div>
 
   </div>
 </template>
@@ -24,30 +23,75 @@
     }
   }
 
-  function set_chart_size (s) {
-    s.outerWidth = this.$refs.chart.clientWidth
-    s.outerHeight = this.$refs.chart.clientHeight
+  function set_chart_size (s, nx, ny) {
+    s.outerWidth = Math.floor(this.$refs.chart.clientWidth / nx)
+    s.outerHeight = Math.floor(this.$refs.chart.clientHeight / ny)
   }
 
-  function draw () {
-    // prepare data
-    let data = []
-    _.each(store.predicted_diff, (d) => {
+  function applyFilter (data, filter) {
+    let ret = []
+    _.each(data, (d) => {
       let uni = store.getUniverseById(d.uid)
       let pass = true
-      _.each(store.filter, (x, dec) => {
+      _.each(filter, (x, dec) => {
         let opt = uni[dec]
-        pass = pass && (store.filter[dec][opt])
+        pass = pass && (filter[dec][opt])
       })
 
       if (pass) {
-        data.push(d)
+        ret.push(d)
       }
     })
+    return ret
+  }
+
+  function draw () {
+    // remove previous charts
+    clear.call(this)
+
+    // filter data
+    let data = applyFilter(store.predicted_diff, store.filter)
+
+    // facet data
+    let sub = []
+    let titles = []
+    if (store.facet.length === 0) {
+      sub = [[data]]
+      titles = [['']]
+    } else {
+      let decx = store.getDecisionByName(store.facet[1]) || {options: [null]}
+      _.each(decx.options, (optx) => {
+        let dec = store.getDecisionByName(store.facet[0])
+        let row = _.map(dec.options, (opt) => {
+          return _.filter(data, (d) => {
+            let uni = store.getUniverseById(d.uid)
+            let b = optx == null ? true : uni[decx.name] === optx
+            return uni[dec.name] === opt && b
+          })
+        })
+        sub.push(row)
+        titles.push(_.map(dec.options, (opt) => opt + (optx ? `, ${optx}` : '')))
+      })
+    }
 
     // redraw
-    clear.call(this)
-    this.chart.draw('#agg-vis-container', data)
+    _.each(sub, (row, ir) => {
+      let g = document.createElement('div')
+      g.setAttribute('class', 'd-flex')
+
+      document.getElementById('agg-vis-container').appendChild(g)
+      _.each(row, (sp, ip) => {
+        let div_id = `agg-vis-${ir}-${ip}`
+        let div = document.createElement('div')
+        div.setAttribute('id', div_id)
+        g.appendChild(div)
+
+        let chart = new StackedDotPlot()
+        set_chart_size.call(this, chart, row.length, sub.length)
+        chart.title = titles[ir][ip]
+        chart.draw(`#${div_id}`, sub[ir][ip])
+      })
+    })
   }
 
   export default {
@@ -55,15 +99,13 @@
     components: {DetailTip},
     data () {
       return {
-        chart: new StackedDotPlot(),
         left: 0,
         top: 0
       }
     },
 
     mounted: function () {
-      // update sizes and positions
-      set_chart_size.call(this, this.chart)
+      // update positions
       this.left = this.$refs.parent.getBoundingClientRect().left
       this.top = this.$refs.parent.getBoundingClientRect().top
 

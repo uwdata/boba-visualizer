@@ -11,13 +11,17 @@ class StackedDotPlot {
     this.margin = {
       top: 0,
       right: 15,
-      bottom: 15,
+      bottom: 20,
       left: 15
     }
-    this.background = '#fff'
     this.axis = true
     this.dot_radius = 4
     this.jitter = true
+    this.title = 'Overview Distribution'
+    this.x_axis_label = 'Predicted Difference: Female - Male'
+    this.y_axis_label = 'Count'
+    this.label_font_size = 11
+    this.title_font_size = 11
 
     // assigned when calling draw
     this.parent = ''
@@ -34,6 +38,10 @@ class StackedDotPlot {
     let outerWidth = this.outerWidth
     let outerHeight = this.outerHeight
     let margin = this.margin
+
+    // make space for labels
+    margin.bottom += this.x_axis_label ? this.label_font_size : 0
+    margin.top += this.title ? this.title_font_size : 0
 
     // scale
     let scale_params = {
@@ -55,11 +63,6 @@ class StackedDotPlot {
       .append('g')
       .attr('transform', `translate(${margin.left},${margin.top})`)
 
-    let rect = svg.append('rect')
-      .attr('width', scale.width())
-      .attr('height', scale.height())
-      .attr('fill', this.background)
-
     // brush
     let brush = new BrushX(data, scale, '.dot')
     brush.attach(svg)
@@ -77,6 +80,39 @@ class StackedDotPlot {
         .call(g => g.selectAll('.tick line')
           .attr('stroke-opacity', 0.5)
           .attr('stroke-dasharray', '2, 2'))
+
+      // x-axis label
+      if (this.x_axis_label) {
+        let th = scale.height() + this.label_font_size * 2 + 3
+        svg.append('text')
+          .attr('transform', `translate(${scale.width()/2}, ${th})`)
+          .style('text-anchor', 'middle')
+          .style('font-size', this.label_font_size)
+          .text(this.x_axis_label)
+      }
+
+      // y-axis label
+      if (this.y_axis_label) {
+        svg.append('text')
+          .attr('transform', 'rotate(-90)')
+          .attr('x', 0 - (scale.height() / 2))
+          .attr('y', -3)
+          .style('text-anchor', 'middle')
+          .style('font-size', this.label_font_size)
+          .text(this.y_axis_label)
+      }
+    }
+
+    // title
+    if (this.title) {
+      // let th = scale.height() + this.label_font_size * 3 + 3
+      let th = 0
+      svg.append('text')
+        .attr('transform', `translate(${scale.width()/2}, ${th})`)
+        .style('text-anchor', 'middle')
+        .style('font-size', this.title_font_size)
+        .style('font-weight', '700')
+        .text(this.title)
     }
 
     let objects = svg.append('svg')

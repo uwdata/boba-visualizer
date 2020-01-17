@@ -38,6 +38,11 @@ class Store {
      * @example {dec_A: {a1: true, a2: false}}
      */
     this.filter = {}
+
+    /**
+     * Dimensions to facet aggregate view.
+     */
+    this.facet = ['damage', '(M)']
   }
 
   /**
@@ -218,6 +223,9 @@ class Store {
   }
 
   getDecisionByName (name) {
+    if (! _.has(this.decisions, name)) {
+      return null
+    }
     return {name: name, options: this.decisions[name]}
   }
 }
