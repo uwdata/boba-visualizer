@@ -3,15 +3,20 @@
     <!--tool-tip-->
     <detail-tip :left="left" :top="top"></detail-tip>
 
+    <!--trellis plot row title-->
+    <div v-if="facet_row.length" class="w-100 d-flex text-small font-weight-bold mt-1 mb-1">
+      <div v-for="t in facet_row" class="facet-title-row text-center">{{t}}</div>
+    </div>
+    <div v-else class="mt-3"></div>
     <!--chart-->
-    <div id="agg-vis-container" ref="chart" class="mt-3 ml-2 h-100"></div>
+    <div id="agg-vis-container" ref="chart" class="ml-2 h-100"></div>
 
   </div>
 </template>
 
 <script>
   import _ from 'lodash'
-  import {bus, log_debug, store} from '../controllers/config'
+  import {bus, store} from '../controllers/config'
   import StackedDotPlot from '../controllers/stacked_dot_plot'
   import DetailTip from './DetailTip.vue'
 
@@ -54,14 +59,14 @@
 
     // facet data
     let sub = []
-    let titles = []
     if (store.facet.length === 0) {
       sub = [[data]]
-      titles = [['']]
+      this.facet_row = []
     } else {
       let decx = store.getDecisionByName(store.facet[1]) || {options: [null]}
       _.each(decx.options, (optx) => {
         let dec = store.getDecisionByName(store.facet[0])
+        this.facet_row = dec.options
         let row = _.map(dec.options, (opt) => {
           return _.filter(data, (d) => {
             let uni = store.getUniverseById(d.uid)
@@ -70,7 +75,6 @@
           })
         })
         sub.push(row)
-        titles.push(_.map(dec.options, (opt) => opt + (optx ? `, ${optx}` : '')))
       })
     }
 
@@ -88,7 +92,9 @@
 
         let chart = new StackedDotPlot()
         set_chart_size.call(this, chart, row.length, sub.length)
-        chart.title = titles[ir][ip]
+        chart.title = ''
+        chart.y_axis_label = ip === 0 ? 'Count' : ' '
+        chart.x_axis_label = ir === row.length - 1 ? this.label : ' '
         chart.draw(`#${div_id}`, sub[ir][ip])
       })
     })
@@ -99,6 +105,9 @@
     components: {DetailTip},
     data () {
       return {
+        label: 'Predicted Difference: Female - Male',
+        facet_row: ['dam', 'log_dam'],
+        facet_col: ['ols_regression', 'negative_binomial'],
         left: 0,
         top: 0
       }
@@ -117,6 +126,14 @@
 </script>
 
 <style lang="stylus">
+  .facet-title-row
+    background-color #eee
+    width: 100%
+    margin-left 1rem
+    margin-right 1rem
+    &:first-child
+      margin-left 1.5rem
+
   .dot.brushed
     fill #f00 !important
 

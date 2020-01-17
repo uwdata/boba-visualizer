@@ -18,7 +18,7 @@ class StackedDotPlot {
     this.dot_radius = 4
     this.jitter = true
     this.title = 'Overview Distribution'
-    this.x_axis_label = 'Predicted Difference: Female - Male'
+    this.x_axis_label = 'Predicted Difference'
     this.y_axis_label = 'Count'
     this.label_font_size = 11
     this.title_font_size = 11

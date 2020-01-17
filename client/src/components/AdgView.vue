@@ -45,6 +45,10 @@
 
       // register event listener
       bus.$on('data-ready', draw.bind(this))
+      bus.$on('adg-node-click', (label) => {
+        store.facet = label === store.facet[0] ? [] : [label]
+        bus.$emit('filter')
+      })
     }
   }
 </script>
