@@ -42,7 +42,7 @@ class Store {
     /**
      * Dimensions to facet aggregate view.
      */
-    this.facet = ['damage', '(M)']
+    this.facet = []
   }
 
   /**

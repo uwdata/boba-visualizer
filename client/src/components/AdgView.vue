@@ -30,6 +30,35 @@
     this.chart.draw('#adg-container', data)
   }
 
+  function createFacet (label, ev) {
+    let i = -1
+    _.each(store.facet, (f, j) => {
+      i = f === label ? j : i
+    })
+    if (i >= 0) {
+      // remove existing facet
+      store.facet.splice(i, 1)
+    } else {
+      // facet is full, remove the first element
+      if (store.facet.length > 1) {
+        store.facet.splice(1, 1)
+      }
+      if (!ev.shiftKey || !store.facet.length) {
+        // replace
+        store.facet = [label]
+      } else {
+        // add a second facet
+        let d1 = store.getDecisionByName(store.facet[0])
+        let d2 = store.getDecisionByName(label)
+        if (d1.options.length >= d2.options.length) {
+          store.facet.push(label)
+        } else {
+          store.facet.unshift(label)
+        }
+      }
+    }
+  }
+
   export default {
     name: "AdgView",
 
@@ -45,9 +74,9 @@
 
       // register event listener
       bus.$on('data-ready', draw.bind(this))
-      bus.$on('adg-node-click', (label) => {
-        store.facet = label === store.facet[0] ? [] : [label]
-        bus.$emit('filter')
+      bus.$on('adg-node-click', (label, ev) => {
+        createFacet.call(this, label, ev)
+        bus.$emit('facet')
       })
     }
   }

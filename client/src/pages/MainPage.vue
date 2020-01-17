@@ -22,7 +22,8 @@
         <!--ADG-->
         <div class="h-100 d-flex flex-column">
           <adg-view class="h-100"></adg-view>
-          <filter-option-view class="h-50"></filter-option-view>
+          <!--<filter-option-view class="h-50"></filter-option-view>-->
+          <legend-view class="h-50"></legend-view>
         </div>
       </div>
 
@@ -56,9 +57,11 @@
   import AdgView from '../components/AdgView.vue'
   import FilterOptionView from '../components/FilterOptionView.vue'
   import OptionRatioView from '../components/OptionRatioView.vue'
+  import LegendView from '../components/LegendView.vue'
 
   export default {
-    components: {FilterOptionView, AdgView, LoadingSpinner, AggregateVis,
+    components: {
+      LegendView, FilterOptionView, AdgView, LoadingSpinner, AggregateVis,
       TitleMenu, HelpButton, OptionRatioView},
 
     data () {

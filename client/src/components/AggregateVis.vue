@@ -110,7 +110,7 @@
         set_chart_size.call(this, chart, row.length, data.length, ip, ir)
         chart.title = ''
         chart.row_title = ir === 0 ? labels[ir][ip].x : null
-        chart.col_title = ip === data.length - 1 ? labels[ir][ip].y : null
+        chart.col_title = ip === row.length - 1 ? labels[ir][ip].y : null
         chart.y_axis_label = ip === 0 ? 'Count' : ' '
         chart.x_axis_label = ir === data.length - 1 ? this.label : ' '
         chart.draw(`#${div_id}`, data[ir][ip])
@@ -137,6 +137,7 @@
       // register event listener
       bus.$on('data-ready', draw.bind(this))
       bus.$on('filter', draw.bind(this))
+      bus.$on('facet', draw.bind(this))
     }
   }
 </script>

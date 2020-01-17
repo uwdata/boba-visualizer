@@ -450,7 +450,7 @@ class ADGPlot {
   }
 
   _nodeClick (d) {
-    bus.$emit('adg-node-click', d.label)
+    bus.$emit('adg-node-click', d.label, d3.event)
   }
 
   /**

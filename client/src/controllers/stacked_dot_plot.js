@@ -72,6 +72,33 @@ class StackedDotPlot {
     this.brush = brush
 
     // axis
+    this._drawAxis(svg)
+
+    // title and labels
+    this._drawTitles(svg)
+
+    let objects = svg.append('svg')
+      .classed('objects', true)
+      .attr('width', scale.width())
+      .attr('height', scale.height())
+
+    // dots
+    this._drawDensityDots(objects)  // replace different chart types here
+      .on('mouseover', dotMouseover)
+      .on('mouseout', dotMouseout)
+
+    function dotMouseover(d) {
+      bus.$emit('agg-vis.dot-mouseover',
+        {data: d, x: d3.event.clientX, y: d3.event.clientY})
+    }
+
+    function dotMouseout(d) {
+      bus.$emit('agg-vis.dot-mouseout', {data: d})
+    }
+  }
+
+  _drawAxis (svg) {
+    let scale = this.scale
     let xAxis = d3.axisBottom(scale.x).tickSize(-scale.height())
 
     if (this.axis) {
@@ -88,7 +115,7 @@ class StackedDotPlot {
       if (this.x_axis_label) {
         let th = scale.height() + this.label_font_size * 2 + 3
         svg.append('text')
-          .attr('transform', `translate(${scale.width()/2}, ${th})`)
+          .attr('transform', `translate(${scale.width() / 2}, ${th})`)
           .style('text-anchor', 'middle')
           .style('font-size', this.label_font_size)
           .text(this.x_axis_label)
@@ -105,6 +132,10 @@ class StackedDotPlot {
           .text(this.y_axis_label)
       }
     }
+  }
+
+  _drawTitles (svg) {
+    let scale = this.scale
 
     // row and column title
     if (this.row_title != null) {
@@ -149,25 +180,6 @@ class StackedDotPlot {
         .style('font-size', this.title_font_size)
         .style('font-weight', '700')
         .text(this.title)
-    }
-
-    let objects = svg.append('svg')
-      .classed('objects', true)
-      .attr('width', scale.width())
-      .attr('height', scale.height())
-
-    // dots
-    this._drawDensityDots(objects)  // replace different chart types here
-      .on('mouseover', dotMouseover)
-      .on('mouseout', dotMouseout)
-
-    function dotMouseover(d) {
-      bus.$emit('agg-vis.dot-mouseover',
-        {data: d, x: d3.event.clientX, y: d3.event.clientY})
-    }
-
-    function dotMouseout(d) {
-      bus.$emit('agg-vis.dot-mouseout', {data: d})
     }
   }
 
