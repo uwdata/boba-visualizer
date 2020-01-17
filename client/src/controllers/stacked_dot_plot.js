@@ -20,8 +20,11 @@ class StackedDotPlot {
     this.title = 'Overview Distribution'
     this.x_axis_label = 'Predicted Difference'
     this.y_axis_label = 'Count'
+    this.row_title = null
+    this.col_title = null
+    this.facet_label_width = 20
     this.label_font_size = 11
-    this.title_font_size = 11
+    this.title_font_size = 12
 
     // assigned when calling draw
     this.parent = ''
@@ -101,6 +104,39 @@ class StackedDotPlot {
           .style('font-size', this.label_font_size)
           .text(this.y_axis_label)
       }
+    }
+
+    // row and column title
+    if (this.row_title != null) {
+      svg.append('rect')
+        .classed('facet-title', true)
+        .attr('x', 0)
+        .attr('y', -this.facet_label_width)
+        .attr('height', this.facet_label_width - 2)
+        .attr('width', scale.width())
+      svg.append('text')
+        .attr('transform', `translate(${scale.width()/2}, ${-this.title_font_size / 2 - 1})`)
+        .style('text-anchor', 'middle')
+        .style('font-size', this.title_font_size)
+        .style('font-weight', '700')
+        .text(this.row_title)
+    }
+    if (this.col_title != null) {
+      let ty = scale.width()
+      svg.append('rect')
+        .classed('facet-title', true)
+        .attr('x', ty)
+        .attr('y', 0)
+        .attr('height', scale.height())
+        .attr('width', this.facet_label_width - 2)
+      svg.append('text')
+        .attr('transform', `translate(${ty + 6}, ${(scale.height() / 2)}), rotate(90)`)
+        .attr('x', 0)
+        .attr('y', 0)
+        .style('text-anchor', 'middle')
+        .style('font-size', this.title_font_size)
+        .style('font-weight', '700')
+        .text(this.col_title)
     }
 
     // title

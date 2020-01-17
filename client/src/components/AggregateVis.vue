@@ -3,13 +3,8 @@
     <!--tool-tip-->
     <detail-tip :left="left" :top="top"></detail-tip>
 
-    <!--trellis plot row title-->
-    <div v-if="facet_row.length" class="w-100 d-flex text-small font-weight-bold mt-1 mb-1">
-      <div v-for="t in facet_row" class="facet-title-row text-center">{{t}}</div>
-    </div>
-    <div v-else class="mt-3"></div>
     <!--chart-->
-    <div id="agg-vis-container" ref="chart" class="ml-2 h-100"></div>
+    <div id="agg-vis-container" ref="chart" class="mt-3 ml-2 h-100"></div>
 
   </div>
 </template>
@@ -28,9 +23,19 @@
     }
   }
 
-  function set_chart_size (s, nx, ny) {
-    s.outerWidth = Math.floor(this.$refs.chart.clientWidth / nx)
-    s.outerHeight = Math.floor(this.$refs.chart.clientHeight / ny)
+  function set_chart_size (s, nx, ny, x, y) {
+    let padding = 20
+    let w = this.$refs.chart.clientWidth
+    let h = this.$refs.chart.clientHeight
+    let px = ny > 1 && x === nx - 1 ? padding : 0
+    let py = nx > 1 && y < 1 ? padding : 0
+    w = ny > 1 ? (w - padding) / nx : w / nx
+    h = nx > 1 ? (h - padding) / ny : h / ny
+
+    s.outerWidth = Math.floor(w + px)
+    s.outerHeight = Math.floor(h + py)
+    s.margin.right += px
+    s.margin.top += py
   }
 
   function applyFilter (data, filter) {
@@ -50,23 +55,16 @@
     return ret
   }
 
-  function draw () {
-    // remove previous charts
-    clear.call(this)
-
-    // filter data
-    let data = applyFilter(store.predicted_diff, store.filter)
-
-    // facet data
+  function applyFacet (data) {
     let sub = []
+    let titles = []
     if (store.facet.length === 0) {
       sub = [[data]]
-      this.facet_row = []
+      titles = [[{}]]
     } else {
       let decx = store.getDecisionByName(store.facet[1]) || {options: [null]}
       _.each(decx.options, (optx) => {
         let dec = store.getDecisionByName(store.facet[0])
-        this.facet_row = dec.options
         let row = _.map(dec.options, (opt) => {
           return _.filter(data, (d) => {
             let uni = store.getUniverseById(d.uid)
@@ -75,11 +73,29 @@
           })
         })
         sub.push(row)
+        titles.push(_.map(dec.options, (opt) => {
+          return {x: opt, y: optx}
+        }))
       })
     }
 
+    return {data: sub, labels: titles}
+  }
+
+  function draw () {
+    // remove previous charts
+    clear.call(this)
+
+    // filter data
+    let data = applyFilter(store.predicted_diff, store.filter)
+
+    // facet data
+    let tmp = applyFacet.call(this, data)
+    data = tmp.data
+    let labels = tmp.labels
+
     // redraw
-    _.each(sub, (row, ir) => {
+    _.each(data, (row, ir) => {
       let g = document.createElement('div')
       g.setAttribute('class', 'd-flex')
 
@@ -91,11 +107,13 @@
         g.appendChild(div)
 
         let chart = new StackedDotPlot()
-        set_chart_size.call(this, chart, row.length, sub.length)
+        set_chart_size.call(this, chart, row.length, data.length, ip, ir)
         chart.title = ''
+        chart.row_title = ir === 0 ? labels[ir][ip].x : null
+        chart.col_title = ip === data.length - 1 ? labels[ir][ip].y : null
         chart.y_axis_label = ip === 0 ? 'Count' : ' '
-        chart.x_axis_label = ir === row.length - 1 ? this.label : ' '
-        chart.draw(`#${div_id}`, sub[ir][ip])
+        chart.x_axis_label = ir === data.length - 1 ? this.label : ' '
+        chart.draw(`#${div_id}`, data[ir][ip])
       })
     })
   }
@@ -106,8 +124,6 @@
     data () {
       return {
         label: 'Predicted Difference: Female - Male',
-        facet_row: ['dam', 'log_dam'],
-        facet_col: ['ols_regression', 'negative_binomial'],
         left: 0,
         top: 0
       }
@@ -126,13 +142,8 @@
 </script>
 
 <style lang="stylus">
-  .facet-title-row
-    background-color #eee
-    width: 100%
-    margin-left 1rem
-    margin-right 1rem
-    &:first-child
-      margin-left 1.5rem
+  .facet-title
+    fill #eee
 
   .dot.brushed
     fill #f00 !important
