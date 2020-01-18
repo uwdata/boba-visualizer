@@ -14,6 +14,7 @@ class BrushX {
     function brushstart () {
       d3.selectAll(selector).classed('brushed', false)
       bus.$emit('brush', [])
+      bus.$emit('brush-remove', selector)
     }
 
     function brushing () {
@@ -58,7 +59,11 @@ class BrushX {
    * Clear current brush selection
    */
   clear () {
-    d3.select('.brush').call(this.brush.move, null)
+    // manually reset brush styling because calling brush.move will invoke
+    // brushstart, and brushstart will fire the event again
+    d3.selectAll(this.selector).classed('brushed', false)
+    let p = this.selector.split(' ')[0]
+    d3.select(`${p} .brush .selection`).style('display', 'none')
   }
 
   /**

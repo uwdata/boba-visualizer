@@ -85,6 +85,7 @@
   function draw () {
     // remove previous charts
     clear.call(this)
+    this.charts = []
 
     // filter data
     let data = applyFilter(store.predicted_diff, store.filter)
@@ -114,6 +115,8 @@
         chart.y_axis_label = ip === 0 ? 'Count' : ' '
         chart.x_axis_label = ir === data.length - 1 ? this.label : ' '
         chart.draw(`#${div_id}`, data[ir][ip])
+
+        this.charts.push(chart)
       })
     })
   }
@@ -124,6 +127,7 @@
     data () {
       return {
         label: 'Predicted Difference: Female - Male',
+        charts: [],
         left: 0,
         top: 0
       }
@@ -138,6 +142,15 @@
       bus.$on('data-ready', draw.bind(this))
       bus.$on('filter', draw.bind(this))
       bus.$on('facet', draw.bind(this))
+
+      // register here, otherwise need to call $off on destroyed charts
+      bus.$on('brush-remove', (s) => {
+        _.each(this.charts, (chart) => {
+          if (s !== chart.brush.selector) {
+            chart.brush.clear()
+          }
+        })
+      })
     }
   }
 </script>

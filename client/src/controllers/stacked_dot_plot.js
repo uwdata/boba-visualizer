@@ -32,6 +32,7 @@ class StackedDotPlot {
 
     // components
     this.scale = null
+    this.brush = null
   }
 
   draw (parent, data) {
@@ -67,7 +68,7 @@ class StackedDotPlot {
       .attr('transform', `translate(${margin.left},${margin.top})`)
 
     // brush
-    let brush = new BrushX(data, scale, '.dot')
+    let brush = new BrushX(data, scale, `${this.parent} .dot`)
     brush.attach(svg)
     this.brush = brush
 
