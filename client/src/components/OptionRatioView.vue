@@ -61,11 +61,6 @@
   .bb-bar
     height 0.5rem
 
-  .bb-bar-title
-    font-size 0.8rem
-    font-weight 500
-    text-transform capitalize
-
   .bb-bar-text
     font-size 0.6rem
     line-height 0.7rem

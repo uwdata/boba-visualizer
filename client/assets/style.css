@@ -9,3 +9,9 @@
 .bb-border-bottom {
     border-bottom: 1px solid rgba(0,0,0,0.1);
 }
+
+.bb-bar-title {
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-transform: capitalize;
+}
