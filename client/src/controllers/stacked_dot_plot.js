@@ -87,6 +87,7 @@ class StackedDotPlot {
     this._drawDensityDots(objects)  // replace different chart types here
       .on('mouseover', dotMouseover)
       .on('mouseout', dotMouseout)
+      .on('click', dotClick)
 
     function dotMouseover(d) {
       bus.$emit('agg-vis.dot-mouseover',
@@ -95,6 +96,10 @@ class StackedDotPlot {
 
     function dotMouseout(d) {
       bus.$emit('agg-vis.dot-mouseout', {data: d})
+    }
+
+    function dotClick(d) {
+      bus.$emit('agg-vis.dot-click', d)
     }
   }
 

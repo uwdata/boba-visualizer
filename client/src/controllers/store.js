@@ -126,6 +126,31 @@ class Store {
   }
 
   /**
+   * Get the actual and predicted outcomes of all data points for a given uid.
+   * @param uid
+   * @returns {Promise<any>}
+   */
+  fetchRaw (uid) {
+    return new Promise((resolve, reject) => {
+      http.post('/api/get_raw', {'uid': uid})
+        .then((response) => {
+          let msg = response.data
+
+          if (msg && msg.status === 'success') {
+            let actual = _.map(msg.data, (d) => Number(d[0]))
+            let pred = _.map(msg.data, (d) => Number(d[1]))
+
+            resolve({'actual': actual, 'pred': pred})
+          } else {
+            reject(msg.message || 'Internal server error.')
+          }
+        }, () => {
+          reject('Network error.')
+        })
+    })
+  }
+
+  /**
    * Get the multiverse overview, including decisions and ADG.
    * @returns {Promise<any>}
    */

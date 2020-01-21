@@ -37,9 +37,12 @@
           <!--Aggregate Visualization-->
           <aggregate-vis class="h-50"></aggregate-vis>
 
-          <!--Option distribution-->
           <div class="h-50">
+            <!--Option distribution-->
             <option-ratio-view></option-ratio-view>
+
+            <!--Small multiples-->
+            <small-multiples-view></small-multiples-view>
           </div>
         </div>
       </div>
@@ -58,9 +61,11 @@
   import FilterOptionView from '../components/FilterOptionView.vue'
   import OptionRatioView from '../components/OptionRatioView.vue'
   import LegendView from '../components/LegendView.vue'
+  import SmallMultiplesView from '../components/SmallMultiplesView.vue'
 
   export default {
     components: {
+      SmallMultiplesView,
       LegendView, FilterOptionView, AdgView, LoadingSpinner, AggregateVis,
       TitleMenu, HelpButton, OptionRatioView},
 
