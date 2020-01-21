@@ -1,5 +1,6 @@
 import * as d3 from 'd3'
 import RawScale from './vis/raw_scale'
+import {util} from './config'
 
 class RawPlot {
   constructor () {
@@ -13,7 +14,7 @@ class RawPlot {
     }
     this.dot_radius = 4
     this.title = ''
-    this.x_axis_label = 'Log2(Death)'
+    this.x_axis_label = 'Log2(Death+1)'
     this.label_font_size = 11
 
     // assigned when calling draw
@@ -65,36 +66,66 @@ class RawPlot {
       .attr('height', scale.height())
 
     // first draw the actual data as dots
-    objects.selectAll('.raw-dot')
-      .data(data.actual)
-      .enter()
-      .append('circle')
-      .classed('raw-dot', true)
-      .attr('r', () => this.dot_radius)
-      .attr('cx', (d) => scale.x(d))
-      .attr('cy', () => {
-        let y = scale.y('actual')
-        let j = Math.random() * scale.y.bandwidth()
-        return y + j
-      })
-      .attr('fill', '#17a2b8')
-      .attr('fill-opacity', 0.3)
+    this._drawDots(objects, data.actual, scale.y('actual'), 'raw-dot')
+    this._drawViolin(objects, data.actual, scale.y('actual'))
 
-    // then draw the predicted data as dots
-    objects.selectAll('.pred-dot')
-      .data(data.pred)
+    // then draw the predicted data as violin plots
+    this._drawDots(objects, data.pred, scale.y('pred'), 'pred-dot')
+    this._drawViolin(objects, data.pred, scale.y('pred'))
+  }
+
+  _drawDots (svg, data, y0, cls) {
+    let scale = this.scale
+
+    svg.selectAll('.' + cls)
+      .data(data)
       .enter()
       .append('circle')
-      .classed('pred-dot', true)
+      .classed(cls, true)
       .attr('r', () => this.dot_radius)
       .attr('cx', (d) => scale.x(d))
       .attr('cy', () => {
-        let y = scale.y('pred')
+        let y = y0
         let j = Math.random() * scale.y.bandwidth()
         return y + j
       })
-      .attr('fill', '#f58518')
       .attr('fill-opacity', 0.3)
+  }
+
+  _drawViolin (svg, data, y0) {
+    let scale = this.scale
+    let kernel_bw= 0.5
+
+    // compute kernel density estimation
+    let estimator = util.kde(util.epanechnikov(kernel_bw), scale.x.ticks(40))
+    let density = estimator(data)
+
+    // scale
+    let h = scale.y.bandwidth() / 2
+    let ys = d3.scaleLinear().range([y0 + h, y0])
+      .domain([0, 1.05 * d3.max(_.map(density, (d) => d[1]))])
+
+    // line
+    let line = d3.line().curve(d3.curveBasis)
+      .x((d) => scale.x(d[0]))
+      .y((d) => ys(d[1]))
+
+    // plot the upper curve
+    svg.append('path')
+      .attr('class', 'violin-curve')
+      .datum(density)
+      .attr('d', line)
+
+    // plot the lower curve
+    ys.range([y0 + h, y0 + h * 2])
+    line = d3.line().curve(d3.curveBasis)
+      .x((d) => scale.x(d[0]))
+      .y((d) => ys(d[1]))
+
+    svg.append('path')
+      .attr('class', 'violin-curve')
+      .datum(density)
+      .attr('d', line)
   }
 
   _drawAxis (svg) {

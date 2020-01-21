@@ -66,6 +66,16 @@
   }
 </script>
 
-<style scoped>
+<style lang="stylus">
+  .violin-curve
+    fill none
+    stroke #000
+    stroke-width 1
+    stroke-linejoin round
 
+  .raw-dot
+    fill #17a2b8
+
+  .pred-dot
+    fill #f58518
 </style>
