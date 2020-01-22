@@ -137,8 +137,8 @@ class Store {
           let msg = response.data
 
           if (msg && msg.status === 'success') {
-            let actual = _.map(msg.data, (d) => Number(d[0]))
-            let pred = _.map(msg.data, (d) => Number(d[1]))
+            let actual = msg.data[0]
+            let pred = msg.data[1]
 
             resolve({'actual': actual, 'pred': pred})
           } else {

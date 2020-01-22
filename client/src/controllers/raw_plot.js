@@ -1,6 +1,7 @@
 import * as d3 from 'd3'
 import RawScale from './vis/raw_scale'
 import {util} from './config'
+import _ from 'lodash'
 
 class RawPlot {
   constructor () {
@@ -76,6 +77,42 @@ class RawPlot {
 
   _drawDots (svg, data, y0, cls) {
     let scale = this.scale
+    let bin_size = this.dot_radius * 2 // x-axis bin size
+
+    // sort
+    data = _.map(data, (d, i) => {
+      return {value: d, _index: i}
+    })
+    let sorted = _.sortBy(data, (d) => d.value)
+
+    // dot density algorithm
+    let i = 0
+    let x = null
+    let count = 0
+    while (i < sorted.length) {
+      let xi = sorted[i].value
+      if (x != null && scale.x(xi) < scale.x(x) + bin_size) {
+        count += 1
+      } else {
+        x = xi
+        count = 0
+      }
+
+      let idx =sorted[i]._index
+      data[idx]._x = x
+      data[idx]._y = count
+
+      i += 1
+    }
+
+    // compute y based on counts
+    let h = scale.y.bandwidth() / 2
+    let step = Math.min(h / (d3.max(data, (d) => d._y) + 1),
+      this.dot_radius)
+    _.each(data, (d) => {
+      let delta = d._y * step + step * 0.5
+      d._y = d._y % 2 ? y0 + h + delta : y0 + h - delta
+    })
 
     svg.selectAll('.' + cls)
       .data(data)
@@ -83,12 +120,8 @@ class RawPlot {
       .append('circle')
       .classed(cls, true)
       .attr('r', () => this.dot_radius)
-      .attr('cx', (d) => scale.x(d))
-      .attr('cy', () => {
-        let y = y0
-        let j = Math.random() * scale.y.bandwidth()
-        return y + j
-      })
+      .attr('cx', (d) => scale.x(d._x))
+      .attr('cy', (d) => d._y)
       .attr('fill-opacity', 0.3)
   }
 

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div v-if="uid >= 0" class="bb-bar-title mt-3 ml-3">Actual vs. Predicted</div>
+    <div v-if="uid >= 0" class="bb-bar-title mt-3 ml-3">Observed vs. Predicted</div>
     <div id="raw-vis-container" class="mt-1 ml-0 mr-0 row">
       <div id="raw-vis-1" ref="chart" class="col-3"></div>
       <div v-for="i in [2,3,4]" class="col-3" :id="`raw-vis-${i}`"></div>
