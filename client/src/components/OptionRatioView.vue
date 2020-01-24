@@ -53,6 +53,10 @@
       bus.$on('filter', () => {
         this.decisions = []
       })
+
+      bus.$on('agg-vis.dot-click', () => {
+        this.decisions = []
+      })
     }
   }
 </script>

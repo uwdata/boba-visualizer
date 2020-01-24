@@ -201,18 +201,13 @@ class StackedDotPlot {
     let data = this.data
     let bin_size = this.dot_radius * 2  // x-axis bin size
 
-    // sort data
-    _.each(data, (d, idx) => {
-      d._index = idx
-    })
-    let sorted = _.sortBy(data, (d) => d.diff)
-
     // dot density algorithm
+    // assuming data is sorted
     let i = 0
     let x = null
     let count = 0
-    while (i < sorted.length) {
-      let xi = sorted[i].diff
+    while (i < data.length) {
+      let xi = data[i].diff
       if (x != null && scale.x(xi) < scale.x(x) + bin_size) {
         count += 1
       } else {
@@ -220,9 +215,8 @@ class StackedDotPlot {
         count = 0
       }
 
-      let idx =sorted[i]._index
-      data[idx]._x = x
-      data[idx]._y = count
+      data[i]._x = x
+      data[i]._y = count
 
       i += 1
     }

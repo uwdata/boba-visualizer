@@ -29,7 +29,7 @@ class Store {
 
     // predicted outcomes
     this.predictions = []
-    this.predicted_diff = []
+    this.predicted_diff = []  // sorted by effect size
 
     /**
      * Filter based on decisions.
@@ -115,6 +115,14 @@ class Store {
               this.predicted_diff.push({uid: Number(male[0]), diff: female[2] - male[2]})
             })
 
+            // sort
+            this.predicted_diff = _.sortBy(this.predicted_diff, (d) => d.diff)
+
+            // store the index in this.universes for O(1) lookup
+            _.each(this.predicted_diff, (d, i) => {
+              this.universes[d.uid - 1]._pred_index = i
+            })
+
             resolve()
           } else {
             reject(msg.message || 'Internal server error.')
@@ -126,23 +134,52 @@ class Store {
   }
 
   /**
+   * Given a uid, get the universes that are most similar in predicted diff.
+   * @param uid
+   * @param num How many universes to return.
+   * @returns {*}
+   * @private
+   */
+  _getNearestUidByDiff (uid, num = 8) {
+    let j = this.getUniverseById(uid)._pred_index
+    let i = Math.min(Math.max(0, j - Math.floor(num / 2)),
+      this.predicted_diff.length - num)
+    let uids = _.map(_.range(i, i + num), (idx) => this.predicted_diff[idx].uid)
+    return _.filter(uids, (d) => d !== uid)
+  }
+
+  /**
    * Get the actual and predicted outcomes of all data points for a given uid.
    * @param uid
    * @returns {Promise<any>}
    */
   fetchRaw (uid) {
     return new Promise((resolve, reject) => {
-      http.post('/api/get_raw', {'uid': uid})
-        .then((response) => {
-          let msg = response.data
+      // get nearest neighbors
+      let uids = this._getNearestUidByDiff(uid)
+      uids.unshift(uid)
 
-          if (msg && msg.status === 'success') {
-            let actual = msg.data[0]
-            let pred = msg.data[1]
+      // send requests
+      Promise.all(_.map(uids, (u) => http.post('/api/get_raw', {'uid': u})))
+        .then((values) => {
+          let err = ''
+          let ret = _.map(values, (response, idx) => {
+            let msg = response.data
 
-            resolve({'actual': actual, 'pred': pred})
+            if (msg && msg.status === 'success') {
+              let actual = msg.data[0]
+              let pred = msg.data[1]
+
+              return {'actual': actual, 'pred': pred, 'uid': uids[idx]}
+            } else {
+              err = msg.message || 'Internal server error.'
+            }
+          })
+
+          if (err) {
+            reject(err)
           } else {
-            reject(msg.message || 'Internal server error.')
+            resolve(ret)
           }
         }, () => {
           reject('Network error.')

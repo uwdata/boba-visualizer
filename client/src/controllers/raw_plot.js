@@ -14,6 +14,7 @@ class RawPlot {
       left: 2
     }
     this.dot_radius = 4
+    this.dot_opacity = 0.3
     this.title = ''
     this.x_axis_label = 'Log2(Death+1)'
     this.label_font_size = 11
@@ -122,7 +123,7 @@ class RawPlot {
       .attr('r', () => this.dot_radius)
       .attr('cx', (d) => scale.x(d._x))
       .attr('cy', (d) => d._y)
-      .attr('fill-opacity', 0.3)
+      .attr('fill-opacity', this.dot_opacity)
   }
 
   _drawViolin (svg, data, y0) {

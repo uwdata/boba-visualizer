@@ -151,6 +151,11 @@
           }
         })
       })
+      bus.$on('agg-vis.dot-click', () => {
+        _.each(this.charts, (chart) => {
+          chart.brush.clear()
+        })
+      })
     }
   }
 </script>

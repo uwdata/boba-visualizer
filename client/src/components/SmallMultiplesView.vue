@@ -2,8 +2,8 @@
   <div>
     <div v-if="uid >= 0" class="bb-bar-title mt-3 ml-3">Observed vs. Predicted</div>
     <div id="raw-vis-container" class="mt-1 ml-0 mr-0 row">
-      <div id="raw-vis-1" ref="chart" class="col-3"></div>
-      <div v-for="i in [2,3,4]" class="col-3" :id="`raw-vis-${i}`"></div>
+      <div id="raw-vis-1" ref="chart" class="col-3 mt-2"></div>
+      <div v-for="i in [2,3,4,5,6,7,8]" class="col-3 mt-2" :id="`raw-vis-${i}`"></div>
     </div>
   </div>
 </template>
@@ -34,20 +34,24 @@
       })
   }
 
-  function draw (data) {
+  function draw (all_data) {
     // remove previous charts
     clear.call(this)
 
-    // transform data
-    // fixme
-    data.actual = _.map(data.actual, (d) => Math.log2(d + 1))
-    data.pred = _.map(data.pred, (d) => Math.log2(d + 1))
+    _.each(all_data, (data, idx) => {
+      // transform data
+      // fixme
+      data.actual = _.map(data.actual, (d) => Math.log2(d + 1))
+      data.pred = _.map(data.pred, (d) => Math.log2(d + 1))
 
-    // redraw
-    let chart = new RawPlot()
-    chart.outerWidth = this.$refs.chart.clientWidth - 30
-    chart.title = `Universe ${this.uid}`
-    chart.draw(`#raw-vis-1`, data)
+      // redraw
+      let chart = new RawPlot()
+      chart.outerWidth = this.$refs.chart.clientWidth - 30
+      chart.title = `Universe ${data.uid}`
+      chart.dot_opacity = 0.2
+      chart.draw(`#raw-vis-${idx + 1}`, data)
+    })
+
   }
 
   export default {
@@ -62,6 +66,10 @@
     mounted: function () {
       // register event listeners
       bus.$on('agg-vis.dot-click', update.bind(this))
+      bus.$on('brush', () => {
+        this.uid = -1
+        clear.call(this)
+      })
     }
   }
 </script>
