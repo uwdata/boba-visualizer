@@ -149,6 +149,7 @@
           if (s !== chart.brush.selector) {
             chart.brush.clear()
           }
+          chart.clearClicked()
         })
       })
       bus.$on('agg-vis.dot-click', () => {
@@ -167,6 +168,10 @@
   .dot.brushed
     fill #f00 !important
 
+  .dot.clicked
+    fill #17a2b8 !important
+
   .dot
     fill #333
+    cursor pointer
 </style>

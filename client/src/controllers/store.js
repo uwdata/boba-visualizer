@@ -118,11 +118,6 @@ class Store {
             // sort
             this.predicted_diff = _.sortBy(this.predicted_diff, (d) => d.diff)
 
-            // store the index in this.universes for O(1) lookup
-            _.each(this.predicted_diff, (d, i) => {
-              this.universes[d.uid - 1]._pred_index = i
-            })
-
             resolve()
           } else {
             reject(msg.message || 'Internal server error.')
@@ -136,29 +131,34 @@ class Store {
   /**
    * Given a uid, get the universes that are most similar in predicted diff.
    * @param uid
+   * @param data
    * @param num How many universes to return.
    * @returns {*}
    * @private
    */
-  _getNearestUidByDiff (uid, num = 8) {
-    let j = this.getUniverseById(uid)._pred_index
+  _getNearestUidByDiff (uid, data, num = 8) {
+    data = data || this.predicted_diff
+
+    let j = _.findIndex(data, (d) => d.uid === uid)
     let i = Math.min(Math.max(0, j - Math.floor(num / 2)),
-      this.predicted_diff.length - num)
-    let uids = _.map(_.range(i, i + num), (idx) => this.predicted_diff[idx].uid)
-    return _.filter(uids, (d) => d !== uid)
+      data.length - num)
+    let uids = _.map(_.range(i, i + num), (idx) => data[idx].uid)
+    let ret = _.filter(uids, (d) => d !== uid)
+    ret.unshift(uid)
+    return ret
+  }
+
+  getNearestUid (uid, data, num = 8) {
+    return this._getNearestUidByDiff(uid, data, num)
   }
 
   /**
-   * Get the actual and predicted outcomes of all data points for a given uid.
-   * @param uid
+   * Get the actual and predicted outcomes of all data points for each uid.
+   * @param uids An array of UIDs.
    * @returns {Promise<any>}
    */
-  fetchRaw (uid) {
+  fetchRaw (uids) {
     return new Promise((resolve, reject) => {
-      // get nearest neighbors
-      let uids = this._getNearestUidByDiff(uid)
-      uids.unshift(uid)
-
       // send requests
       Promise.all(_.map(uids, (u) => http.post('/api/get_raw', {'uid': u})))
         .then((values) => {

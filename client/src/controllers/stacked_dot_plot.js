@@ -42,6 +42,7 @@ class StackedDotPlot {
     let outerWidth = this.outerWidth
     let outerHeight = this.outerHeight
     let margin = this.margin
+    let that = this
 
     // make space for labels
     margin.bottom += this.x_axis_label ? this.label_font_size : 0
@@ -99,8 +100,23 @@ class StackedDotPlot {
     }
 
     function dotClick(d) {
-      bus.$emit('agg-vis.dot-click', d)
+      // figuring out the nearest points here
+      let uids = store.getNearestUid(d.uid, that.data)
+
+      // color those dots
+      let dict = _.zipObject(uids)
+      d3.selectAll('.dot')
+        .classed('clicked', false)
+        .filter(d => d.uid in dict)
+        .classed('clicked', true)
+        .raise()
+
+      bus.$emit('agg-vis.dot-click', uids)
     }
+  }
+
+  clearClicked () {
+    d3.selectAll('.dot.clicked').classed('clicked', false)
   }
 
   _drawAxis (svg) {

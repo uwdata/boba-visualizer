@@ -23,11 +23,11 @@
     })
   }
 
-  function update (d) {
+  function update (uids) {
     // fetch data
-    store.fetchRaw(d.uid)
+    store.fetchRaw(uids)
       .then((ret) => {
-        this.uid = d.uid
+        this.uid = uids[0]
         draw.call(this, ret)
       }, (e) => {
         console.error(e)
