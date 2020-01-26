@@ -1,6 +1,12 @@
 <template>
-  <div>
+  <div ref="parent">
+    <!--tool-tip-->
+    <detail-tip :left="left" :top="top" :detail="tooltip"></detail-tip>
+
+    <!--title-->
     <div v-if="uid >= 0" class="bb-bar-title mt-3 ml-3">Observed vs. Predicted</div>
+
+    <!--plots-->
     <div id="raw-vis-container" class="mt-1 ml-0 mr-0 row">
       <div id="raw-vis-1" ref="chart" class="col-3 mt-2"></div>
       <div v-for="i in [2,3,4,5,6,7,8]" class="col-3 mt-2" :id="`raw-vis-${i}`"></div>
@@ -12,6 +18,7 @@
   import {store, bus} from '../controllers/config'
   import RawPlot from '../controllers/raw_plot'
   import _ from 'lodash'
+  import DetailTip from './DetailTip.vue'
 
   function clear () {
     // remove all nodes
@@ -56,14 +63,29 @@
 
   export default {
     name: "SmallMultiplesView",
-
+    components: {DetailTip},
     data () {
       return {
         uid: -1,
+        left: 0,
+        top: 0,
+        tooltip: null
       }
     },
 
     mounted: function () {
+      // for tooltip positions
+      this.left = this.$refs.parent.getBoundingClientRect().left
+      this.top = this.$refs.parent.getBoundingClientRect().top
+
+      // tooltip event
+      bus.$on('raw.mouseover', (d) => {
+        this.tooltip = {uid: d.uid, x: d.x, y: d.y}
+      })
+      bus.$on('raw.mouseout', () => {
+        this.tooltip = null
+      })
+
       // register event listeners
       bus.$on('agg-vis.dot-click', update.bind(this))
       bus.$on('brush', () => {

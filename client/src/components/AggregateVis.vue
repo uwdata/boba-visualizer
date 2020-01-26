@@ -1,7 +1,7 @@
 <template>
   <div ref="parent" class="d-flex flex-column">
     <!--tool-tip-->
-    <detail-tip :left="left" :top="top"></detail-tip>
+    <detail-tip :left="left" :top="top" :detail="tooltip"></detail-tip>
 
     <!--chart-->
     <div id="agg-vis-container" ref="chart" class="mt-3 ml-2 h-100"></div>
@@ -129,7 +129,8 @@
         label: 'Predicted Difference: Female - Male',
         charts: [],
         left: 0,
-        top: 0
+        top: 0,
+        tooltip: null
       }
     },
 
@@ -142,6 +143,14 @@
       bus.$on('data-ready', draw.bind(this))
       bus.$on('filter', draw.bind(this))
       bus.$on('facet', draw.bind(this))
+
+      // for tooltips
+      // bus.$on('agg-vis.dot-mouseover', (d) => {
+      //   this.tooltip = {uid: d.data.uid, x: d.x, y: d.y}
+      // })
+      // bus.$on('agg-vis.dot-mouseout', () => {
+      //   this.tooltip = null
+      // })
 
       // register here, otherwise need to call $off on destroyed charts
       bus.$on('brush-remove', (s) => {

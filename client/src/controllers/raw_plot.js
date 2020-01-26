@@ -1,6 +1,6 @@
 import * as d3 from 'd3'
 import RawScale from './vis/raw_scale'
-import {util} from './config'
+import {bus, util} from './config'
 import _ from 'lodash'
 
 class RawPlot {
@@ -197,6 +197,28 @@ class RawPlot {
         .style('text-anchor', 'end')
         .style('font-size', this.label_font_size)
         .text(this.x_axis_label)
+    }
+
+    // overlay for event
+    svg.append('rect')
+      .attr('x', 0)
+      .attr('y', th - this.label_font_size)
+      .attr('width', scale.width())
+      .attr('height', this.label_font_size)
+      .attr('fill', 'none')
+      .attr('pointer-events', 'all')
+      .on('mouseover', mouseover)
+      .on('mouseout', mouseout)
+
+    // event
+    let data = this.data
+    function mouseover() {
+      bus.$emit('raw.mouseover',
+        {uid: data.uid, x: d3.event.clientX, y: d3.event.clientY})
+    }
+
+    function mouseout() {
+      bus.$emit('raw.mouseout')
     }
   }
 }
