@@ -23,14 +23,14 @@
     }
   }
 
-  function set_chart_size (s, nx, ny, x, y) {
+  function set_chart_size (s, nx, ny, x, y, wrap) {
     let padding = 20
     let w = this.$refs.chart.clientWidth
     let h = this.$refs.chart.clientHeight
     let px = ny > 1 && x === nx - 1 ? padding : 0
-    let py = nx > 1 && y < 1 ? padding : 0
+    let py = wrap || (nx > 1 && y < 1) ? padding : 0
     w = ny > 1 ? (w - padding) / nx : w / nx
-    h = nx > 1 ? (h - padding) / ny : h / ny
+    h = wrap ? h / ny - padding : (nx > 1 ? (h - padding) / ny : h / ny)
 
     s.outerWidth = Math.floor(w + px)
     s.outerHeight = Math.floor(h + py)
@@ -58,6 +58,7 @@
   function applyFacet (data) {
     let sub = []
     let titles = []
+    let wrap = false
     if (store.facet.length === 0) {
       sub = [[data]]
       titles = [[{}]]
@@ -77,9 +78,19 @@
           return {x: opt, y: optx}
         }))
       })
+
+      // now optimize for better aspect ratio
+      if (sub.length < 2 && sub[0].length > 3) {
+        wrap = true
+        let i = Math.ceil(sub[0].length / 2)
+        sub.push(sub[0].slice(i, sub[0].length))
+        sub[0] = sub[0].slice(0, i)
+        titles.push(titles[0].slice(i, titles[0].length))
+        titles[0] = titles[0].slice(0, i)
+      }
     }
 
-    return {data: sub, labels: titles}
+    return {data: sub, labels: titles, wrap: wrap}
   }
 
   function draw () {
@@ -108,9 +119,10 @@
         g.appendChild(div)
 
         let chart = new StackedDotPlot()
-        set_chart_size.call(this, chart, row.length, data.length, ip, ir)
+        set_chart_size.call(this, chart, row.length, data.length, ip, ir, tmp.wrap)
         chart.title = ''
-        chart.row_title = ir === 0 ? labels[ir][ip].x : null
+        chart.row_title = tmp.wrap ? labels[ir][ip].x
+          : ir === 0 ? labels[ir][ip].x : null
         chart.col_title = ip === row.length - 1 ? labels[ir][ip].y : null
         chart.y_axis_label = ip === 0 ? 'Count' : ' '
         chart.x_axis_label = ir === data.length - 1 ? this.label : ' '
