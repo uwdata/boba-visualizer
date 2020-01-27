@@ -2,7 +2,7 @@ import * as d3 from 'd3'
 import _ from 'lodash'
 import DotPlotScale from './vis/dot_plot_scale'
 import BrushX from './vis/brushX'
-import {bus, store} from './config'
+import {bus, store, util} from './config'
 
 class StackedDotPlot {
   constructor () {
@@ -122,6 +122,7 @@ class StackedDotPlot {
   _drawAxis (svg) {
     let scale = this.scale
     let xAxis = d3.axisBottom(scale.x).tickSize(-scale.height())
+      .ticks(Math.round(scale.width() / 30))
 
     if (this.axis) {
       // X Axis
@@ -130,7 +131,7 @@ class StackedDotPlot {
         .attr('transform', `translate(0,${scale.height()})`)
         .call(xAxis)
         .call(g => g.selectAll('.tick line')
-          .attr('stroke-opacity', 0.5)
+          .attr('stroke-opacity', 0.3)
           .attr('stroke-dasharray', '2, 2'))
 
       // x-axis label
@@ -161,20 +162,52 @@ class StackedDotPlot {
 
     // row and column title
     if (this.row_title != null) {
-      svg.append('rect')
+      let t = util.clipText(this.row_title, scale.width() - 20,
+        '12px bold system-ui')
+
+      let bg = svg.append('rect')
         .classed('facet-title', true)
         .attr('x', 0)
         .attr('y', -this.facet_label_width)
         .attr('height', this.facet_label_width - 2)
         .attr('width', scale.width())
-      svg.append('text')
+      let text = svg.append('text')
         .attr('transform', `translate(${scale.width()/2}, ${-this.title_font_size / 2 - 1})`)
         .style('text-anchor', 'middle')
         .style('font-size', this.title_font_size)
         .style('font-weight', '700')
-        .text(this.row_title)
+        .attr('pointer-events', 'none')
+        .text(t)
+
+      // hover to show all text!!
+      let wrap = util.wrapText(this.row_title, scale.width() - 20,
+        '12px bold system-ui')
+      let mouseover = () => {
+        bg.attr('height', this.title_font_size * wrap.length + 5).raise()
+        text.text(wrap[0]).raise()
+        _.each(wrap, (line, i) => {
+          if (i > 0) {
+            text.append('tspan').text(line).attr('x', 0)
+              .attr('dy', this.title_font_size)
+          }
+        })
+      }
+
+      let mouseout = () => {
+        bg.attr('height', this.facet_label_width - 2)
+        text.selectAll('tspan').remove()
+        text.text(t)
+      }
+
+      if (wrap.length > 1) {
+        bg.on('mouseover', mouseover).on('mouseout', mouseout)
+        text.on('mouseover', mouseover).on('mouseout', mouseout)
+      }
     }
     if (this.col_title != null) {
+      let t = util.clipText(this.col_title, scale.height() - 10,
+        '12px bold system-ui')
+
       let ty = scale.width()
       svg.append('rect')
         .classed('facet-title', true)
@@ -189,7 +222,7 @@ class StackedDotPlot {
         .style('text-anchor', 'middle')
         .style('font-size', this.title_font_size)
         .style('font-weight', '700')
-        .text(this.col_title)
+        .text(t)
     }
 
     // title
