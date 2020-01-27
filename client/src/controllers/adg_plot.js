@@ -124,6 +124,10 @@ class ADGPlot {
     })
 
     if (this.show_options < 2) {
+      // color scale
+      let colormap = d3.scaleSequential(d3.interpolateBlues)
+        .domain([0, d3.max(this.nodes, (nd) => nd.sensitivity) * 1.2])
+
       // nodes
       objects.selectAll('.adg_node')
         .data(nodes)
@@ -133,6 +137,8 @@ class ADGPlot {
         .attr('r', (d) => d.radius - this.node_stroke_width)
         .attr('cx', (d) => d.x)
         .attr('cy', (d) => d.y)
+        .attr('fill', (d) => colormap(d.sensitivity))
+        // .attr('fill', "#fff")
         .on('click', this._nodeClick)
 
       // node label
@@ -317,7 +323,7 @@ class ADGPlot {
         height: r * 2
       }
 
-      g.setNode(nd.id, params)
+      g.setNode(nd.id, _.assign(nd, params))
     })
 
     // Add edges to the graph
@@ -359,7 +365,7 @@ class ADGPlot {
         height: nh
       }
 
-      g.setNode(nd.id, params)
+      g.setNode(nd.id, _.assign(nd, params))
     })
 
     // Add edges to the graph

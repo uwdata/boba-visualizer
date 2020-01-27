@@ -7,6 +7,7 @@
 <script>
   import {bus, store} from '../controllers/config'
   import ADGPlot from '../controllers/adg_plot'
+  import _ from 'lodash'
 
   function clear () {
     // remove all nodes
@@ -24,6 +25,8 @@
   function draw () {
     // prepare data
     let data = store.graph
+    data.nodes = _.map(data.nodes, (nd) => _.assign(nd,
+      {'sensitivity': store.sensitivity[nd.name]}))
 
     // redraw
     clear.call(this)
@@ -84,7 +87,6 @@
 
 <style lang="stylus">
   .adg_node
-    fill #fff
     stroke #000
     stroke-width 2
     cursor pointer

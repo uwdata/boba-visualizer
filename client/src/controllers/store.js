@@ -23,6 +23,12 @@ class Store {
     this.decisions = {}
 
     /**
+     * Sensitivity of individual decisions.
+     * @example {dec_A: 100, dec_B: 1}
+     */
+    this.sensitivity = {}
+
+    /**
      * ADG, with the same data structure as in overview.json
      */
     this.graph = {}
@@ -118,6 +124,12 @@ class Store {
             // sort
             this.predicted_diff = _.sortBy(this.predicted_diff, (d) => d.diff)
 
+            // compute sensitivity
+            _.each(this.decisions, (x, dec) => {
+              this.sensitivity[dec] = this._computeSensitivity(dec)
+            })
+            console.log(this.sensitivity)
+
             resolve()
           } else {
             reject(msg.message || 'Internal server error.')
@@ -126,6 +138,39 @@ class Store {
           reject('Network error.')
         })
     })
+  }
+
+  _computeSensitivity (dec) {
+    // other decisions
+    let od = _.keys(this.decisions)
+    _.remove(od, d => d === dec)
+
+    // record the effect size for every combination of other decisions
+    let res = {}
+    _.each(this.predicted_diff, d => {
+      let uni = this.getUniverseById(d.uid)
+      let key = _.reduce(od, (s, dec) => s + '$' + uni[dec], '')
+      if (key in res) {
+        res[key].push(d.diff)
+      } else {
+        res[key] = [d.diff]
+      }
+    })
+
+    // compute variance of each combination
+    let vs = _.map(res, (arr) => {
+      let avg = _.reduce(arr, (sum, a) => sum + a, 0) / arr.length
+      let v = _.reduce(arr, (sum ,a) => Math.pow(a - avg, 2), 0)
+      return Math.sqrt(v / arr.length)
+    })
+
+    // summary stats
+    // let avg = _.reduce(vs, (sum, v) => sum + v, 0) / vs.length
+    let sorted = _.sortBy(vs)
+    let md = sorted[Math.floor(vs.length / 2)]
+
+    // return the average of the variances
+    return md
   }
 
   /**
