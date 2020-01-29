@@ -27,7 +27,7 @@ class RawPlot {
     this.scale = null
   }
 
-  draw (parent, data) {
+  draw (parent, data, range) {
     this.parent = parent
     this.data = data
 
@@ -45,7 +45,7 @@ class RawPlot {
       'margin': this.margin
     }
 
-    let scale = new RawScale(_.concat(data.actual, data.pred), scale_params)
+    let scale = new RawScale(range, scale_params)
     this.scale = scale
 
     // prepare the canvas
@@ -213,6 +213,7 @@ class RawPlot {
     // event
     let data = this.data
     function mouseover() {
+      console.log(d3.event)
       bus.$emit('raw.mouseover',
         {uid: data.uid, x: d3.event.clientX, y: d3.event.clientY})
     }

@@ -12,7 +12,7 @@
 
   export default {
     name: "DetailTip",
-    props: ['top', 'left', 'detail'],
+    props: ['top', 'left', 'detail', 'offset'],
     computed: {
       universe () {
         if (this.detail == null) {
@@ -29,8 +29,10 @@
           return {top: 0, left: 0}
         }
 
+        let offset = this.offset == null ? 100 : this.offset
+
         return {
-          top: (this.detail.y - this.top + 100) + 'px',
+          top: (this.detail.y - this.top + offset) + 'px',
           left: (this.detail.x - this.left) + 'px'
         }
       }

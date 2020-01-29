@@ -128,7 +128,6 @@ class Store {
             _.each(this.decisions, (x, dec) => {
               this.sensitivity[dec] = this._computeSensitivity(dec)
             })
-            console.log(this.sensitivity)
 
             resolve()
           } else {

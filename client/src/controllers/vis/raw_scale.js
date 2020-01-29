@@ -2,7 +2,7 @@ import * as d3 from 'd3'
 import BaseScale from './base_scale'
 
 class RawScale extends BaseScale {
-  constructor (data, params) {
+  constructor (range, params) {
     super(params)
 
     // scales
@@ -10,10 +10,10 @@ class RawScale extends BaseScale {
     this.y = null
 
     // initialize
-    this.init(data)
+    this.init(range)
   }
 
-  init (data) {
+  init (range) {
     let h = this.height()
     let w = this.width()
 
@@ -25,10 +25,7 @@ class RawScale extends BaseScale {
     this.x = d3.scaleLinear()
       .range([0, w]).nice()
 
-    let xMax = d3.max(data) * 1.05
-    let xMin = d3.min(data) * 1.05
-
-    this.x.domain([xMin, xMax])
+    this.x.domain(range)
   }
 }
 
