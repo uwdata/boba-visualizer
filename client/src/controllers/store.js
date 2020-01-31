@@ -2,6 +2,7 @@
 
 import http from 'axios'
 import _ from 'lodash'
+import {default_config} from './config'
 
 /**
  * Shared data store across pages.
@@ -32,6 +33,11 @@ class Store {
      * ADG, with the same data structure as in overview.json
      */
     this.graph = {}
+
+    /**
+     * User configurations as in overview.json
+     */
+    this.configs = {}
 
     // predicted outcomes
     this.predictions = []
@@ -256,6 +262,9 @@ class Store {
 
             // graph
             this.graph = msg.data.graph
+
+            // config
+            this.configs = _.assign(default_config, msg.data.visualizer)
 
             resolve()
           } else {

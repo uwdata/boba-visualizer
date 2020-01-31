@@ -25,10 +25,23 @@ let bus = new Vue()
 // color
 let tableau10 = '4c78a8f58518e4575672b7b254a24beeca3bb279a2ff9da69d755dbab0ac'
 
+// default config
+const default_config = {
+  'dataset': 'multiverse',
+  'agg_plot': {
+    'x_axis_label': 'Effect Size',
+    'data': 'prediction.csv'
+  },
+  'raw_plot': {
+    'x_axis_label': ''
+  }
+}
+
 export {
   log_debug,
   store,
   bus,
   util,
-  tableau10
+  tableau10,
+  default_config
 }

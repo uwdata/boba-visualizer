@@ -29,7 +29,7 @@
 
     data () {
       return {
-        dataset: 'hurricane',
+        dataset: '--',
         decisions: '--',
         universes: '--'
       }
@@ -42,6 +42,7 @@
 
     methods: {
       updateData () {
+        this.dataset = store.configs.dataset || 'multiverse'
         this.decisions = _.size(store.decisions).toLocaleString()
         this.universes = _.size(store.universes).toLocaleString()
       }

@@ -138,7 +138,7 @@
     components: {DetailTip},
     data () {
       return {
-        label: 'Predicted Difference: Female - Male',
+        label: '',
         charts: [],
         left: 0,
         top: 0,
@@ -152,7 +152,10 @@
       this.top = this.$refs.parent.getBoundingClientRect().top
 
       // register event listener
-      bus.$on('data-ready', draw.bind(this))
+      bus.$on('data-ready', () => {
+        this.label = store.configs.agg_plot.x_axis_label
+        draw.call(this)
+      })
       bus.$on('filter', draw.bind(this))
       bus.$on('facet', draw.bind(this))
 

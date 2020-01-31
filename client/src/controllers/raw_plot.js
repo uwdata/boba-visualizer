@@ -16,7 +16,7 @@ class RawPlot {
     this.dot_radius = 4
     this.dot_opacity = 0.3
     this.title = ''
-    this.x_axis_label = 'Log2(Death+1)'
+    this.x_axis_label = ''
     this.label_font_size = 11
 
     // assigned when calling draw
