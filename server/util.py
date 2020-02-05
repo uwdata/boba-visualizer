@@ -55,3 +55,14 @@ def read_json(fn):
         res = json.load(f)
 
     return err, res
+
+def read_key_safe(obj, keys, default):
+    """ Recursively check if key is in obj and return the value.
+    Otherwise, return default. """
+    for key in keys:
+        if key in obj:
+            obj = obj[key]
+        else:
+            return default
+    
+    return obj

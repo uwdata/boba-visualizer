@@ -1,7 +1,7 @@
 import os
 from flask import jsonify, request
 from server import app
-from .util import check_path, read_csv, read_json
+from .util import read_csv, read_json, read_key_safe
 import numpy as np
 
 
@@ -20,10 +20,10 @@ def get_universes():
     return jsonify(reply), 200
 
 # read prediction
-# fixme: hard-code
 @app.route('/api/get_pred', methods=['POST'])
 def get_pred():
-    fn = os.path.join(app.data_folder, 'prediction.csv')
+    fn = read_key_safe(app.visualizer, ['agg_plot', 'data'], 'pred.csv')
+    fn = os.path.join(app.data_folder, fn)
     err, res = read_csv(fn, 0)
     reply = err if err else {'status': 'success', 'data': res[1:],
                              'header': res[0]}
@@ -41,7 +41,8 @@ def get_overview():
 @app.route('/api/get_raw', methods=['POST'])
 def get_raw():
     uid = request.json['uid']
-    fn = os.path.join(app.data_folder, 'raw', 'disagg_pred_{}.csv'.format(uid))
+    fn = read_key_safe(app.visualizer, ['raw_plot', 'data'], 'raw_{}.csv')
+    fn = os.path.join(app.data_folder, fn.format(uid))
     err, res = read_csv(fn, 1)
     reply = err if err else {'status': 'success'}
 

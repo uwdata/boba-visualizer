@@ -40,7 +40,6 @@ class Store {
     this.configs = {}
 
     // predicted outcomes
-    this.predictions = []
     this.predicted_diff = []  // sorted by effect size
 
     /**
@@ -98,7 +97,7 @@ class Store {
    */
   fetchPredictions () {
     return new Promise((resolve, reject) => {
-      if (this.predictions.length) {
+      if (this.predicted_diff.length) {
         resolve()
         return
       }
@@ -109,22 +108,12 @@ class Store {
 
           if (msg && msg.status === 'success') {
             // predicted outcomes
-            this.predictions = _.map(msg.data, (d) => {
+            this.predicted_diff = _.map(msg.data, (d) => {
               let obj = {}
               _.each(d, (val, idx) => {
                 obj[msg.header[idx]] = Number(val)
               })
               return obj
-            })
-
-            // compute predicted difference
-            // fixme: hard code
-            this.predicted_diff = []
-            _.each(_.range(0, msg.data.length, 2), (i) => {
-              let tup = [msg.data[i], msg.data[i + 1]]
-              let male = _.find(tup, (arr) => arr[1] === "0")
-              let female = _.find(tup, (arr) => arr[1] === "1")
-              this.predicted_diff.push({uid: Number(male[0]), diff: female[2] - male[2]})
             })
 
             // sort

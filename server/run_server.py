@@ -3,6 +3,7 @@
 import click
 import os
 from server import app
+from .util import read_json, read_key_safe
 
 
 def check_path(p):
@@ -22,12 +23,22 @@ def print_help(err=''):
     ctx.exit()
 
 
+def read_meta():
+    """ Read overview.json and store the meta data. """
+    fn = os.path.join(app.data_folder, 'overview.json')
+    err, res = read_json(fn)
+    if (err):
+        print_help(err)
+    app.visualizer = read_key_safe(res, ['visualizer'], {})
+
+
 @click.command()
 @click.option('--in', '-i', 'input', default='.', show_default=True,
               help='Path to the input directory')
 def main(input):
     check_path(input)
     app.data_folder = os.path.realpath(input)
+    read_meta()
 
     msg = """\033[92m
     Server started!
