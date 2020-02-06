@@ -107,7 +107,7 @@
 
   .bb-bar
     height 0.5rem
-    animation-duration 1s
+    transition width 0.3s
 
   .bb-bar-text
     font-size 0.6rem

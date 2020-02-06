@@ -13,7 +13,6 @@ class BrushX {
 
     function brushstart () {
       d3.selectAll(selector).classed('brushed', false)
-      bus.$emit('brush', [])
       bus.$emit('brush-remove', selector)
     }
 
@@ -35,7 +34,10 @@ class BrushX {
 
     function brushended () {
       // empty selection
-      if (!d3.event.selection) return
+      if (!d3.event.selection) {
+        bus.$emit('brush', [])
+        return
+      }
 
       // x0, x1
       let sel = _.flatten(d3.event.selection)
