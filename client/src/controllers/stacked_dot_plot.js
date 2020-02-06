@@ -127,17 +127,20 @@ class StackedDotPlot {
     if (this.axis) {
       // X Axis
       svg.append("g")
-        .classed("x axis", true)
+        .classed("x axis muted", true)
         .attr('transform', `translate(0,${scale.height()})`)
         .call(xAxis)
         .call(g => g.selectAll('.tick line')
-          .attr('stroke-opacity', 0.3)
+          .attr('stroke-opacity', 0.1)
           .attr('stroke-dasharray', '2, 2'))
+        .call(g => g.selectAll('.domain')
+            .attr('d', `M0.5,0H${scale.width()}`))
 
       // x-axis label
       if (this.x_axis_label) {
         let th = scale.height() + this.label_font_size * 2 + 3
         svg.append('text')
+          .classed('axis-label muted', true)
           .attr('transform', `translate(${scale.width() / 2}, ${th})`)
           .style('text-anchor', 'middle')
           .style('font-size', this.label_font_size)
@@ -147,6 +150,7 @@ class StackedDotPlot {
       // y-axis label
       if (this.y_axis_label) {
         svg.append('text')
+          .classed('axis-label muted', true)
           .attr('transform', 'rotate(-90)')
           .attr('x', 0 - (scale.height() / 2))
           .attr('y', -3)
@@ -172,11 +176,10 @@ class StackedDotPlot {
         .attr('height', this.facet_label_width - 2)
         .attr('width', scale.width())
       let text = svg.append('text')
+        .classed('facet-title-text', true)
         .attr('transform', `translate(${scale.width()/2}, ${-this.title_font_size / 2 - 1})`)
         .style('text-anchor', 'middle')
         .style('font-size', this.title_font_size)
-        .style('font-weight', '700')
-        .attr('pointer-events', 'none')
         .text(t)
 
       // hover to show all text!!
@@ -216,12 +219,12 @@ class StackedDotPlot {
         .attr('height', scale.height())
         .attr('width', this.facet_label_width - 2)
       svg.append('text')
+        .classed('facet-title-text', true)
         .attr('transform', `translate(${ty + 6}, ${(scale.height() / 2)}), rotate(90)`)
         .attr('x', 0)
         .attr('y', 0)
         .style('text-anchor', 'middle')
         .style('font-size', this.title_font_size)
-        .style('font-weight', '700')
         .text(t)
     }
 

@@ -124,6 +124,15 @@
     stroke-width 1
     stroke-linejoin round
 
+  .axis.muted
+    .domain
+      stroke #6c757d
+    .tick text
+      fill #6c757d
+
+  text.axis-label.muted
+    fill #6c757d
+
   .raw-dot
     fill #17a2b8
 

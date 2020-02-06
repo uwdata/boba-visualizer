@@ -168,15 +168,13 @@ class RawPlot {
 
     // X Axis
     svg.append("g")
-      .classed("x axis", true)
+      .classed("x axis muted", true)
       .attr('transform', `translate(0,${scale.height()})`)
       .call(xAxis)
       .call(g => g.selectAll('.tick line')
         .remove())
       .call(g => g.selectAll('.domain')
-        .attr('d', `M0.5,0H${scale.width()}`).attr('stroke', "#333"))
-      .call(g => g.selectAll('.tick text')
-        .attr('fill', "#333"))
+        .attr('d', `M0.5,0H${scale.width()}`))
   }
 
   _drawTitles (svg) {
@@ -195,8 +193,8 @@ class RawPlot {
     // x-axis label
     if (this.x_axis_label) {
       svg.append('text')
+        .classed('axis-label muted', true)
         .attr('transform', `translate(${scale.width()}, ${th})`)
-        .attr('fill', "#333")
         .style('text-anchor', 'end')
         .style('font-size', this.label_font_size)
         .text(this.x_axis_label)
@@ -216,7 +214,6 @@ class RawPlot {
     // event
     let data = this.data
     function mouseover() {
-      console.log(d3.event)
       bus.$emit('raw.mouseover',
         {uid: data.uid, x: d3.event.clientX, y: d3.event.clientY})
     }

@@ -187,15 +187,20 @@
 
 <style lang="stylus">
   .facet-title
-    fill #eee
+    fill #fafafa
+
+  .facet-title-text
+    fill #343a40
+    font-weight 500
+    pointer-events none
 
   .dot.brushed
-    fill #f00 !important
+    fill #37c2e8 !important
 
   .dot.clicked
-    fill #17a2b8 !important
+    fill #f58518 !important
 
   .dot
-    fill #333
+    fill rgb(62, 141, 195)
     cursor pointer
 </style>
