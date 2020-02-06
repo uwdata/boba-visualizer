@@ -174,7 +174,9 @@ class RawPlot {
       .call(g => g.selectAll('.tick line')
         .remove())
       .call(g => g.selectAll('.domain')
-        .attr('d', `M0.5,0H${scale.width()}`))
+        .attr('d', `M0.5,0H${scale.width()}`).attr('stroke', "#333"))
+      .call(g => g.selectAll('.tick text')
+        .attr('fill', "#333"))
   }
 
   _drawTitles (svg) {
@@ -194,6 +196,7 @@ class RawPlot {
     if (this.x_axis_label) {
       svg.append('text')
         .attr('transform', `translate(${scale.width()}, ${th})`)
+        .attr('fill', "#333")
         .style('text-anchor', 'end')
         .style('font-size', this.label_font_size)
         .text(this.x_axis_label)
@@ -203,7 +206,7 @@ class RawPlot {
     svg.append('rect')
       .attr('x', 0)
       .attr('y', th - this.label_font_size)
-      .attr('width', scale.width())
+      .attr('width', scale.width() / 3)
       .attr('height', this.label_font_size)
       .attr('fill', 'none')
       .attr('pointer-events', 'all')

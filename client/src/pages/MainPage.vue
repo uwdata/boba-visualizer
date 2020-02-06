@@ -12,12 +12,12 @@
     <loading-spinner :loading="loading"></loading-spinner>
 
     <!--Main View-->
-    <div class="row m-0 bb-main-view">
+    <div class="bb-main-view d-flex">
 
       <!--Left Panel-->
-      <div class="col-3 p-0 bb-left-panel d-flex flex-column">
-        <!--Menu-->
-        <div class="bb-menu-bar"></div>
+      <div class="bb-left-panel d-flex flex-column">
+        <!--Title-->
+        <div class="bb-panel-title text-muted">Decisions</div>
 
         <!--ADG-->
         <div class="h-100 d-flex flex-column">
@@ -27,8 +27,8 @@
         </div>
       </div>
 
-      <!--Right Panel-->
-      <div class="col-9 p-0 d-flex flex-column">
+      <!--Main Panel-->
+      <div class="d-flex flex-column flex-grow-1">
         <!--Menu-->
         <div class="bb-menu-bar"></div>
 
@@ -41,10 +41,18 @@
             <!--Option distribution-->
             <option-ratio-view></option-ratio-view>
 
-            <!--Small multiples-->
-            <small-multiples-view></small-multiples-view>
+
           </div>
         </div>
+      </div>
+
+      <!--Right Panel-->
+      <div class="bb-right-panel">
+        <!--Title-->
+        <div class="bb-panel-title text-muted">Model Fit</div>
+
+        <!--Small multiples-->
+        <small-multiples-view></small-multiples-view>
       </div>
 
     </div>
@@ -109,22 +117,36 @@
 
   .bb-navbar
     color #fff
-    min-height 4rem
+    min-height 3.5rem
     background-color #24292e
     box-shadow 0 0.5rem 1rem rgba(0,0,0,.05), inset 0 -1px 0 rgba(0,0,0,.1)
 
   .bb-left-panel
-    border-right: 1px solid rgba(0, 0, 0, 0.1)
+    width: 300px
+    border-right: 1px solid rgba(0, 0, 0, 0.15)
     background-color #fafafa
+
+  .bb-right-panel
+    width: 300px
+    border-left: 1px solid rgba(0, 0, 0, 0.15)
+    background-color #fff
 
   .bb-main-view
     width 100%
-    height calc(100vh - 4rem)
+    height calc(100vh - 3.5rem)
 
   .bb-menu-bar
-    height 4rem
+    height 3.5rem
     background-color #fff
     border-bottom 1px solid rgba(0,0,0,0.1)
     box-shadow 0.5rem 0 2rem rgba(0,0,0,.03)
+
+  .bb-panel-title
+    line-height 3.2rem
+    border-bottom 1px solid rgba(0,0,0,0.07)
+    margin-left 2rem
+    margin-right 2rem
+    font-size 0.9rem
+    font-weight 500
 
 </style>

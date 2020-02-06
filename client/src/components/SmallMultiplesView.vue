@@ -4,13 +4,18 @@
     <detail-tip :left="left" :top="top" :detail="tooltip"
                 :offset="0"></detail-tip>
 
-    <!--title-->
-    <div v-if="uid >= 0" class="bb-bar-title mt-3 ml-3">Observed vs. Predicted</div>
+    <!--legend-->
+    <div v-if="uid > 0" class="mt-2 mr-4 text-right" style="font-size: 11px">
+      <span class="raw-legend"><i class="fas fa-circle"></i></span>
+      <span class="ml-1 text-muted">Observed</span>
+      <span class="pred-legend ml-2"><i class="fas fa-circle"></i></span>
+      <span class="ml-1 text-muted">Predicted</span>
+    </div>
 
     <!--plots-->
-    <div id="raw-vis-container" class="mt-1 ml-0 mr-0 row">
-      <div id="raw-vis-1" ref="chart" class="col-3 mt-2"></div>
-      <div v-for="i in [2,3,4,5,6,7,8]" class="col-3 mt-2" :id="`raw-vis-${i}`"></div>
+    <div id="raw-vis-container" class="ml-4">
+      <div id="raw-vis-1" ref="chart" class="mt-2 mr-4"></div>
+      <div v-for="i in [2,3,4,5,6,7,8]" class="mt-2 mr-4" :id="`raw-vis-${i}`"></div>
     </div>
   </div>
 </template>
@@ -63,7 +68,7 @@
     _.each(all_data, (data, idx) => {
       // redraw
       let chart = new RawPlot()
-      chart.outerWidth = this.$refs.chart.clientWidth - 30
+      chart.outerWidth = this.$refs.chart.clientWidth
       chart.title = `Universe ${data.uid}`
       chart.x_axis_label = store.configs.raw_plot.x_axis_label
       chart.dot_opacity = 0.2
@@ -86,9 +91,9 @@
 
     mounted: function () {
       // for tooltip positions
-      this.left = this.$refs.parent.getBoundingClientRect().left
+      this.left = 0 // this.$refs.parent.getBoundingClientRect().left
       // hard coding, since it's impossible to know the correct top from here
-      this.top = 300
+      this.top = 0
 
       // tooltip event
       bus.$on('raw.mouseover', (d) => {
@@ -109,6 +114,10 @@
 </script>
 
 <style lang="stylus">
+  #raw-vis-container
+    height calc(100vh - 10rem)
+    overflow-y scroll
+
   .violin-curve
     fill none
     stroke #000
@@ -118,6 +127,12 @@
   .raw-dot
     fill #17a2b8
 
+  .raw-legend
+    color #17a2b8
+
   .pred-dot
     fill #f58518
+
+  .pred-legend
+    color #f58518
 </style>
