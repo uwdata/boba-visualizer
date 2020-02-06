@@ -33,15 +33,13 @@
         <div class="bb-menu-bar"></div>
 
         <!--Visualizations-->
-        <div class="h-100">
+        <div class="h-100 d-flex flex-column justify-content-between">
           <!--Aggregate Visualization-->
           <aggregate-vis class="h-50"></aggregate-vis>
 
-          <div class="h-50">
+          <div>
             <!--Option distribution-->
             <option-ratio-view></option-ratio-view>
-
-
           </div>
         </div>
       </div>
