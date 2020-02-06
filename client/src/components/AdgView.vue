@@ -79,6 +79,7 @@
       bus.$on('data-ready', draw.bind(this))
       bus.$on('adg-node-click', (label, ev) => {
         createFacet.call(this, label, ev)
+        this.chart.updateFacet(store.facet)
         bus.$emit('facet')
       })
     }
@@ -89,6 +90,18 @@
   .adg_node
     stroke #000
     stroke-width 2
+    cursor pointer
+    transition fill 0.2s
+    &.hovered
+      fill #f58518 !important
+    &.facet
+      fill #f58518 !important
+
+  .adg_node_facet_label
+    text-anchor middle
+    font-size 9px
+    font-weight 900
+    fill #fff
     cursor pointer
 
   .adg_node_label

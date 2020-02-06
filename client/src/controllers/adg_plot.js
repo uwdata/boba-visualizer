@@ -140,6 +140,8 @@ class ADGPlot {
         .attr('fill', (d) => colormap(d.sensitivity))
         // .attr('fill', "#fff")
         .on('click', this._nodeClick)
+        .on('mouseover', this._nodeHover.bind(this, true))
+        .on('mouseout', this._nodeHover.bind(this, false))
 
       // node label
       objects.selectAll('.adg_node_label')
@@ -151,6 +153,8 @@ class ADGPlot {
         .attr('x', (d) => d.x + d.radius + (d.rightmost && d.leftmost ? 10 : 3))
         .attr('y', (d) => d.y + 5)
         .on('click', this._nodeClick)
+        .on('mouseover', this._nodeHover.bind(this, true))
+        .on('mouseout', this._nodeHover.bind(this, false))
     }
 
     if (this.show_options === 1) {
@@ -457,6 +461,45 @@ class ADGPlot {
 
   _nodeClick (d) {
     bus.$emit('adg-node-click', d.label, d3.event)
+  }
+
+  _nodeHover (flag, datum) {
+    this.svg.selectAll('.adg_node')
+      .filter((d) => d.label === datum.label)
+      .classed('hovered', flag)
+  }
+
+  /**
+   * Update the appearance of nodes to indicate those in facet
+   * @param facet
+   */
+  updateFacet (facet) {
+    this.svg.selectAll('.adg_node_facet_label').remove()
+    this.svg.selectAll('.adg_node')
+      .classed('facet', false)
+    this.svg.selectAll('.adg_node')
+      .filter((d) => d.label === facet[0] || d.label === facet[1])
+      .classed('facet', true)
+      .each((d) => {
+        let t = d.label === facet[0] ? 'X' : 'Y'
+        this._drawNodeFacetLabel(d, t)
+      })
+  }
+
+  /**
+   * Draw a text label within the node to indicate the facet axis
+   * @param d
+   * @param t
+   * @private
+   */
+  _drawNodeFacetLabel (d, t) {
+    this.svg.select('.objects').append('text')
+      .datum(d)
+      .classed('adg_node_facet_label', true)
+      .attr('x', d.x)
+      .attr('y', d.y + 3)
+      .text(t)
+      .on('click', this._nodeClick)
   }
 
   /**
