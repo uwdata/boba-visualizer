@@ -10,7 +10,7 @@
       <div v-for="dec in decisions" class="col-3">
         <div class="mt-2 mb-1 bb-bar-title">{{dec.name}}</div>
         <div class="w-100 d-flex">
-          <div v-for="opt in dec.value" class="bb-bar" :style="opt.style"
+          <div v-for="opt in dec.value" class="bb-bar" :style="barStyle(opt)"
                v-b-tooltip.hover :title="opt.name"></div>
         </div>
         <div class="mt-1 w-100 d-flex">
@@ -51,11 +51,19 @@
             let color = tableau10.substr(++i * 6, 6)
             let w = Math.round(opt.count / total * 100)
             let alpha = w > 100/_.size(opts) + 5 ? 1 : 0.5
-            return {name: opt.name, width: w, more: alpha === 1,
-              style: `width: ${w}%; background-color: #${color}; opacity: ${alpha};`}
+            return {name: opt.name, width: w, more: alpha === 1, alpha: alpha,
+              color: color, stripe: _.includes(store.facet, dec)}
           })
           return {name: dec, value: res}
         })
+      },
+
+      barStyle (opt, bg = 'fff') {
+        let s = `width: ${opt.width}%; opacity: ${opt.alpha};`
+        let stripe = 'background: repeating-linear-gradient(-45deg,'
+        stripe += `#${opt.color}, #${opt.color} 3px, #${bg} 3px, #${bg} 5px);`
+        s += opt.stripe ? stripe : `background-color: #${opt.color};`
+        return s
       },
 
       reset () {
