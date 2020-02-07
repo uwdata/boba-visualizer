@@ -10,7 +10,7 @@ class StackedDotPlot {
     this.outerHeight = 70
     this.margin = {
       top: 0,
-      right: 15,
+      right: 3,
       bottom: 20,
       left: 15
     }
@@ -24,7 +24,7 @@ class StackedDotPlot {
     this.col_title = null
     this.facet_label_width = 20
     this.label_font_size = 11
-    this.title_font_size = 12
+    this.title_font_size = 11
 
     // assigned when calling draw
     this.parent = ''
@@ -280,7 +280,7 @@ class StackedDotPlot {
       d._y = scale.height() - d._y * step - step * 0.5
     })
 
-    let opacity = Math.max(0.3, Math.min(0.8, step / this.dot_radius * 0.5))
+    let opacity = Math.max(0.3, Math.min(0.85, step / this.dot_radius * 0.5))
     let dots = parent.selectAll('.dot')
       .data(data)
       .enter()

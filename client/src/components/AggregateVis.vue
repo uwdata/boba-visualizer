@@ -4,7 +4,24 @@
     <detail-tip :left="left" :top="top" :detail="tooltip"></detail-tip>
 
     <!--chart-->
-    <div id="agg-vis-container" ref="chart" class="mt-3 ml-2 h-100"></div>
+    <div v-if="title_x" class="d-flex mt-1">
+      <div class="bb-divider flex-grow-1 ml-4"></div>
+      <div class="ml-3 mr-3 facet-dec-title">{{title_x}}</div>
+      <div class="bb-divider flex-grow-1 mr-4"></div>
+    </div>
+    <div v-else class="mt-3"></div>
+    <div class="d-flex mt-1 flex-grow-1">
+      <!--vis container-->
+      <div id="agg-vis-container" ref="chart" class="ml-2 flex-grow-1"></div>
+
+      <!--title for y-->
+      <div v-if="title_y" class="d-flex flex-column mr-1">
+        <div class="bb-divider-v flex-grow-1"></div>
+        <div class="mt-3 mb-3 bb-text-v facet-dec-title">{{title_y}}</div>
+        <div class="bb-divider-v flex-grow-1 mb-4"></div>
+      </div>
+      <div v-else class="mr-3"></div>
+    </div>
 
   </div>
 </template>
@@ -24,12 +41,15 @@
   }
 
   function set_chart_size (s, nx, ny, x, y, wrap) {
-    let padding = 20
-    let w = this.$refs.chart.clientWidth
-    let h = this.$refs.chart.clientHeight
-    let px = ny > 1 && x === nx - 1 ? padding : 0
+    let padding = 20  // space for option title
+    let title = 3  // space for decision title
+    let dim_y = ny > 1 && !wrap  // whether there will be titles on the y dimension
+
+    let w = this.$refs.chart.clientWidth - (dim_y ? title : 0)
+    let h = this.$refs.chart.clientHeight - (nx > 1 ? title : 0)
+    let px = dim_y && x === nx - 1 ? padding : 0
     let py = wrap || (nx > 1 && y < 1) ? padding : 0
-    w = ny > 1 ? (w - padding) / nx : w / nx
+    w = dim_y ? (w - padding) / nx : w / nx
     h = wrap ? h / ny - padding : (nx > 1 ? (h - padding) / ny : h / ny)
 
     s.outerWidth = Math.floor(w + px)
@@ -56,6 +76,9 @@
   }
 
   function applyFacet (data) {
+    this.title_x = store.facet[0]
+    this.title_y = store.facet[1]
+
     let sub = []
     let titles = []
     let wrap = false
@@ -140,6 +163,8 @@
       return {
         label: '',
         charts: [],
+        title_x: null,
+        title_y: null,
         left: 0,
         top: 0,
         tooltip: null
@@ -186,11 +211,29 @@
 </script>
 
 <style lang="stylus">
+  .bb-divider
+    border-bottom 1px solid rgba(0,0,0,0.08)
+    margin-bottom 0.6rem
+
+  .bb-divider-v
+    border-left 1px solid rgba(0,0,0,0.08)
+    margin-left 0.5rem
+
+  .facet-dec-title
+    font-size 11px
+    font-weight 500
+    color #4c555d
+    text-transform capitalize !important
+
+  .bb-text-v
+    writing-mode vertical-rl
+    text-orientation mixed
+
   .facet-title
     fill #fafafa
 
   .facet-title-text
-    fill #343a40
+    fill #4c555d
     font-weight 500
     pointer-events none
 
