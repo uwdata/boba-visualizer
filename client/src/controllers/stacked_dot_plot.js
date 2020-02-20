@@ -35,7 +35,7 @@ class StackedDotPlot {
     this.brush = null
   }
 
-  draw (parent, data) {
+  draw (parent, data, uncertainty) {
     this.parent = parent
     this.data = data
 
@@ -83,6 +83,9 @@ class StackedDotPlot {
       .classed('objects', true)
       .attr('width', scale.width())
       .attr('height', scale.height())
+
+    // uncertainty envelope
+    this._drawEnvelope(objects, uncertainty)
 
     // dots
     this._drawDensityDots(objects)  // replace different chart types here
@@ -159,6 +162,36 @@ class StackedDotPlot {
           .text(this.y_axis_label)
       }
     }
+  }
+
+  _drawEnvelope (svg, uncertainty) {
+    let dp = _.flatten(_.map(uncertainty, (arr) => arr))
+    if (!dp.length) {
+      return
+    }
+
+    let ratio = this.data.length / dp.length
+    let scale = this.scale
+
+    // todo: scale should include uncertainty?
+    let dm = scale.x.domain()
+    let step = (dm[1] - dm[0]) / (scale.width() / this.dot_radius / 2)
+    let bins = _.range(dm[0], dm[1], step)
+    let hist = d3.histogram().domain(this.scale.x.domain())
+      .thresholds(bins)(dp)
+
+    // area
+    // fixme: height of a dot is not necessarily dot_radius
+    let area = d3.area()
+      .x((d) => scale.x(d.x1))
+      .y0(scale.height())
+      .y1((d) => scale.height() - d.length * this.dot_radius * 2 * ratio)
+
+    // plot the upper curve
+    svg.append('path')
+      .attr('class', 'envelope')
+      .datum(hist)
+      .attr('d', area)
   }
 
   _drawTitles (svg) {

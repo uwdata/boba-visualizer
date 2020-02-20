@@ -116,6 +116,16 @@
     return {data: sub, labels: titles, wrap: wrap}
   }
 
+  function getUncertainty (data) {
+    let res = {}
+    if (store.uncertainty.length) {
+      _.each(data, (d) => {
+        res[d.uid] = store.uncertainty[d.uid]
+      })
+    }
+    return res
+  }
+
   function draw () {
     // remove previous charts
     clear.call(this)
@@ -149,7 +159,7 @@
         chart.col_title = ip === row.length - 1 ? labels[ir][ip].y : null
         chart.y_axis_label = ip === 0 ? 'Count' : ' '
         chart.x_axis_label = ir === data.length - 1 ? this.label : ' '
-        chart.draw(`#${div_id}`, data[ir][ip])
+        chart.draw(`#${div_id}`, data[ir][ip], getUncertainty(data[ir][ip]))
 
         this.charts.push(chart)
       })
@@ -246,4 +256,8 @@
   .dot
     fill rgb(62, 141, 195)
     cursor pointer
+
+  .envelope
+    fill #999
+    opacity 0.15
 </style>

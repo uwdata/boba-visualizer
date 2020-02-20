@@ -43,6 +43,12 @@ class Store {
     this.predicted_diff = []  // sorted by effect size
 
     /**
+     * Other possible outcomes due to sampling for each universe.
+     * The array index is uid and the value is an array of possible outcomes.
+     */
+    this.uncertainty = []
+
+    /**
      * Filter based on decisions.
      * Key is the decision name, value is a map of options.
      * If false, all universes with this option will be dropped in the plot.
@@ -113,6 +119,7 @@ class Store {
               _.each(d, (val, idx) => {
                 obj[msg.header[idx]] = Number(val)
               })
+              obj.diff = obj[default_config.agg_plot.x_field] // legacy
               return obj
             })
 
@@ -122,6 +129,35 @@ class Store {
             // compute sensitivity
             _.each(this.decisions, (x, dec) => {
               this.sensitivity[dec] = this._computeSensitivity(dec)
+            })
+
+            resolve()
+          } else {
+            reject(msg.message || 'Internal server error.')
+          }
+        }, () => {
+          reject('Network error.')
+        })
+    })
+  }
+
+  fetchUncertainty () {
+    return new Promise((resolve, reject) => {
+      if (this.uncertainty.length || default_config.agg_plot.uncertainty == null) {
+        resolve()
+        return
+      }
+
+      http.post('/api/get_uncertainty', {})
+        .then((response) => {
+          let msg = response.data
+
+          if (msg && msg.status === 'success') {
+            let i_uid = _.findIndex(msg.header, (d) => d === 'uid')
+            let i_diff = _.findIndex(msg.header, (d) => d ===
+              default_config.agg_plot.x_field)
+            _.each(_.groupBy(msg.data, i_uid), (rows, k) => {
+              this.uncertainty[k] = _.map(rows, (row) => Number(row[i_diff]))
             })
 
             resolve()

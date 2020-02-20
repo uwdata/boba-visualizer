@@ -91,6 +91,9 @@
           return store.fetchPredictions()
         })
         .then(() => {
+          return store.fetchUncertainty()
+        })
+        .then(() => {
           this.loading = false
 
           // notify other components that data is ready

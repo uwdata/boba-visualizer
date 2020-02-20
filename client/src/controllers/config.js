@@ -29,7 +29,8 @@ let tableau10 = '4c78a8f58518e4575672b7b254a24beeca3bb279a2ff9da69d755dbab0ac'
 const default_config = {
   'dataset': 'multiverse',
   'agg_plot': {
-    'x_axis_label': 'Effect Size'
+    'x_axis_label': 'Effect Size',
+    'x_field': 'x'
   },
   'raw_plot': {
     'x_axis_label': ''

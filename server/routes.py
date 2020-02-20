@@ -29,6 +29,16 @@ def get_pred():
                              'header': res[0]}
     return jsonify(reply), 200
 
+# read uncertainty
+@app.route('/api/get_uncertainty', methods=['POST'])
+def get_uncertainty():
+    fn = read_key_safe(app.visualizer, ['agg_plot', 'uncertainty'], '')
+    fn = os.path.join(app.data_folder, fn)
+    err, res = read_csv(fn, 0)
+    reply = err if err else {'status': 'success', 'data': res[1:],
+                             'header': res[0]}
+    return jsonify(reply), 200
+
 # read the overview, including decisions and ADG
 @app.route('/api/get_overview', methods=['POST'])
 def get_overview():
