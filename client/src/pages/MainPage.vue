@@ -30,7 +30,9 @@
       <!--Main Panel-->
       <div class="d-flex flex-column flex-grow-1">
         <!--Menu-->
-        <div class="bb-menu-bar"></div>
+        <div class="bb-menu-bar">
+          <main-controls></main-controls>
+        </div>
 
         <!--Visualizations-->
         <div class="h-100 d-flex flex-column justify-content-between">
@@ -68,9 +70,11 @@
   import OptionRatioView from '../components/OptionRatioView.vue'
   import LegendView from '../components/LegendView.vue'
   import SmallMultiplesView from '../components/SmallMultiplesView.vue'
+  import MainControls from '../components/MainControls.vue'
 
   export default {
     components: {
+      MainControls,
       SmallMultiplesView,
       LegendView, FilterOptionView, AdgView, LoadingSpinner, AggregateVis,
       TitleMenu, HelpButton, OptionRatioView},
