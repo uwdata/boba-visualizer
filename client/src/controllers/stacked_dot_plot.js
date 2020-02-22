@@ -33,6 +33,10 @@ class StackedDotPlot {
     // components
     this.scale = null
     this.brush = null
+
+    // intermediate objects
+    this.x_axis = null
+    this.svg = null
   }
 
   draw (parent, data, uncertainty) {
@@ -55,13 +59,13 @@ class StackedDotPlot {
       'margin': this.margin,
       'x_field': 'diff'
     }
-    // fixme: here I hack to make the scale consistent
-    let scale = new DotPlotScale(store.predicted_diff, scale_params)
-    // let scale = new DotPlotScale(data, scale_params)
+
+    // using a shared x range
+    let scale = new DotPlotScale(store.x_range, scale_params)
     this.scale = scale
 
     // prepare the canvas
-    let svg = d3.select(parent)
+    this.svg = d3.select(parent)
       .append('svg')
       .attr('width', outerWidth)
       .attr('height', outerHeight)
@@ -70,16 +74,16 @@ class StackedDotPlot {
 
     // brush
     let brush = new BrushX(data, scale, `${this.parent} .dot`)
-    brush.attach(svg)
+    brush.attach(this.svg)
     this.brush = brush
 
     // axis
-    this._drawAxis(svg)
+    this._drawAxis()
 
     // title and labels
-    this._drawTitles(svg)
+    this._drawTitles()
 
-    let objects = svg.append('svg')
+    let objects = this.svg.append('svg')
       .classed('objects', true)
       .attr('width', scale.width())
       .attr('height', scale.height())
@@ -118,26 +122,42 @@ class StackedDotPlot {
     }
   }
 
+  updateScale () {
+    let scale = this.scale
+    scale.x.domain(store.x_range)
+
+    this._drawXAxis(true)
+    this._drawDensityDots(this.svg, true)
+  }
+
   clearClicked () {
     d3.selectAll('.dot.clicked').classed('clicked', false)
   }
 
-  _drawAxis (svg) {
+  _drawXAxis (redraw = false) {
     let scale = this.scale
     let xAxis = d3.axisBottom(scale.x).tickSize(-scale.height())
       .ticks(Math.round(scale.width() / 30))
 
+    let tmp = redraw ? this.x_axis.transition().duration(1000) : this.x_axis
+    tmp.call(xAxis)
+      .call(g => g.selectAll('.tick line')
+        .attr('stroke-opacity', 0.1)
+        .attr('stroke-dasharray', '2, 2'))
+      .call(g => g.selectAll('.domain')
+        .attr('d', `M0.5,0H${scale.width()}`))
+  }
+
+  _drawAxis () {
+    let scale = this.scale
+    let svg = this.svg
+
     if (this.axis) {
       // X Axis
-      svg.append("g")
+      this.x_axis = svg.append("g")
         .classed("x axis muted", true)
         .attr('transform', `translate(0,${scale.height()})`)
-        .call(xAxis)
-        .call(g => g.selectAll('.tick line')
-          .attr('stroke-opacity', 0.1)
-          .attr('stroke-dasharray', '2, 2'))
-        .call(g => g.selectAll('.domain')
-            .attr('d', `M0.5,0H${scale.width()}`))
+      this._drawXAxis()
 
       // x-axis label
       if (this.x_axis_label) {
@@ -194,8 +214,9 @@ class StackedDotPlot {
       .attr('d', area)
   }
 
-  _drawTitles (svg) {
+  _drawTitles () {
     let scale = this.scale
+    let svg = this.svg
 
     // row and column title
     if (this.row_title != null) {
@@ -278,10 +299,11 @@ class StackedDotPlot {
    * Draw density dot plots (from Allison & Cicchetti, 1976) without smoothing
    * Opacity will be adjusted based on the amount of overlap
    * @param parent
+   * @param redraw
    * @returns {*}
    * @private
    */
-  _drawDensityDots (parent) {
+  _drawDensityDots (parent, redraw = false) {
     let scale = this.scale
     let data = this.data
     let bin_size = this.dot_radius * 2  // x-axis bin size
@@ -315,14 +337,21 @@ class StackedDotPlot {
 
     let opacity = Math.max(0.3, Math.min(0.85, step / this.dot_radius * 0.5))
     let dots = parent.selectAll('.dot')
-      .data(data)
-      .enter()
-      .append('circle')
-      .classed('dot', true)
-      .attr('r', () => this.dot_radius)
-      .attr('cx', (d) => scale.x(d._x))
-      .attr('cy', (d) => d._y)
-      .attr('fill-opacity', opacity)
+    if (!redraw) {
+      dots.data(data)
+        .enter()
+        .append('circle')
+        .classed('dot', true)
+        .attr('r', () => this.dot_radius)
+        .attr('cx', (d) => scale.x(d._x))
+        .attr('cy', (d) => d._y)
+        .attr('fill-opacity', opacity)
+    } else {
+      dots.transition()
+        .duration(1000)
+        .attr('cx', (d) => scale.x(d._x))
+        .attr('cy', (d) => d._y)
+    }
 
     return dots
   }

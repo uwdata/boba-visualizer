@@ -216,6 +216,11 @@
           chart.brush.clear()
         })
       })
+      bus.$on('update-scale', () => {
+        _.each(this.charts, (chart) => {
+          chart.updateScale()
+        })
+      })
     }
   }
 </script>

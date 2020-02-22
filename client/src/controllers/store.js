@@ -60,6 +60,9 @@ class Store {
      * Dimensions to facet aggregate view.
      */
     this.facet = []
+
+    // derived data but accessed by multiple views
+    this.x_range = []
   }
 
   /**
@@ -125,6 +128,8 @@ class Store {
 
             // sort
             this.predicted_diff = _.sortBy(this.predicted_diff, (d) => d.diff)
+            this.x_range = [this.predicted_diff[0].diff * 1.1,
+              this.predicted_diff[this.predicted_diff.length - 1].diff * 1.1]
 
             // compute sensitivity
             _.each(this.decisions, (x, dec) => {

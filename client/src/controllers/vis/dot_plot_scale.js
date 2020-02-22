@@ -2,7 +2,7 @@ import * as d3 from 'd3'
 import BaseScale from './base_scale'
 
 class DotPlotScale extends BaseScale {
-  constructor (data, params) {
+  constructor (range, params) {
     super(params)
 
     // scales
@@ -10,10 +10,10 @@ class DotPlotScale extends BaseScale {
     this.y = null
 
     // initialize
-    this.init(data)
+    this.init(range)
   }
 
-  init (data) {
+  init (range) {
     let h = this.height()
     let w = this.width()
 
@@ -24,8 +24,8 @@ class DotPlotScale extends BaseScale {
     this.x = d3.scaleLinear()
       .range([0, w]).nice()
 
-    let xMax = d3.max(data, (d) => d[this.x_field]) * 1.05
-    let xMin = d3.min(data, (d) => d[this.x_field]) * 1.05
+    let xMax = range[1]
+    let xMin = range[0]
 
     this.x.domain([xMin, xMax])
   }
