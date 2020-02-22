@@ -165,6 +165,10 @@ class Store {
               this.uncertainty[k] = _.map(rows, (row) => Number(row[i_diff]))
             })
 
+            let flat = _.flatten(this.uncertainty)
+            this.x_range = [Math.min(this.x_range[0], _.min(flat)),
+              Math.max(this.x_range[1], _.max(flat))]
+
             resolve()
           } else {
             reject(msg.message || 'Internal server error.')

@@ -3,7 +3,8 @@
     <div class="ml-4 mr-2 mt-2">
       <div class="bb-menu-item text-muted">X-axis Range</div>
       <vue-slider v-model="x_range" :width="100" :min="x_min" :max="x_max"
-                  @drag-end="onChange" :interval="interval" :silent="true"/>
+                  @drag-end="onChange" :interval="interval" :clickable="false"
+                  :enableCross="false" :minRange="min_range" :silent="true"/>
     </div>
   </div>
 </template>
@@ -22,7 +23,8 @@
         x_range: [0, 1],
         x_min: 0,
         x_max: 1,
-        interval: 1
+        interval: 1,
+        min_range: 1
       }
     },
     mounted () {
@@ -53,7 +55,13 @@
           this.x_max = Number(store.x_range[1].toPrecision(n))
         }
 
-        this.x_range = [this.x_min, this.x_max]
+        if (store.configs.agg_plot.x_range) {
+          this.x_range = store.configs.agg_plot.x_range
+        } else {
+          this.x_range = [this.x_min, this.x_max]
+        }
+
+        this.min_range = this.interval
       })
     },
     methods: {

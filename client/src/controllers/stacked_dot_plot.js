@@ -29,6 +29,7 @@ class StackedDotPlot {
     // assigned when calling draw
     this.parent = ''
     this.data = []
+    this.uncertainty = []
 
     // components
     this.scale = null
@@ -42,6 +43,7 @@ class StackedDotPlot {
   draw (parent, data, uncertainty) {
     this.parent = parent
     this.data = data
+    this.uncertainty = uncertainty
 
     let outerWidth = this.outerWidth
     let outerHeight = this.outerHeight
@@ -128,6 +130,8 @@ class StackedDotPlot {
 
     this._drawXAxis(true)
     this._drawDensityDots(this.svg, true)
+    this._drawEnvelope(this.svg, this.uncertainty, true)
+    this.brush.clear()
   }
 
   clearClicked () {
@@ -184,7 +188,7 @@ class StackedDotPlot {
     }
   }
 
-  _drawEnvelope (svg, uncertainty) {
+  _drawEnvelope (svg, uncertainty, redraw = false) {
     let dp = _.flatten(_.map(uncertainty, (arr) => arr))
     if (!dp.length) {
       return
@@ -193,7 +197,6 @@ class StackedDotPlot {
     let ratio = this.data.length / dp.length
     let scale = this.scale
 
-    // todo: scale should include uncertainty?
     let dm = scale.x.domain()
     let step = (dm[1] - dm[0]) / (scale.width() / this.dot_radius / 2)
     let bins = _.range(dm[0], dm[1], step)
@@ -208,10 +211,17 @@ class StackedDotPlot {
       .y1((d) => scale.height() - d.length * this.dot_radius * 2 * ratio)
 
     // plot the upper curve
-    svg.append('path')
-      .attr('class', 'envelope')
-      .datum(hist)
-      .attr('d', area)
+    if (!redraw) {
+      svg.append('path')
+        .attr('class', 'envelope')
+        .datum(hist)
+        .attr('d', area)
+    } else {
+      svg.select('.envelope')
+        .datum(hist)
+        .transition().duration(1000)
+        .attr('d', area)
+    }
   }
 
   _drawTitles () {
@@ -329,8 +339,9 @@ class StackedDotPlot {
     }
 
     // compute y based on counts
-    let step = Math.min(scale.height() / (d3.max(data, (d) => d._y) + 1),
-      this.dot_radius * 2)
+    let dm = scale.x.domain()
+    let maxy = d3.max(data, (d) => d._x >= dm[0] && d._x <= dm[1] ? d._y : 0)
+    let step = Math.min(scale.height() / (maxy + 1), this.dot_radius * 2)
     _.each(data, (d) => {
       d._y = scale.height() - d._y * step - step * 0.5
     })
@@ -338,7 +349,7 @@ class StackedDotPlot {
     let opacity = Math.max(0.3, Math.min(0.85, step / this.dot_radius * 0.5))
     let dots = parent.selectAll('.dot')
     if (!redraw) {
-      dots.data(data)
+      return dots.data(data)
         .enter()
         .append('circle')
         .classed('dot', true)
@@ -351,9 +362,8 @@ class StackedDotPlot {
         .duration(1000)
         .attr('cx', (d) => scale.x(d._x))
         .attr('cy', (d) => d._y)
+        .attr('fill-opacity', opacity)
     }
-
-    return dots
   }
 
   /**
