@@ -1,9 +1,19 @@
 <template>
   <div class="d-flex">
-    <div class="ml-4 mr-2 mt-2">
-      <div class="bb-menu-item text-muted">X-axis Range</div>
+    <!--color by-->
+    <div class="ml-4 mr-3 mt-2">
+      <div class="bb-menu-item text-muted mb-1">Color By</div>
+      <b-dropdown size="sm" variant="light" :text="color" block split
+                  menu-class="bb-drop-menu">
+        <b-dropdown-item v-for="c in color_options"
+                         @click="onColorChange(c)">{{c}}</b-dropdown-item>
+      </b-dropdown>
+    </div>
+    <!--slider for zooming-->
+    <div class="ml-3 mr-3 mt-2">
+      <div class="bb-menu-item text-muted mb-1">X-axis Range</div>
       <vue-slider v-model="x_range" :width="100" :min="x_min" :max="x_max"
-                  @drag-end="onChange" :interval="interval" :clickable="false"
+                  @drag-end="onSliderChange" :interval="interval" :clickable="false"
                   :enableCross="false" :minRange="min_range" :silent="true"/>
     </div>
   </div>
@@ -24,7 +34,9 @@
         x_min: 0,
         x_max: 1,
         interval: 1,
-        min_range: 1
+        min_range: 1,
+        color_options: ['None', 'Sign'],
+        color: 'None'
       }
     },
     mounted () {
@@ -65,15 +77,41 @@
       })
     },
     methods: {
-      onChange () {
+      onSliderChange () {
         store.x_range = this.x_range
         bus.$emit('update-scale')
+      },
+      onColorChange (c) {
+        this.color = c
+        store.color_by = c
+        bus.$emit('update-color')
       }
     }
   }
 </script>
 
-<style scoped lang="stylus">
+<style lang="stylus">
+  .b-dropdown
+    width: 100px
+
+  .b-dropdown .btn-block
+    text-align: left
+
+  .b-dropdown .btn
+    font-size: 0.7rem
+    line-height: 1.2
+    padding-top: 0.1rem
+    padding-bottom: 0.1rem
+
+  .b-dropdown .bb-drop-menu
+    font-size: 0.7rem
+    line-height: 1.5
+    min-width: 100px
+    padding: 0.2rem 0
+
+  .b-dropdown .dropdown-item
+    padding: 0.25rem 0.5rem
+
   .bb-menu-item
     font-size 0.6em
     text-transform uppercase

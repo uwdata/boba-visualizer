@@ -4,6 +4,8 @@ import DotPlotScale from './vis/dot_plot_scale'
 import BrushX from './vis/brushX'
 import {bus, store, util} from './config'
 
+const sign = 0
+
 class StackedDotPlot {
   constructor () {
     this.outerWidth = 1050
@@ -25,6 +27,7 @@ class StackedDotPlot {
     this.facet_label_width = 20
     this.label_font_size = 11
     this.title_font_size = 11
+    this.color_by = null
 
     // assigned when calling draw
     this.parent = ''
@@ -98,6 +101,7 @@ class StackedDotPlot {
       .on('mouseover', dotMouseover)
       .on('mouseout', dotMouseout)
       .on('click', dotClick)
+    this.updateColor(this.color_by)
 
     function dotMouseover(d) {
       bus.$emit('agg-vis.dot-mouseover',
@@ -132,6 +136,18 @@ class StackedDotPlot {
     this._drawDensityDots(this.svg, true)
     this._drawEnvelope(this.svg, this.uncertainty, true)
     this.brush.clear()
+  }
+
+  updateColor (color) {
+    this.color_by = color
+    this.svg.selectAll('.dot')
+      .classed('colored', false)
+
+    if (color === 'Sign') {
+      this.svg.selectAll('.dot')
+        .filter((d) => d.diff < sign)
+        .classed('colored', true)
+    }
   }
 
   clearClicked () {
@@ -352,7 +368,6 @@ class StackedDotPlot {
     let scale = this.scale
     let data = this.data
 
-    const sign = 0
     let i = _.findIndex(data, (d) => d.diff >= sign)
     this._computeDensityDots(i, data.length, true)
     this._computeDensityDots(i - 1, -1, false)

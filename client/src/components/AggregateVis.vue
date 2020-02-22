@@ -159,6 +159,7 @@
         chart.col_title = ip === row.length - 1 ? labels[ir][ip].y : null
         chart.y_axis_label = ip === 0 ? 'Count' : ' '
         chart.x_axis_label = ir === data.length - 1 ? this.label : ' '
+        chart.color_by = store.color_by
         chart.draw(`#${div_id}`, data[ir][ip], getUncertainty(data[ir][ip]))
 
         this.charts.push(chart)
@@ -221,6 +222,11 @@
           chart.updateScale()
         })
       })
+      bus.$on('update-color', () => {
+        _.each(this.charts, (chart) => {
+          chart.updateColor(store.color_by)
+        })
+      })
     }
   }
 </script>
@@ -251,6 +257,9 @@
     fill #4c555d
     font-weight 500
     pointer-events none
+
+  .dot.colored
+    fill #e45756 !important
 
   .dot.brushed
     fill #37c2e8 !important
