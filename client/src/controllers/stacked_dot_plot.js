@@ -306,6 +306,41 @@ class StackedDotPlot {
   }
 
   /**
+   * Density dot algorithm, assuming data is sorted.
+   * @param start
+   * @param end
+   * @param forward Whether start should be smaller than end.
+   * @private
+   */
+  _computeDensityDots (start, end, forward) {
+    let scale = this.scale
+    let data = this.data
+    let bin_size = this.dot_radius  // x-axis half bin size
+
+    // dot density algorithm
+    // assuming data is sorted
+    let x = null
+    let count = 0
+    let i = start
+    while (forward ? i < end : i > end) {
+      let xi = scale.x(data[i].diff)
+      let within = forward ? (xi < x + bin_size && xi >= x - bin_size) :
+        (xi <= x + bin_size && xi > x - bin_size)
+      if (x != null && within) {
+        count += 1
+      } else {
+        x = forward ? xi + bin_size : xi - bin_size
+        count = 0
+      }
+
+      data[i]._x = x
+      data[i]._y = count
+
+      i += forward ? 1 : -1
+    }
+  }
+
+  /**
    * Draw density dot plots (from Allison & Cicchetti, 1976) without smoothing
    * Opacity will be adjusted based on the amount of overlap
    * @param parent
@@ -316,27 +351,11 @@ class StackedDotPlot {
   _drawDensityDots (parent, redraw = false) {
     let scale = this.scale
     let data = this.data
-    let bin_size = this.dot_radius * 2  // x-axis bin size
 
-    // dot density algorithm
-    // assuming data is sorted
-    let i = 0
-    let x = null
-    let count = 0
-    while (i < data.length) {
-      let xi = data[i].diff
-      if (x != null && scale.x(xi) < scale.x(x) + bin_size) {
-        count += 1
-      } else {
-        x = xi
-        count = 0
-      }
-
-      data[i]._x = x
-      data[i]._y = count
-
-      i += 1
-    }
+    const sign = 0
+    let i = _.findIndex(data, (d) => d.diff >= sign)
+    this._computeDensityDots(i, data.length, true)
+    this._computeDensityDots(i - 1, -1, false)
 
     // compute y based on counts
     let dm = scale.x.domain()
@@ -354,13 +373,13 @@ class StackedDotPlot {
         .append('circle')
         .classed('dot', true)
         .attr('r', () => this.dot_radius)
-        .attr('cx', (d) => scale.x(d._x))
+        .attr('cx', (d) => d._x)
         .attr('cy', (d) => d._y)
         .attr('fill-opacity', opacity)
     } else {
       dots.transition()
         .duration(1000)
-        .attr('cx', (d) => scale.x(d._x))
+        .attr('cx', (d) => d._x)
         .attr('cy', (d) => d._y)
         .attr('fill-opacity', opacity)
     }

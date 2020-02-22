@@ -22,7 +22,7 @@ class BrushX {
 
       // x0, x1
       let sel = _.flatten(d3.event.selection)
-      let bounds = _.map(sel, (s) => scale.x.invert(s))
+      let bounds = _.map(sel, (s) => s)
 
       // change color of selected points
       d3.selectAll(selector)
@@ -41,7 +41,7 @@ class BrushX {
 
       // x0, x1
       let sel = _.flatten(d3.event.selection)
-      let bounds = _.map(sel, (s) => scale.x.invert(s))
+      let bounds = _.map(sel, (s) => s)
 
       let pts = _.filter(data, (p) => {
         return scale.getRawX(p) >= bounds[0] &&
