@@ -95,6 +95,7 @@ class StackedDotPlot {
 
     // uncertainty envelope
     this._drawEnvelope(objects, uncertainty)
+    // this._drawCurves(objects, uncertainty)
 
     // dots
     this._drawDensityDots(objects)  // replace different chart types here
@@ -208,6 +209,53 @@ class StackedDotPlot {
     }
   }
 
+  /**
+   * To display uncertainty, overlay PDFs from individual universes
+   */
+  _drawCurves (svg, uncertainty) {
+    if (!_.keys(uncertainty).length) {
+      return
+    }
+
+    let scale = this.scale
+    let kernel_bw= 0.5
+
+    _.each(uncertainty, (arr) => {
+      let estimator = util.kde(util.epanechnikov(kernel_bw), scale.x.ticks(40))
+      let density = estimator(arr)
+
+      // scale
+      let h = 300
+      let ys = d3.scaleLinear().range([scale.height(), scale.height() - h])
+        .domain([0, 1])
+
+      // line
+      let line = d3.line().curve(d3.curveBasis)
+        .x((d) => scale.x(d[0]))
+        .y((d) => ys(d[1]))
+
+      // plot the curve
+      svg.append('path')
+        .attr('class', 'uncertainty-curve')
+        .datum(density)
+        .attr('d', line)
+
+      // // area
+      // let area = d3.area()
+      //   .x((d) => scale.x(d[0]))
+      //   .y0(scale.height())
+      //   .y1((d) => ys(d[1]))
+      // svg.append('path')
+      //   .datum(density)
+      //   .attr('d', area)
+      //   .attr('opacity', 0.015)
+      //   .attr('stroke-linejoin', 'round')
+    })
+  }
+
+  /**
+   * To display uncertainty, aggregate all possible outcomes from bootstrapping
+   */
   _drawEnvelope (svg, uncertainty, redraw = false) {
     let dp = _.flatten(_.map(uncertainty, (arr) => arr))
     if (!dp.length) {

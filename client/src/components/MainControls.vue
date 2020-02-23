@@ -7,7 +7,7 @@
         <div class="bb-menu-item text-muted mb-1">Color By</div>
         <b-dropdown size="sm" variant="light" :text="color" block split
                     menu-class="bb-drop-menu">
-          <b-dropdown-item v-for="c in color_options"
+          <b-dropdown-item v-for="c in color_options" v-bind:key="c"
                            @click="onColorChange(c)">{{c}}</b-dropdown-item>
         </b-dropdown>
       </div>
