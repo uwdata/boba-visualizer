@@ -373,7 +373,7 @@ class StackedDotPlot {
     this._computeDensityDots(i - 1, -1, false)
 
     // compute y based on counts
-    let dm = scale.x.domain()
+    let dm = scale.x.range()
     let maxy = d3.max(data, (d) => d._x >= dm[0] && d._x <= dm[1] ? d._y : 0)
     let step = Math.min(scale.height() / (maxy + 1), this.dot_radius * 2)
     _.each(data, (d) => {
