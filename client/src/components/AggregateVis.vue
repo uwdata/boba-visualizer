@@ -159,6 +159,7 @@
         chart.y_axis_label = ip === 0 ? 'Count' : ' '
         chart.x_axis_label = ir === data.length - 1 ? this.label : ' '
         chart.color_by = store.color_by
+        chart.uncertainty_vis = store.uncertainty_vis
         chart.draw(`#${div_id}`, data[ir][ip], getUncertainty(data[ir][ip]))
 
         this.charts.push(chart)
@@ -226,6 +227,11 @@
           chart.updateColor(store.color_by)
         })
       })
+      bus.$on('update-uncertainty', () => {
+        _.each(this.charts, (chart) => {
+          chart.updateUncertainty(store.uncertainty_vis)
+        })
+      })
     }
   }
 </script>
@@ -268,6 +274,9 @@
 
   .dot.clicked
     fill #f58518
+
+  .dot.hidden
+    display none !important
 
   .dot
     fill #3e8dc3

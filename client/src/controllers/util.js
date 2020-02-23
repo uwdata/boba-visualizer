@@ -45,6 +45,15 @@ class Util {
     return this._context.measureText(text).width
   }
 
+  moveToBack (sel) {
+    return sel.each(function () {
+      let fc = this.parentNode.firstChild
+      if (fc) {
+        this.parentNode.insertBefore(this, fc)
+      }
+    })
+  }
+
   kde (kernel, X) {
     return (V) => {
       return X.map((x) => [x, d3.mean(V, (v) => kernel(x - v))])

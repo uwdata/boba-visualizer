@@ -28,6 +28,7 @@ class StackedDotPlot {
     this.label_font_size = 11
     this.title_font_size = 11
     this.color_by = null
+    this.uncertainty_vis = null
 
     // assigned when calling draw
     this.parent = ''
@@ -93,11 +94,6 @@ class StackedDotPlot {
       .attr('width', scale.width())
       .attr('height', scale.height())
 
-    // uncertainty envelope
-    // this._drawEnvelope(objects, uncertainty)
-    // this._drawCurves(objects, uncertainty)
-    this._drawPBox(objects, uncertainty)
-
     // dots
     this._drawDensityDots(objects)  // replace different chart types here
       .on('mouseover', dotMouseover)
@@ -105,6 +101,10 @@ class StackedDotPlot {
       .on('click', dotClick)
     this.updateColor(this.color_by)
 
+    // uncertainty visualization
+    this._drawUncertainty()
+
+    // dot callbacks
     function dotMouseover(d) {
       bus.$emit('agg-vis.dot-mouseover',
         {data: d, x: d3.event.clientX, y: d3.event.clientY})
@@ -136,7 +136,7 @@ class StackedDotPlot {
 
     this._drawXAxis(true)
     this._drawDensityDots(this.svg, true)
-    this._drawEnvelope(this.svg, this.uncertainty, true)
+    this._drawUncertainty(true)
     this.brush.clear()
   }
 
@@ -154,6 +154,11 @@ class StackedDotPlot {
         .filter((d) => d[store.configs.agg_plot.p_value_field] < 0.05)
         .classed('colored', true)
     }
+  }
+
+  updateUncertainty (u) {
+    this.uncertainty_vis = u
+    this._drawUncertainty(false, true)
   }
 
   clearClicked () {
@@ -211,19 +216,52 @@ class StackedDotPlot {
   }
 
   /**
+   * Display uncertainty according to vis type
+   */
+  _drawUncertainty (redraw = false, change = false) {
+    let uncertainty = this.uncertainty
+    let svg = this.svg.select('.objects')
+
+    if (change) {
+      svg.selectAll('.uncertainty-curve').remove()
+      svg.selectAll('.envelope').remove()
+      svg.selectAll('.dot')
+        .classed('hidden', false)
+    }
+
+    switch (this.uncertainty_vis) {
+      case 'PDFs':
+        this._drawCurves(svg, uncertainty, 0, redraw)
+        svg.selectAll('.dot')
+          .classed('hidden', true)
+        break
+      case 'CDFs':
+        this._drawCurves(svg, uncertainty, 1, redraw)
+        svg.selectAll('.dot')
+          .classed('hidden', true)
+        break
+      case 'P-Box':
+        this._drawPBox(svg, uncertainty, redraw)
+        break
+      case 'Custom':
+        this._drawEnvelope(svg, uncertainty, redraw)
+        break
+    }
+  }
+
+  /**
    * Show uncertainty as a p-box
    */
-  _drawPBox (svg, uncertainty) {
+  _drawPBox (svg, uncertainty, redraw = false) {
     if (!_.keys(uncertainty).length) {
       return
     }
 
     // todo: y-axis label
-    // todo: respond to zoom slider
     let scale = this.scale
     let kernel_bw= 0.5
     let X = scale.x.ticks(40)
-    let bounds = _.map(X, (x) => [x, Infinity, -Infinity])
+    let bounds = _.map(X, (x) => [x, 1, 0])
     _.each(uncertainty, (arr) => {
       let estimator = util.kde(util.epanechnikov(kernel_bw), X)
       let density = estimator(arr)
@@ -245,22 +283,31 @@ class StackedDotPlot {
       .y1((d) => ys(d[1]))
 
     // plot the areas
-    svg.append('path')
-      .attr('class', 'envelope')
-      .datum(bounds)
-      .attr('d', area)
+    if (redraw) {
+      svg.select('.envelope')
+        .datum(bounds)
+        .attr('d', area)
+    } else {
+      let el = svg.append('path')
+        .attr('class', 'envelope')
+        .datum(bounds)
+        .attr('d', area)
+      util.moveToBack(el)
+    }
   }
 
   /**
    * To display uncertainty, overlay PDFs or CDFs from individual universes
+   * Prototype 0: PDF curves, 1: CDF curves, 2: PDF area
    */
-  _drawCurves (svg, uncertainty) {
+  _drawCurves (svg, uncertainty, prototype, redraw) {
     if (!_.keys(uncertainty).length) {
       return
     }
 
-    // 0: PDF curves, 1: CDF curves, 2: PDF area
-    const prototype = 1
+    if (redraw) {
+      svg.selectAll('.uncertainty-curve').remove()
+    }
 
     let scale = this.scale
     let kernel_bw= 0.5
@@ -273,7 +320,7 @@ class StackedDotPlot {
       }
 
       // scale
-      let h = 100
+      let h = prototype === 1 ? 100 : 300
       let ys = d3.scaleLinear().range([scale.height(), scale.height() - h])
         .domain([0, 1])
 
@@ -330,10 +377,11 @@ class StackedDotPlot {
 
     // plot the upper curve
     if (!redraw) {
-      svg.append('path')
+      let e = svg.append('path')
         .attr('class', 'envelope')
         .datum(hist)
         .attr('d', area)
+      util.moveToBack(e)
     } else {
       svg.select('.envelope')
         .datum(hist)

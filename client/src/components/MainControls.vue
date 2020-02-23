@@ -11,6 +11,17 @@
                            @click="onColorChange(c)">{{c}}</b-dropdown-item>
         </b-dropdown>
       </div>
+
+      <!--uncertainty-->
+      <div v-if="has_uncertainty" class="ml-3 mr-3 mt-2">
+        <div class="bb-menu-item text-muted mb-1">Uncertainty</div>
+        <b-dropdown size="sm" variant="light" :text="uncertainty" block
+                    split menu-class="bb-drop-menu">
+          <b-dropdown-item v-for="u in uncertainty_options" v-bind:key="u"
+                           @click="onUncertaintyChange(u)">{{u}}</b-dropdown-item>
+        </b-dropdown>
+      </div>
+
       <!--slider for zooming-->
       <div class="ml-3 mr-3 mt-2">
         <div class="bb-menu-item text-muted mb-1">X-axis Range</div>
@@ -51,7 +62,10 @@
         min_range: 1,
         color_options: ['None', 'Sign'],
         color: 'None',
-        legend: []
+        legend: [],
+        has_uncertainty: false,
+        uncertainty_options: ['None', 'PDFs', 'CDFs', 'P-Box', 'Custom'],
+        uncertainty: 'None'
       }
     },
     mounted () {
@@ -59,6 +73,8 @@
       bus.$on('data-ready', () => {
         this.initSlider()
         this.initColor()
+
+        this.has_uncertainty = store.configs.agg_plot.uncertainty != null
       })
     },
     methods: {
@@ -114,6 +130,11 @@
         let p_sign = [{color: '#e45756', text: 'x<0'}]
         let p_pvalue = [{color: '#e45756', text: 'p<0.05'}]
         this.legend = c === 'Sign' ? p_sign : c === 'P-value' ? p_pvalue : []
+      },
+      onUncertaintyChange (u) {
+        this.uncertainty = u
+        store.uncertainty_vis = u
+        bus.$emit('update-uncertainty')
       }
     }
   }

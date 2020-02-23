@@ -64,6 +64,7 @@ class Store {
     // derived data but accessed by multiple views
     this.x_range = []
     this.color_by = null
+    this.uncertainty_vis = null
   }
 
   /**
