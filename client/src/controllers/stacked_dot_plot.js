@@ -94,8 +94,9 @@ class StackedDotPlot {
       .attr('height', scale.height())
 
     // uncertainty envelope
-    this._drawEnvelope(objects, uncertainty)
+    // this._drawEnvelope(objects, uncertainty)
     // this._drawCurves(objects, uncertainty)
+    this._drawPBox(objects, uncertainty)
 
     // dots
     this._drawDensityDots(objects)  // replace different chart types here
@@ -210,12 +211,56 @@ class StackedDotPlot {
   }
 
   /**
-   * To display uncertainty, overlay PDFs from individual universes
+   * Show uncertainty as a p-box
+   */
+  _drawPBox (svg, uncertainty) {
+    if (!_.keys(uncertainty).length) {
+      return
+    }
+
+    // todo: y-axis label
+    // todo: respond to zoom slider
+    let scale = this.scale
+    let kernel_bw= 0.5
+    let X = scale.x.ticks(40)
+    let bounds = _.map(X, (x) => [x, Infinity, -Infinity])
+    _.each(uncertainty, (arr) => {
+      let estimator = util.kde(util.epanechnikov(kernel_bw), X)
+      let density = estimator(arr)
+      density = util.toCdf(density)
+      _.each(density, (d, i) => {
+        bounds[i][1] = Math.min(bounds[i][1], d[1])
+        bounds[i][2] = Math.max(bounds[i][2], d[1])
+      })
+    })
+
+    // scale
+    let h = Math.min(scale.height(), 100)
+    let ys = d3.scaleLinear().range([scale.height(), scale.height() - h])
+      .domain([0, 1])
+
+    let area = d3.area()
+      .x((d) => scale.x(d[0]))
+      .y0((d) => ys(d[2]))
+      .y1((d) => ys(d[1]))
+
+    // plot the areas
+    svg.append('path')
+      .attr('class', 'envelope')
+      .datum(bounds)
+      .attr('d', area)
+  }
+
+  /**
+   * To display uncertainty, overlay PDFs or CDFs from individual universes
    */
   _drawCurves (svg, uncertainty) {
     if (!_.keys(uncertainty).length) {
       return
     }
+
+    // 0: PDF curves, 1: CDF curves, 2: PDF area
+    const prototype = 1
 
     let scale = this.scale
     let kernel_bw= 0.5
@@ -223,33 +268,38 @@ class StackedDotPlot {
     _.each(uncertainty, (arr) => {
       let estimator = util.kde(util.epanechnikov(kernel_bw), scale.x.ticks(40))
       let density = estimator(arr)
+      if (prototype === 1) {
+        density = util.toCdf(density)
+      }
 
       // scale
-      let h = 300
+      let h = 100
       let ys = d3.scaleLinear().range([scale.height(), scale.height() - h])
         .domain([0, 1])
 
-      // line
-      let line = d3.line().curve(d3.curveBasis)
-        .x((d) => scale.x(d[0]))
-        .y((d) => ys(d[1]))
+      if (prototype < 2) {
+        // line
+        let line = d3.line().curve(d3.curveBasis)
+          .x((d) => scale.x(d[0]))
+          .y((d) => ys(d[1]))
 
-      // plot the curve
-      svg.append('path')
-        .attr('class', 'uncertainty-curve')
-        .datum(density)
-        .attr('d', line)
-
-      // // area
-      // let area = d3.area()
-      //   .x((d) => scale.x(d[0]))
-      //   .y0(scale.height())
-      //   .y1((d) => ys(d[1]))
-      // svg.append('path')
-      //   .datum(density)
-      //   .attr('d', area)
-      //   .attr('opacity', 0.015)
-      //   .attr('stroke-linejoin', 'round')
+        // plot the curve
+        svg.append('path')
+          .attr('class', 'uncertainty-curve')
+          .datum(density)
+          .attr('d', line)
+      } else {
+        // area
+        let area = d3.area()
+          .x((d) => scale.x(d[0]))
+          .y0(scale.height())
+          .y1((d) => ys(d[1]))
+        svg.append('path')
+          .datum(density)
+          .attr('d', area)
+          .attr('opacity', 0.015)
+          .attr('stroke-linejoin', 'round')
+      }
     })
   }
 

@@ -276,6 +276,7 @@
   .envelope
     fill #999
     opacity 0.15
+    stroke-linejoin round
 
   .uncertainty-curve
     fill none

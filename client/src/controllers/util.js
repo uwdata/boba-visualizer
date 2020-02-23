@@ -54,6 +54,18 @@ class Util {
   epanechnikov (k) {
     return (v) => Math.abs(v /= k) <= 1 ? 0.75 * (1 - v * v) / k : 0
   }
+
+  toCdf (pdf) {
+    if (pdf.length < 2) {
+      return pdf
+    }
+    let step = pdf[1][0] - pdf[0][0]
+    let sum = 0
+    return _.map(pdf, (d) => {
+      sum += step * d[1]
+      return [d[0], sum]
+    })
+  }
 }
 
 export default Util
