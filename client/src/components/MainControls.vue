@@ -57,6 +57,18 @@
     mounted () {
       // register event listener
       bus.$on('data-ready', () => {
+        this.initSlider()
+        this.initColor()
+      })
+    },
+    methods: {
+      initColor () {
+        let p = store.configs.agg_plot.p_value_field
+        if (p) {
+          this.color_options.push('P-value')
+        }
+      },
+      initSlider () {
         // figure out the interval
         let step = (store.x_range[1] - store.x_range[0]) / 200
         if (step > 1) {
@@ -89,9 +101,7 @@
         }
 
         this.min_range = this.interval
-      })
-    },
-    methods: {
+      },
       onSliderChange () {
         store.x_range = this.x_range
         bus.$emit('update-scale')
@@ -101,9 +111,9 @@
         store.color_by = c
         bus.$emit('update-color')
 
-        let p_sign = [{color: '#3e8dc3', text: 'x>=0'},
-          {color: '#e45756', text: 'x<0'}]
-        this.legend = c === 'Sign' ? p_sign : []
+        let p_sign = [{color: '#e45756', text: 'x<0'}]
+        let p_pvalue = [{color: '#e45756', text: 'p<0.05'}]
+        this.legend = c === 'Sign' ? p_sign : c === 'P-value' ? p_pvalue : []
       }
     }
   }

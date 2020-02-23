@@ -258,13 +258,16 @@
     pointer-events none
 
   .dot.colored
-    fill #e45756 !important
+    fill #e45756
+
+  .dot.colored.brushed
+    fill #ff8786
 
   .dot.brushed
-    fill #37c2e8 !important
+    fill #37c2e8
 
   .dot.clicked
-    fill #f58518 !important
+    fill #f58518
 
   .dot
     fill #3e8dc3

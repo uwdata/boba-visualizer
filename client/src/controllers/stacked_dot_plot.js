@@ -147,6 +147,10 @@ class StackedDotPlot {
       this.svg.selectAll('.dot')
         .filter((d) => d.diff < sign)
         .classed('colored', true)
+    } else if (color === 'P-value') {
+      this.svg.selectAll('.dot')
+        .filter((d) => d[store.configs.agg_plot.p_value_field] < 0.05)
+        .classed('colored', true)
     }
   }
 
