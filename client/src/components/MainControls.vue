@@ -1,20 +1,34 @@
 <template>
-  <div class="d-flex">
-    <!--color by-->
-    <div class="ml-4 mr-3 mt-2">
-      <div class="bb-menu-item text-muted mb-1">Color By</div>
-      <b-dropdown size="sm" variant="light" :text="color" block split
-                  menu-class="bb-drop-menu">
-        <b-dropdown-item v-for="c in color_options"
-                         @click="onColorChange(c)">{{c}}</b-dropdown-item>
-      </b-dropdown>
+  <div class="d-flex justify-content-between">
+    <!--controls-->
+    <div class="d-flex">
+      <!--color by-->
+      <div class="ml-4 mr-3 mt-2">
+        <div class="bb-menu-item text-muted mb-1">Color By</div>
+        <b-dropdown size="sm" variant="light" :text="color" block split
+                    menu-class="bb-drop-menu">
+          <b-dropdown-item v-for="c in color_options"
+                           @click="onColorChange(c)">{{c}}</b-dropdown-item>
+        </b-dropdown>
+      </div>
+      <!--slider for zooming-->
+      <div class="ml-3 mr-3 mt-2">
+        <div class="bb-menu-item text-muted mb-1">X-axis Range</div>
+        <vue-slider v-model="x_range" :width="100" :min="x_min" :max="x_max"
+                    @drag-end="onSliderChange" :interval="interval" :clickable="false"
+                    :enableCross="false" :minRange="min_range" :silent="true"/>
+      </div>
     </div>
-    <!--slider for zooming-->
-    <div class="ml-3 mr-3 mt-2">
-      <div class="bb-menu-item text-muted mb-1">X-axis Range</div>
-      <vue-slider v-model="x_range" :width="100" :min="x_min" :max="x_max"
-                  @drag-end="onSliderChange" :interval="interval" :clickable="false"
-                  :enableCross="false" :minRange="min_range" :silent="true"/>
+
+    <!--legend-->
+    <div v-if="legend.length" class="mr-3 mt-2">
+      <div class="bb-menu-item text-muted mb-1">Legend</div>
+      <div class="d-flex" style="font-size: 11px">
+        <div v-for="l in legend" class="mr-2">
+          <span :style="`color:${l.color};font-size:8px`"><i class="fas fa-circle"></i></span>
+          <span class="ml-1 text-muted">{{l.text}}</span>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -36,7 +50,8 @@
         interval: 1,
         min_range: 1,
         color_options: ['None', 'Sign'],
-        color: 'None'
+        color: 'None',
+        legend: []
       }
     },
     mounted () {
@@ -85,6 +100,10 @@
         this.color = c
         store.color_by = c
         bus.$emit('update-color')
+
+        let p_sign = [{color: '#3e8dc3', text: 'x>=0'},
+          {color: '#e45756', text: 'x<0'}]
+        this.legend = c === 'Sign' ? p_sign : []
       }
     }
   }

@@ -22,7 +22,6 @@
       </div>
       <div v-else class="mr-3"></div>
     </div>
-
   </div>
 </template>
 
@@ -268,7 +267,7 @@
     fill #f58518 !important
 
   .dot
-    fill rgb(62, 141, 195)
+    fill #3e8dc3
     cursor pointer
 
   .envelope
