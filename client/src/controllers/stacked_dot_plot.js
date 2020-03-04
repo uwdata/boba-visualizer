@@ -21,7 +21,7 @@ class StackedDotPlot {
     this.dot_radius = 4
     this.title = 'Overview Distribution'
     this.x_axis_label = 'Predicted Difference'
-    this.y_axis_label = 'Count'
+    this.y_axis_label = true // text will be chosen by view type
     this.row_title = null
     this.col_title = null
     this.facet_label_width = 20
@@ -158,6 +158,7 @@ class StackedDotPlot {
     this.curve_view.active = view === 1
     this.dot_view.switchView()
     this.curve_view.switchView()
+    this._labelYAxis(true)
   }
 
   _drawXAxis (redraw = false) {
@@ -172,6 +173,27 @@ class StackedDotPlot {
         .attr('stroke-dasharray', '2, 2'))
       .call(g => g.selectAll('.domain')
         .attr('d', `M0.5,0H${scale.width()}`))
+  }
+
+  _labelYAxis (update = false) {
+    if (!this.y_axis_label) {
+      return
+    }
+
+    let label = this.dot_view.getYLabel() + this.curve_view.getYLabel()
+    if (update) {
+      this.svg.select('.y.axis-label')
+        .text(label)
+    } else {
+      this.svg.append('text')
+        .classed('y axis-label muted', true)
+        .attr('transform', 'rotate(-90)')
+        .attr('x', 0 - (this.scale.height() / 2))
+        .attr('y', -3)
+        .style('text-anchor', 'middle')
+        .style('font-size', this.label_font_size)
+        .text(label)
+    }
   }
 
   _drawAxis () {
@@ -197,16 +219,7 @@ class StackedDotPlot {
       }
 
       // y-axis label
-      if (this.y_axis_label) {
-        svg.append('text')
-          .classed('axis-label muted', true)
-          .attr('transform', 'rotate(-90)')
-          .attr('x', 0 - (scale.height() / 2))
-          .attr('y', -3)
-          .style('text-anchor', 'middle')
-          .style('font-size', this.label_font_size)
-          .text(this.y_axis_label)
-      }
+      this._labelYAxis()
     }
   }
 

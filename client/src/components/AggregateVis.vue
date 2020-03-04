@@ -156,7 +156,7 @@
         chart.row_title = tmp.wrap ? labels[ir][ip].x
           : ir === 0 ? labels[ir][ip].x : null
         chart.col_title = ip === row.length - 1 ? labels[ir][ip].y : null
-        chart.y_axis_label = ip === 0 ? 'Count' : ' '
+        chart.y_axis_label = ip === 0
         chart.x_axis_label = ir === data.length - 1 ? this.label : ' '
         chart.color_by = store.color_by
         chart.uncertainty_vis = store.uncertainty_vis

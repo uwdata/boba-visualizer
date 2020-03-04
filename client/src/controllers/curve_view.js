@@ -86,6 +86,13 @@ class CurveView {
     }
   }
 
+  getYLabel () {
+    let u = this.parent.uncertainty_vis
+    let label = u === UNC_TYPE.PDF ? 'Probability Density' :
+      (u === UNC_TYPE.CDF ? 'Cumulative Density' : '')
+    return this.active ? label : ''
+  }
+
   /**
    * To display uncertainty, overlay PDFs or CDFs from individual universes
    * Prototype 0: PDF curves, 1: CDF curves
@@ -102,6 +109,7 @@ class CurveView {
     let scale = this.parent.scale
     let kernel_bw= 0.5
 
+    let data = []
     _.each(uncertainty, (arr, idx) => {
       let estimator = util.kde(util.epanechnikov(kernel_bw), scale.x.ticks(40))
       let density = estimator(arr)
@@ -110,25 +118,30 @@ class CurveView {
       }
       density.uid = Number(idx)
 
-      // scale
-      let h = prototype === 1 ? 100 : 300
-      let ys = d3.scaleLinear().range([scale.height(), scale.height() - h])
-        .domain([0, 1])
-
-      // line
-      let line = d3.line().curve(d3.curveBasis)
-        .x((d) => scale.x(d[0]))
-        .y((d) => ys(d[1]))
-
-      // plot the curve
-      svg.append('path')
-        .attr('class', 'uncertainty-curve')
-        .datum(density)
-        .attr('d', line)
-        .on('mouseover', curveMouseover)
-        .on('mouseout', curveMouseout)
-        .on('click', curveClick)
+      data.push(density)
     })
+
+    // scale
+    let h = Math.min(scale.height(), prototype === 0 ? 120 : 100)
+    let emax = prototype === 1 ? 1 : d3.max(_.flatten(data), (d) => d[1])
+    let ys = d3.scaleLinear().range([scale.height(), scale.height() - h])
+      .domain([0, emax])
+
+    // line
+    let line = d3.line().curve(d3.curveBasis)
+      .x((d) => scale.x(d[0]))
+      .y((d) => ys(d[1]))
+
+    // plot the curve
+    svg.selectAll('.uncertainty-curve')
+      .data(data)
+      .enter()
+      .append('path')
+      .classed('uncertainty-curve', true)
+      .attr('d', line)
+      .on('mouseover', curveMouseover)
+      .on('mouseout', curveMouseout)
+      .on('click', curveClick)
 
     if (redraw) {
       this.colorClicked()

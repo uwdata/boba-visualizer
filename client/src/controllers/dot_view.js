@@ -15,10 +15,13 @@ class DotView {
 
     // flag
     this.active = true
+
+    // internal
+    this._envelop_h = 200
   }
 
   draw (svg) {
-    let that = this.parent
+    let that = this
     let scale = this.parent.scale
     let uncertainty = this.parent.uncertainty
 
@@ -36,9 +39,10 @@ class DotView {
       if (uncertainty[d.uid]) {
         let estimator = util.kde(util.epanechnikov(0.5), scale.x.ticks(40))
         let density = estimator(uncertainty[d.uid])
-        let h = 300
+        let h = Math.min(scale.height(), that._envelop_h)
+        let emax = d3.max(density, (d) => d[1])
         let ys = d3.scaleLinear().range([scale.height(), scale.height() - h])
-          .domain([0, 1])
+          .domain([0, emax])
         let line = d3.line().curve(d3.curveBasis)
           .x((d) => scale.x(d[0]))
           .y((d) => ys(d[1]))
@@ -56,7 +60,7 @@ class DotView {
     }
 
     function dotClick(d) {
-      bus.$emit('agg-vis.dot-click', d.uid, that.data)
+      bus.$emit('agg-vis.dot-click', d.uid, that.parent.data)
     }
 
     this.drawEnvelope()
@@ -125,6 +129,10 @@ class DotView {
     }
   }
 
+  getYLabel () {
+    return this.active ? 'Count' : ''
+  }
+
   /**
    * To display uncertainty, aggregate all possible outcomes from bootstrapping
    */
@@ -152,6 +160,7 @@ class DotView {
       .x((d) => scale.x(d.x1))
       .y0(scale.height())
       .y1((d) => scale.height() - d.length * this.dot_radius * 2 * ratio)
+    this._envelop_h = d3.max(hist, (d) => d.length * this.dot_radius * 2 * ratio)
 
     // plot the upper curve
     if (!redraw) {
