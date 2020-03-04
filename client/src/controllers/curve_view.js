@@ -1,6 +1,7 @@
 import * as d3 from 'd3'
 import _ from 'lodash'
 import {bus, store, util} from './config'
+import {COLOR_TYPE, UNC_TYPE, sign} from './constants'
 
 class CurveView {
   constructor (caller) {
@@ -16,10 +17,10 @@ class CurveView {
     let svg = this.parent.svg.select('.objects')
 
     switch (this.parent.uncertainty_vis) {
-      case 'PDFs':
+      case UNC_TYPE.PDF:
         this._drawCurves(svg, uncertainty, 0, redraw)
         break
-      case 'CDFs':
+      case UNC_TYPE.CDF:
         this._drawCurves(svg, uncertainty, 1, redraw)
         break
     }

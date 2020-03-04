@@ -5,6 +5,7 @@ import BrushX from './vis/brushX'
 import DotView from './dot_view'
 import CurveView from './curve_view'
 import {store, util} from './config'
+import {UNC_TYPE} from './constants'
 
 class StackedDotPlot {
   constructor () {
@@ -97,20 +98,25 @@ class StackedDotPlot {
       .attr('width', scale.width())
       .attr('height', scale.height())
 
-    // dots
+    // dots and curves
     this.dot_view.draw(objects)
     this.curve_view.draw(objects)
+    this._switchView()
     this.updateColor(this.color_by)
   }
 
   updateScale () {
+    // update x scale
     let scale = this.scale
     scale.x.domain(store.x_range)
-
     this._drawXAxis(true)
+
+    // we don't handle brush resize for now
+    this.brush.clear()
+
+    // update dots/curves
     this.dot_view.updateScale()
     this.curve_view.updateScale()
-    this.brush.clear()
   }
 
   updateColor (color) {
@@ -120,10 +126,9 @@ class StackedDotPlot {
 
   updateUncertainty (u) {
     this.uncertainty_vis = u
-    let view = u === 'Aggregated' ? 0 : 1
+    let view = u === UNC_TYPE.AGG ? 0 : 1
 
     this.svg.selectAll('.uncertainty-curve').remove()
-    this.svg.selectAll('.envelope').remove()
 
     if (view === 1) {
       this.curve_view.draw()
@@ -131,15 +136,22 @@ class StackedDotPlot {
       this.dot_view.drawEnvelope()
     }
 
-    this.dot_view.active = view === 0
-    this.curve_view.active = view === 1
-    this.dot_view.switchView()
-    this.curve_view.switchView()
+    this._switchView()
   }
 
   clearClicked () {
     this.dot_view.clearClicked()
     this.curve_view.clearClicked()
+  }
+
+  _switchView () {
+    let view = this.uncertainty_vis === UNC_TYPE.CDF
+      || this.uncertainty_vis === UNC_TYPE.PDF ? 1 : 0
+
+    this.dot_view.active = view === 0
+    this.curve_view.active = view === 1
+    this.dot_view.switchView()
+    this.curve_view.switchView()
   }
 
   _drawXAxis (redraw = false) {

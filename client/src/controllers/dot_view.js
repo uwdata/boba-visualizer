@@ -1,8 +1,7 @@
 import * as d3 from 'd3'
 import _ from 'lodash'
 import {bus, store, util} from './config'
-
-const sign = 0
+import {COLOR_TYPE, sign} from './constants'
 
 class DotView {
   constructor (caller, params) {
@@ -68,20 +67,26 @@ class DotView {
   }
 
   updateScale () {
+    if (!this.active) {
+      return
+    }
     this._drawDensityDots(this.parent.svg.select('.objects'), true)
     this.drawEnvelope(true)
   }
 
   updateColor (color) {
+    if (!this.active) {
+      return
+    }
     let svg = this.parent.svg
     svg.selectAll('.dot')
       .classed('colored', false)
 
-    if (color === 'Sign') {
+    if (color === COLOR_TYPE.SIGN) {
       svg.selectAll('.dot')
         .filter((d) => d.diff < sign)
         .classed('colored', true)
-    } else if (color === 'P-value') {
+    } else if (color === COLOR_TYPE.P) {
       svg.selectAll('.dot')
         .filter((d) => d[store.configs.agg_plot.p_value_field] < 0.05)
         .classed('colored', true)
@@ -89,9 +94,10 @@ class DotView {
   }
 
   clearClicked () {
-    if (this.active) {
-      d3.selectAll('.dot.clicked').classed('clicked', false)
+    if (!this.active) {
+      return
     }
+    d3.selectAll('.dot.clicked').classed('clicked', false)
   }
 
   switchView () {
@@ -100,8 +106,11 @@ class DotView {
     if (this.active) {
       svg.selectAll('.dot').classed('hidden', false)
       this.parent._colorSelectedUids('.dot')
+      this.updateScale()
+      this.updateColor(this.parent.color_by)
     } else {
       svg.selectAll('.dot').classed('hidden', true)
+      svg.selectAll('.envelope').remove()
     }
   }
 

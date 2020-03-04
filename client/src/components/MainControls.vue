@@ -48,6 +48,7 @@
   import {bus, store} from '../controllers/config'
   import VueSlider from 'vue-slider-component'
   import 'vue-slider-component/theme/antd.css'
+  import {COLOR_TYPE, UNC_TYPE} from '../controllers/constants'
   export default {
     name: "MainControls",
     components: {
@@ -60,12 +61,12 @@
         x_max: 1,
         interval: 1,
         min_range: 1,
-        color_options: ['None', 'Sign'],
+        color_options: ['None', COLOR_TYPE.SIGN],
         color: 'None',
         legend: [],
         has_uncertainty: false,
-        uncertainty_options: ['Aggregated', 'PDFs', 'CDFs'],
-        uncertainty: 'Aggregated'
+        uncertainty_options: [UNC_TYPE.AGG, UNC_TYPE.PDF, UNC_TYPE.CDF],
+        uncertainty: UNC_TYPE.AGG
       }
     },
     mounted () {
@@ -75,16 +76,13 @@
         this.initColor()
 
         this.has_uncertainty = store.configs.agg_plot.uncertainty != null
-        if (this.has_uncertainty) {
-          this.onUncertaintyChange(this.uncertainty)
-        }
       })
     },
     methods: {
       initColor () {
         let p = store.configs.agg_plot.p_value_field
         if (p) {
-          this.color_options.push('P-value')
+          this.color_options.push(COLOR_TYPE.P)
         }
       },
       initSlider () {
@@ -126,15 +124,24 @@
         bus.$emit('update-scale')
       },
       onColorChange (c) {
+        if (this.color === c) {
+          return
+        }
+
         this.color = c
         store.color_by = c
         bus.$emit('update-color')
 
         let p_sign = [{color: '#e45756', text: 'x<0'}]
         let p_pvalue = [{color: '#e45756', text: 'p<0.05'}]
-        this.legend = c === 'Sign' ? p_sign : c === 'P-value' ? p_pvalue : []
+        this.legend = c === COLOR_TYPE.SIGN ? p_sign :
+          c === COLOR_TYPE.P ? p_pvalue : []
       },
       onUncertaintyChange (u) {
+        if (this.uncertainty === u) {
+          return
+        }
+
         this.uncertainty = u
         store.uncertainty_vis = u
         bus.$emit('update-uncertainty')
