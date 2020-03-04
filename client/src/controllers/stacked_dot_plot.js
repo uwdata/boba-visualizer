@@ -122,6 +122,7 @@ class StackedDotPlot {
   updateColor (color) {
     this.color_by = color
     this.dot_view.updateColor(color)
+    this.curve_view.updateColor(color)
   }
 
   updateUncertainty (u) {

@@ -292,16 +292,19 @@
     stroke-linejoin round
     cursor pointer
 
-  .uncertainty-curve.clicked
-    stroke #f58518
-    opacity 0.7
+  .uncertainty-curve.from-dot
+    stroke #37c2e8
+    opacity 1
+
+  .uncertainty-curve.colored
+    stroke #e45756
 
   .uncertainty-curve.hovered
     stroke #f58518
     opacity 1
     stroke-width 2
 
-  .uncertainty-curve.from-dot
-    stroke #37c2e8
-    opacity 1
+  .uncertainty-curve.clicked
+    stroke #f58518
+    opacity 0.7
 </style>

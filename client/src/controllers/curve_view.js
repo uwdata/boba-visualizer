@@ -33,6 +33,30 @@ class CurveView {
     this.draw(true)
   }
 
+  updateColor (color) {
+    if (!this.active) {
+      return
+    }
+    let svg = this.parent.svg
+    let data = this.parent.data
+
+    let uids = {}
+    _.each(data, (d) => {
+      let isin = color === COLOR_TYPE.SIGN && d.diff < sign
+      isin |= color === COLOR_TYPE.P &&
+        d[store.configs.agg_plot.p_value_field] < 0.05
+
+      if (isin) {
+        uids[d.uid] = true
+      }
+    })
+
+    svg.selectAll('.uncertainty-curve')
+      .classed('colored', false)
+      .filter((d) => d.uid in uids)
+      .classed('colored', true)
+  }
+
   clearClicked () {
     if (!this.active) {
       return
@@ -44,6 +68,7 @@ class CurveView {
   switchView () {
     if (this.active) {
       this.parent._colorSelectedUids('.uncertainty-curve')
+      this.updateColor(this.parent.color_by)
     }
   }
 
