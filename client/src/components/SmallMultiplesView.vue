@@ -37,6 +37,8 @@
   }
 
   function update (uids) {
+    store.small_multiple_uids = uids
+
     // empty uids
     if (!uids || uids.length < 1) {
       this.uid = -1

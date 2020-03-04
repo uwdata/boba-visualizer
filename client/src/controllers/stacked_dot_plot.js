@@ -145,6 +145,11 @@ class StackedDotPlot {
     this.curve_view.clearClicked()
   }
 
+  colorClicked () {
+    this.dot_view.colorClicked()
+    this.curve_view.colorClicked()
+  }
+
   _switchView () {
     let view = this.uncertainty_vis === UNC_TYPE.CDF
       || this.uncertainty_vis === UNC_TYPE.PDF ? 1 : 0
@@ -284,22 +289,6 @@ class StackedDotPlot {
         .style('font-weight', '700')
         .text(this.title)
     }
-  }
-
-  /**
-   * A helper function to color dots/curves in small multiples
-   * @param selector
-   * @private
-   */
-  _colorSelectedUids (selector) {
-    let uids = this.clicked_uids
-    this.clearClicked()
-
-    let dict = _.zipObject(uids)
-    d3.selectAll(selector)
-      .filter(d => d.uid in dict)
-      .classed('clicked', true)
-      .raise()
   }
 }
 

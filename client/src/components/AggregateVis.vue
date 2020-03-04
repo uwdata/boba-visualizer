@@ -160,6 +160,7 @@
         chart.x_axis_label = ir === data.length - 1 ? this.label : ' '
         chart.color_by = store.color_by
         chart.uncertainty_vis = store.uncertainty_vis
+        chart.clicked_uids = store.small_multiple_uids
         chart.draw(`#${div_id}`, data[ir][ip], getUncertainty(data[ir][ip]))
 
         this.charts.push(chart)
@@ -216,6 +217,16 @@
           if (s !== chart.brush.selector) {
             chart.brush.clear()
           }
+        })
+      })
+
+      bus.$on('agg-vis.dot-click', (uid, data) => {
+        let uids = store.getNearestUid(uid, data)
+        bus.$emit('update-small-multiples', uids)
+
+        _.each(this.charts, (chart) => {
+          chart.clicked_uids = uids
+          chart.colorClicked()
         })
       })
 

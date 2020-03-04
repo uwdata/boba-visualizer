@@ -65,6 +65,7 @@ class Store {
     this.x_range = []
     this.color_by = null
     this.uncertainty_vis = null
+    this.small_multiple_uids = []
   }
 
   /**

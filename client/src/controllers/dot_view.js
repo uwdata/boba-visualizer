@@ -56,11 +56,7 @@ class DotView {
     }
 
     function dotClick(d) {
-      // figuring out the nearest points here
-      let uids = store.getNearestUid(d.uid, that.data)
-      that.clicked_uids = uids
-      that._colorSelectedUids('.dot')
-      bus.$emit('update-small-multiples', uids)
+      bus.$emit('agg-vis.dot-click', d.uid, that.data)
     }
 
     this.drawEnvelope()
@@ -97,7 +93,22 @@ class DotView {
     if (!this.active) {
       return
     }
-    d3.selectAll('.dot.clicked').classed('clicked', false)
+    let svg = this.parent.svg
+    svg.selectAll('.dot.clicked').classed('clicked', false)
+  }
+
+  colorClicked () {
+    if (!this.active) {
+      return
+    }
+    this.clearClicked()
+
+    let uids = this.parent.clicked_uids
+    let dict = _.zipObject(uids)
+    this.parent.svg.selectAll('.dot')
+      .filter(d => d.uid in dict)
+      .classed('clicked', true)
+      .raise()
   }
 
   switchView () {
@@ -105,7 +116,7 @@ class DotView {
 
     if (this.active) {
       svg.selectAll('.dot').classed('hidden', false)
-      this.parent._colorSelectedUids('.dot')
+      this.colorClicked()
       this.updateScale()
       this.updateColor(this.parent.color_by)
     } else {

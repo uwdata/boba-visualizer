@@ -65,9 +65,23 @@ class CurveView {
     svg.selectAll('.uncertainty-curve.clicked').classed('clicked', false)
   }
 
+  colorClicked () {
+    if (!this.active) {
+      return
+    }
+    this.clearClicked()
+
+    let uids = this.parent.clicked_uids
+    let dict = _.zipObject(uids)
+    this.parent.svg.selectAll('.uncertainty-curve')
+      .filter(d => d.uid in dict)
+      .classed('clicked', true)
+      .raise()
+  }
+
   switchView () {
     if (this.active) {
-      this.parent._colorSelectedUids('.uncertainty-curve')
+      this.colorClicked()
       this.updateColor(this.parent.color_by)
     }
   }
@@ -117,7 +131,7 @@ class CurveView {
     })
 
     if (redraw) {
-      this.parent._colorSelectedUids('.uncertainty-curve')
+      this.colorClicked()
     }
 
     let that = this.parent
@@ -128,11 +142,7 @@ class CurveView {
       d3.select(this).classed('hovered', false)
     }
     function curveClick(d) {
-      // figuring out the nearest points here
-      let uids = store.getNearestUid(d.uid, that.data)
-      that.clicked_uids = uids
-      that._colorSelectedUids('.uncertainty-curve')
-      bus.$emit('update-small-multiples', uids)
+      bus.$emit('agg-vis.dot-click', d.uid, that.data)
     }
   }
 
