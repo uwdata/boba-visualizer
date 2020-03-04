@@ -2,9 +2,9 @@ import * as d3 from 'd3'
 import _ from 'lodash'
 import DotPlotScale from './vis/dot_plot_scale'
 import BrushX from './vis/brushX'
-import {bus, store, util} from './config'
-
-const sign = 0
+import DotView from './dot_view'
+import CurveView from './curve_view'
+import {store, util} from './config'
 
 class StackedDotPlot {
   constructor () {
@@ -18,7 +18,6 @@ class StackedDotPlot {
     }
     this.axis = true
     this.dot_radius = 4
-    this.jitter = true
     this.title = 'Overview Distribution'
     this.x_axis_label = 'Predicted Difference'
     this.y_axis_label = 'Count'
@@ -36,6 +35,8 @@ class StackedDotPlot {
     // components
     this.scale = null
     this.brush = null
+    this.dot_view = new DotView(this)
+    this.curve_view = new CurveView(this)
 
     // intermediate objects
     this.x_axis = null
@@ -55,7 +56,6 @@ class StackedDotPlot {
     let outerWidth = this.outerWidth
     let outerHeight = this.outerHeight
     let margin = this.margin
-    let that = this
 
     // make space for labels
     margin.bottom += this.x_axis_label ? this.label_font_size : 0
@@ -98,50 +98,9 @@ class StackedDotPlot {
       .attr('height', scale.height())
 
     // dots
-    this._drawDensityDots(objects)  // replace different chart types here
-      .on('mouseover', dotMouseover)
-      .on('mouseout', dotMouseout)
-      .on('click', dotClick)
+    this.dot_view.draw(objects)
+    this.curve_view.draw(objects)
     this.updateColor(this.color_by)
-
-    // uncertainty visualization
-    this._drawUncertainty()
-
-    // dot callbacks
-    function dotMouseover(d) {
-      // highlight dot
-      d3.select(this).classed('hovered', true)
-
-      // draw pdf
-      if (uncertainty[d.uid]) {
-        let estimator = util.kde(util.epanechnikov(0.5), scale.x.ticks(40))
-        let density = estimator(uncertainty[d.uid])
-        let h = 300
-        let ys = d3.scaleLinear().range([scale.height(), scale.height() - h])
-          .domain([0, 1])
-        let line = d3.line().curve(d3.curveBasis)
-          .x((d) => scale.x(d[0]))
-          .y((d) => ys(d[1]))
-        objects.append('path')
-          .attr('class', 'uncertainty-curve from-dot')
-          .datum(density)
-          .attr('d', line)
-      }
-    }
-
-    function dotMouseout(d) {
-      bus.$emit('agg-vis.dot-mouseout', {data: d})
-      d3.select(this).classed('hovered', false)
-      objects.selectAll('.uncertainty-curve.from-dot').remove()
-    }
-
-    function dotClick(d) {
-      // figuring out the nearest points here
-      let uids = store.getNearestUid(d.uid, that.data)
-      that.clicked_uids = uids
-      that._colorSelectedUids('.dot')
-      bus.$emit('update-small-multiples', uids)
-    }
   }
 
   updateScale () {
@@ -149,35 +108,38 @@ class StackedDotPlot {
     scale.x.domain(store.x_range)
 
     this._drawXAxis(true)
-    this._drawDensityDots(this.svg, true)
-    this._drawUncertainty(true)
+    this.dot_view.updateScale()
+    this.curve_view.updateScale()
     this.brush.clear()
   }
 
   updateColor (color) {
     this.color_by = color
-    this.svg.selectAll('.dot')
-      .classed('colored', false)
-
-    if (color === 'Sign') {
-      this.svg.selectAll('.dot')
-        .filter((d) => d.diff < sign)
-        .classed('colored', true)
-    } else if (color === 'P-value') {
-      this.svg.selectAll('.dot')
-        .filter((d) => d[store.configs.agg_plot.p_value_field] < 0.05)
-        .classed('colored', true)
-    }
+    this.dot_view.updateColor(color)
   }
 
   updateUncertainty (u) {
     this.uncertainty_vis = u
-    this._drawUncertainty(false, true)
+    let view = u === 'Aggregated' ? 0 : 1
+
+    this.svg.selectAll('.uncertainty-curve').remove()
+    this.svg.selectAll('.envelope').remove()
+
+    if (view === 1) {
+      this.curve_view.draw()
+    } else {
+      this.dot_view.drawEnvelope()
+    }
+
+    this.dot_view.active = view === 0
+    this.curve_view.active = view === 1
+    this.dot_view.switchView()
+    this.curve_view.switchView()
   }
 
   clearClicked () {
-    d3.selectAll('.dot.clicked').classed('clicked', false)
-    d3.selectAll('.uncertainty-curve.clicked').classed('clicked', false)
+    this.dot_view.clearClicked()
+    this.curve_view.clearClicked()
   }
 
   _drawXAxis (redraw = false) {
@@ -227,184 +189,6 @@ class StackedDotPlot {
           .style('font-size', this.label_font_size)
           .text(this.y_axis_label)
       }
-    }
-  }
-
-  /**
-   * Display uncertainty according to vis type
-   */
-  _drawUncertainty (redraw = false, view_change = false) {
-    let uncertainty = this.uncertainty
-    let svg = this.svg.select('.objects')
-
-    if (view_change) {
-      svg.selectAll('.uncertainty-curve').remove()
-      svg.selectAll('.envelope').remove()
-    }
-    switch (this.uncertainty_vis) {
-      case 'PDFs':
-        this._drawCurves(svg, uncertainty, 0, redraw)
-        this._switchView(1)
-        break
-      case 'CDFs':
-        this._drawCurves(svg, uncertainty, 1, redraw)
-        this._switchView(1)
-        break
-      case 'P-Box':
-        this._drawPBox(svg, uncertainty, redraw)
-        this._switchView(0)
-        break
-      case 'Aggregated':
-        this._drawEnvelope(svg, uncertainty, redraw)
-        this._switchView(0)
-        break
-    }
-  }
-
-  /**
-   * Show uncertainty as a p-box
-   */
-  _drawPBox (svg, uncertainty, redraw = false) {
-    if (!_.keys(uncertainty).length) {
-      return
-    }
-
-    // todo: y-axis label
-    let scale = this.scale
-    let kernel_bw= 0.5
-    let X = scale.x.ticks(40)
-    let bounds = _.map(X, (x) => [x, 1, 0])
-    _.each(uncertainty, (arr) => {
-      let estimator = util.kde(util.epanechnikov(kernel_bw), X)
-      let density = estimator(arr)
-      density = util.toCdf(density)
-      _.each(density, (d, i) => {
-        bounds[i][1] = Math.min(bounds[i][1], d[1])
-        bounds[i][2] = Math.max(bounds[i][2], d[1])
-      })
-    })
-
-    // scale
-    let h = Math.min(scale.height(), 100)
-    let ys = d3.scaleLinear().range([scale.height(), scale.height() - h])
-      .domain([0, 1])
-
-    let area = d3.area()
-      .x((d) => scale.x(d[0]))
-      .y0((d) => ys(d[2]))
-      .y1((d) => ys(d[1]))
-
-    // plot the areas
-    if (redraw) {
-      svg.select('.envelope')
-        .datum(bounds)
-        .attr('d', area)
-    } else {
-      let el = svg.append('path')
-        .attr('class', 'envelope')
-        .datum(bounds)
-        .attr('d', area)
-      util.moveToBack(el)
-    }
-  }
-
-  /**
-   * To display uncertainty, overlay PDFs or CDFs from individual universes
-   * Prototype 0: PDF curves, 1: CDF curves
-   */
-  _drawCurves (svg, uncertainty, prototype, redraw) {
-    if (!_.keys(uncertainty).length) {
-      return
-    }
-
-    if (redraw) {
-      svg.selectAll('.uncertainty-curve').remove()
-    }
-
-    let scale = this.scale
-    let kernel_bw= 0.5
-
-    _.each(uncertainty, (arr, idx) => {
-      let estimator = util.kde(util.epanechnikov(kernel_bw), scale.x.ticks(40))
-      let density = estimator(arr)
-      if (prototype === 1) {
-        density = util.toCdf(density)
-      }
-      density.uid = Number(idx)
-
-      // scale
-      let h = prototype === 1 ? 100 : 300
-      let ys = d3.scaleLinear().range([scale.height(), scale.height() - h])
-        .domain([0, 1])
-
-      // line
-      let line = d3.line().curve(d3.curveBasis)
-        .x((d) => scale.x(d[0]))
-        .y((d) => ys(d[1]))
-
-      // plot the curve
-      svg.append('path')
-        .attr('class', 'uncertainty-curve')
-        .datum(density)
-        .attr('d', line)
-        .on('mouseover', curveMouseover)
-        .on('mouseout', curveMouseout)
-        .on('click', curveClick)
-    })
-
-    let that = this
-    function curveMouseover () {
-      d3.select(this).classed('hovered', true)
-    }
-    function curveMouseout() {
-      d3.select(this).classed('hovered', false)
-    }
-    function curveClick(d) {
-      // figuring out the nearest points here
-      let uids = store.getNearestUid(d.uid, that.data)
-      that.clicked_uids = uids
-      that._colorSelectedUids('.uncertainty-curve')
-      bus.$emit('update-small-multiples', uids)
-    }
-  }
-
-  /**
-   * To display uncertainty, aggregate all possible outcomes from bootstrapping
-   */
-  _drawEnvelope (svg, uncertainty, redraw = false) {
-    let dp = _.flatten(_.map(uncertainty, (arr) => arr))
-    if (!dp.length) {
-      return
-    }
-
-    let ratio = this.data.length / dp.length
-    let scale = this.scale
-
-    let dm = scale.x.domain()
-    let step = (dm[1] - dm[0]) / (scale.width() / this.dot_radius / 2)
-    let bins = _.range(dm[0], dm[1], step)
-    let hist = d3.histogram().domain(this.scale.x.domain())
-      .thresholds(bins)(dp)
-
-    // area
-    // fixme: height of a dot is not necessarily dot_radius
-    let area = d3.area()
-      .x((d) => scale.x(d.x1))
-      .y0(scale.height())
-      .y1((d) => scale.height() - d.length * this.dot_radius * 2 * ratio)
-
-    // plot the upper curve
-    if (!redraw) {
-      let e = svg.append('path')
-        .attr('class', 'envelope')
-        .datum(hist)
-        .attr('d', area)
-      util.moveToBack(e)
-    } else {
-      svg.select('.envelope')
-        .datum(hist)
-        .transition().duration(1000)
-        .attr('d', area)
     }
   }
 
@@ -490,156 +274,6 @@ class StackedDotPlot {
   }
 
   /**
-   * Density dot algorithm, assuming data is sorted.
-   * @param start
-   * @param end
-   * @param forward Whether start should be smaller than end.
-   * @private
-   */
-  _computeDensityDots (start, end, forward) {
-    let scale = this.scale
-    let data = this.data
-    let bin_size = this.dot_radius  // x-axis half bin size
-
-    // dot density algorithm
-    // assuming data is sorted
-    let x = null
-    let count = 0
-    let i = start
-    while (forward ? i < end : i > end) {
-      let xi = scale.x(data[i].diff)
-      let within = forward ? (xi < x + bin_size && xi >= x - bin_size) :
-        (xi <= x + bin_size && xi > x - bin_size)
-      if (x != null && within) {
-        count += 1
-      } else {
-        x = forward ? xi + bin_size : xi - bin_size
-        count = 0
-      }
-
-      data[i]._x = x
-      data[i]._y = count
-
-      i += forward ? 1 : -1
-    }
-  }
-
-  /**
-   * Draw density dot plots (from Allison & Cicchetti, 1976) without smoothing
-   * Opacity will be adjusted based on the amount of overlap
-   * @param parent
-   * @param redraw
-   * @returns {*}
-   * @private
-   */
-  _drawDensityDots (parent, redraw = false) {
-    let scale = this.scale
-    let data = this.data
-
-    let i = _.findIndex(data, (d) => d.diff >= sign)
-    this._computeDensityDots(i, data.length, true)
-    this._computeDensityDots(i - 1, -1, false)
-
-    // compute y based on counts
-    let dm = scale.x.range()
-    let maxy = d3.max(data, (d) => d._x >= dm[0] && d._x <= dm[1] ? d._y : 0)
-    let step = Math.min(scale.height() / (maxy + 1), this.dot_radius * 2)
-    _.each(data, (d) => {
-      d._y = scale.height() - d._y * step - step * 0.5
-    })
-
-    let opacity = Math.max(0.3, Math.min(0.85, step / this.dot_radius * 0.5))
-    let dots = parent.selectAll('.dot')
-    if (!redraw) {
-      return dots.data(data)
-        .enter()
-        .append('circle')
-        .classed('dot', true)
-        .attr('r', () => this.dot_radius)
-        .attr('cx', (d) => d._x)
-        .attr('cy', (d) => d._y)
-        .attr('fill-opacity', opacity)
-    } else {
-      dots.transition()
-        .duration(1000)
-        .attr('cx', (d) => d._x)
-        .attr('cy', (d) => d._y)
-        .attr('fill-opacity', opacity)
-    }
-  }
-
-  /**
-   * Draw jittered plot. When dots overlap, displace the y position by adding
-   * a small amount of uniform random error.
-   * @param parent
-   * @returns {*|void} D3 selections of all dots.
-   * @private
-   */
-  _drawJittered (parent) {
-    let scale = this.scale
-    let data = this.data
-
-    let dots = parent.selectAll('.dot')
-      .data(data)
-      .enter()
-      .append('circle')
-      .classed('dot', true)
-      .attr('r', () => this.dot_radius)
-      .attr('cx', (d) => scale.x(d.diff))
-      .attr('cy', (d) => {
-        let y = (scale.height() - this.dot_radius) / 2
-        let j = this.jitter ? (Math.random() - 0.5)  * scale.height() : 0
-        d._y = y + j // save this for brushing
-        return y + j
-      })
-      .attr('fill-opacity', 0.3)
-
-    return dots
-  }
-
-  /**
-   * Draw histogram dot plot. Note that we're using the true x value, instead
-   * of the binned x value. Also, we allow dots to overlap along the y-axis.
-   * @param parent
-   * @returns {*|void} D3 selections of all dots.
-   * @private
-   */
-  _drawHistoDots (parent) {
-    let scale = this.scale
-    let data = this.data
-
-    // compute the bins
-    let hist = d3.histogram()
-      .value((d) => d.diff)
-      .domain(scale.x.domain())
-      .thresholds(Math.floor(scale.width() / this.dot_radius))
-
-    let bins = hist(data)
-    let step = scale.height() / d3.max(bins, (d) => d.length)
-
-    // compute the y position for each point
-    _.each(bins, (arr) => {
-      _.each(arr, (d, idx) => {
-        d._y = scale.height() - Math.floor(idx * step)
-      })
-    })
-
-    // draw
-    let dots = parent.selectAll('.dot')
-      .data(data)
-      .enter()
-      .append('circle')
-      .classed('dot', true)
-      .attr('r', () => this.dot_radius)
-      .attr('cx', (d) => scale.x(d.diff))
-      .attr('cy', (d) => d._y)
-      .attr('fill-opacity', 0.3)
-
-    return dots
-  }
-
-
-  /**
    * A helper function to color dots/curves in small multiples
    * @param selector
    * @private
@@ -653,24 +287,6 @@ class StackedDotPlot {
       .filter(d => d.uid in dict)
       .classed('clicked', true)
       .raise()
-  }
-
-  /**
-   * A helper function to properly switch between dot / curve view
-   * @param view_id  0: dot, 1: curve
-   * @private
-   */
-  _switchView (view_id) {
-    let svg = this.svg
-    if (view_id === 0) {
-      // switching to a dot plot view
-      svg.selectAll('.dot').classed('hidden', false)
-      this._colorSelectedUids('.dot')
-    } else {
-      // switching to a curve view
-      svg.selectAll('.dot').classed('hidden', true)
-      this._colorSelectedUids('.uncertainty-curve')
-    }
   }
 }
 
