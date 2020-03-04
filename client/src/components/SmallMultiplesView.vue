@@ -108,6 +108,7 @@
       bus.$on('brush', () => {
         this.uid = -1
         clear.call(this)
+        bus.$emit('small-multiple.clear')
       })
     }
   }

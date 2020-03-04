@@ -64,8 +64,8 @@
         color: 'None',
         legend: [],
         has_uncertainty: false,
-        uncertainty_options: ['None', 'PDFs', 'CDFs', 'P-Box', 'Custom'],
-        uncertainty: 'None'
+        uncertainty_options: ['Aggregated', 'PDFs', 'CDFs'],
+        uncertainty: 'Aggregated'
       }
     },
     mounted () {
@@ -75,6 +75,7 @@
         this.initColor()
 
         this.has_uncertainty = store.configs.agg_plot.uncertainty != null
+        this.onUncertaintyChange(this.uncertainty)
       })
     },
     methods: {

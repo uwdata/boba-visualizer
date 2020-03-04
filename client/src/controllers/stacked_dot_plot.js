@@ -27,8 +27,6 @@ class StackedDotPlot {
     this.facet_label_width = 20
     this.label_font_size = 11
     this.title_font_size = 11
-    this.color_by = null
-    this.uncertainty_vis = null
 
     // assigned when calling draw
     this.parent = ''
@@ -42,6 +40,11 @@ class StackedDotPlot {
     // intermediate objects
     this.x_axis = null
     this.svg = null
+
+    // to be persistent through view change
+    this.color_by = null
+    this.uncertainty_vis = null
+    this.clicked_uids = []
   }
 
   draw (parent, data, uncertainty) {
@@ -117,15 +120,8 @@ class StackedDotPlot {
     function dotClick(d) {
       // figuring out the nearest points here
       let uids = store.getNearestUid(d.uid, that.data)
-
-      // color those dots
-      let dict = _.zipObject(uids)
-      d3.selectAll('.dot')
-        .classed('clicked', false)
-        .filter(d => d.uid in dict)
-        .classed('clicked', true)
-        .raise()
-
+      that.clicked_uids = uids
+      that._colorSelectedUids('.dot')
       bus.$emit('agg-vis.dot-click', uids)
     }
   }
@@ -163,6 +159,7 @@ class StackedDotPlot {
 
   clearClicked () {
     d3.selectAll('.dot.clicked').classed('clicked', false)
+    d3.selectAll('.uncertainty-curve.clicked').classed('clicked', false)
   }
 
   _drawXAxis (redraw = false) {
@@ -218,33 +215,30 @@ class StackedDotPlot {
   /**
    * Display uncertainty according to vis type
    */
-  _drawUncertainty (redraw = false, change = false) {
+  _drawUncertainty (redraw = false, view_change = false) {
     let uncertainty = this.uncertainty
     let svg = this.svg.select('.objects')
 
-    if (change) {
+    if (view_change) {
       svg.selectAll('.uncertainty-curve').remove()
       svg.selectAll('.envelope').remove()
-      svg.selectAll('.dot')
-        .classed('hidden', false)
     }
-
     switch (this.uncertainty_vis) {
       case 'PDFs':
         this._drawCurves(svg, uncertainty, 0, redraw)
-        svg.selectAll('.dot')
-          .classed('hidden', true)
+        this._switchView(1)
         break
       case 'CDFs':
         this._drawCurves(svg, uncertainty, 1, redraw)
-        svg.selectAll('.dot')
-          .classed('hidden', true)
+        this._switchView(1)
         break
       case 'P-Box':
         this._drawPBox(svg, uncertainty, redraw)
+        this._switchView(0)
         break
-      case 'Custom':
+      case 'Aggregated':
         this._drawEnvelope(svg, uncertainty, redraw)
+        this._switchView(0)
         break
     }
   }
@@ -298,7 +292,7 @@ class StackedDotPlot {
 
   /**
    * To display uncertainty, overlay PDFs or CDFs from individual universes
-   * Prototype 0: PDF curves, 1: CDF curves, 2: PDF area
+   * Prototype 0: PDF curves, 1: CDF curves
    */
   _drawCurves (svg, uncertainty, prototype, redraw) {
     if (!_.keys(uncertainty).length) {
@@ -312,42 +306,48 @@ class StackedDotPlot {
     let scale = this.scale
     let kernel_bw= 0.5
 
-    _.each(uncertainty, (arr) => {
+    _.each(uncertainty, (arr, idx) => {
       let estimator = util.kde(util.epanechnikov(kernel_bw), scale.x.ticks(40))
       let density = estimator(arr)
       if (prototype === 1) {
         density = util.toCdf(density)
       }
+      density.uid = Number(idx)
 
       // scale
       let h = prototype === 1 ? 100 : 300
       let ys = d3.scaleLinear().range([scale.height(), scale.height() - h])
         .domain([0, 1])
 
-      if (prototype < 2) {
-        // line
-        let line = d3.line().curve(d3.curveBasis)
-          .x((d) => scale.x(d[0]))
-          .y((d) => ys(d[1]))
+      // line
+      let line = d3.line().curve(d3.curveBasis)
+        .x((d) => scale.x(d[0]))
+        .y((d) => ys(d[1]))
 
-        // plot the curve
-        svg.append('path')
-          .attr('class', 'uncertainty-curve')
-          .datum(density)
-          .attr('d', line)
-      } else {
-        // area
-        let area = d3.area()
-          .x((d) => scale.x(d[0]))
-          .y0(scale.height())
-          .y1((d) => ys(d[1]))
-        svg.append('path')
-          .datum(density)
-          .attr('d', area)
-          .attr('opacity', 0.015)
-          .attr('stroke-linejoin', 'round')
-      }
+      // plot the curve
+      svg.append('path')
+        .attr('class', 'uncertainty-curve')
+        .datum(density)
+        .attr('d', line)
+        .on('mouseover', curveMouseover)
+        .on('mouseout', curveMouseout)
+        .on('click', curveClick)
     })
+
+    let that = this
+    function curveMouseover () {
+      d3.select(this).classed('hovered', true)
+    }
+    function curveMouseout() {
+      d3.select(this).classed('hovered', false)
+    }
+    function curveClick(d) {
+      // figuring out the nearest points here
+      let uids = store.getNearestUid(d.uid, that.data)
+      that.clicked_uids = uids
+      that._colorSelectedUids('.uncertainty-curve')
+      bus.$emit('agg-vis.dot-click', uids)
+    }
   }
 
   /**
@@ -618,6 +618,41 @@ class StackedDotPlot {
       .attr('fill-opacity', 0.3)
 
     return dots
+  }
+
+
+  /**
+   * A helper function to color dots/curves in small multiples
+   * @param selector
+   * @private
+   */
+  _colorSelectedUids (selector) {
+    let uids = this.clicked_uids
+    this.clearClicked()
+
+    let dict = _.zipObject(uids)
+    d3.selectAll(selector)
+      .filter(d => d.uid in dict)
+      .classed('clicked', true)
+      .raise()
+  }
+
+  /**
+   * A helper function to properly switch between dot / curve view
+   * @param view_id  0: dot, 1: curve
+   * @private
+   */
+  _switchView (view_id) {
+    let svg = this.svg
+    if (view_id === 0) {
+      // switching to a dot plot view
+      svg.selectAll('.dot').classed('hidden', false)
+      this._colorSelectedUids('.dot')
+    } else {
+      // switching to a curve view
+      svg.selectAll('.dot').classed('hidden', true)
+      this._colorSelectedUids('.uncertainty-curve')
+    }
   }
 }
 

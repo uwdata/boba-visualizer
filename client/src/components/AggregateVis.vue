@@ -232,6 +232,11 @@
           chart.updateUncertainty(store.uncertainty_vis)
         })
       })
+      bus.$on('small-multiple.clear', () => {
+        _.each(this.charts, (chart) => {
+          chart.clicked_uids = []
+        })
+      })
     }
   }
 </script>
@@ -293,4 +298,14 @@
     opacity 0.08
     stroke-width 1
     stroke-linejoin round
+    cursor pointer
+
+  .uncertainty-curve.clicked
+    stroke #f58518
+    opacity 0.7
+
+  .uncertainty-curve.hovered
+    stroke #f58518
+    opacity 1
+    stroke-width 2
 </style>
