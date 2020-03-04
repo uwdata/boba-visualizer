@@ -194,29 +194,6 @@
       })
       bus.$on('filter', draw.bind(this))
       bus.$on('facet', draw.bind(this))
-
-      // for tooltips
-      // bus.$on('agg-vis.dot-mouseover', (d) => {
-      //   this.tooltip = {uid: d.data.uid, x: d.x, y: d.y}
-      // })
-      // bus.$on('agg-vis.dot-mouseout', () => {
-      //   this.tooltip = null
-      // })
-
-      // register here, otherwise need to call $off on destroyed charts
-      bus.$on('brush-remove', (s) => {
-        _.each(this.charts, (chart) => {
-          if (s !== chart.brush.selector) {
-            chart.brush.clear()
-          }
-          chart.clearClicked()
-        })
-      })
-      bus.$on('agg-vis.dot-click', () => {
-        _.each(this.charts, (chart) => {
-          chart.brush.clear()
-        })
-      })
       bus.$on('update-scale', () => {
         _.each(this.charts, (chart) => {
           chart.updateScale()
@@ -232,10 +209,25 @@
           chart.updateUncertainty(store.uncertainty_vis)
         })
       })
-      bus.$on('small-multiple.clear', () => {
+
+      // register here, otherwise need to call $off on destroyed charts
+      bus.$on('brush-remove', (s) => {
         _.each(this.charts, (chart) => {
-          chart.clicked_uids = []
+          if (s !== chart.brush.selector) {
+            chart.brush.clear()
+          }
         })
+      })
+
+      // empty brush removes small multiples (simulate clicking elsewhere)
+      bus.$on('brush', (sel) => {
+        if (!sel || sel.length < 1) {
+          _.each(this.charts, (chart) => {
+            chart.clicked_uids = []
+            chart.clearClicked()
+          })
+          bus.$emit('update-small-multiples', [])
+        }
       })
     }
   }
@@ -274,10 +266,10 @@
   .dot.colored.brushed
     fill #ff8786
 
-  .dot.brushed
+  .dot.brushed, .dot.hovered
     fill #37c2e8
 
-  .dot.clicked
+  .dot.clicked, .dot.clicked.brushed
     fill #f58518
 
   .dot.hidden

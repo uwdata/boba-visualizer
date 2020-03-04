@@ -109,10 +109,8 @@ class StackedDotPlot {
 
     // dot callbacks
     function dotMouseover(d) {
-      // tooltip
-      bus.$emit('agg-vis.dot-mouseover',
-        {data: d, x: d3.event.clientX, y: d3.event.clientY})
-      d3.select(this).classed('brushed', true)
+      // highlight dot
+      d3.select(this).classed('hovered', true)
 
       // draw pdf
       if (uncertainty[d.uid]) {
@@ -133,7 +131,7 @@ class StackedDotPlot {
 
     function dotMouseout(d) {
       bus.$emit('agg-vis.dot-mouseout', {data: d})
-      d3.select(this).classed('brushed', false)
+      d3.select(this).classed('hovered', false)
       objects.selectAll('.uncertainty-curve.from-dot').remove()
     }
 
@@ -142,7 +140,7 @@ class StackedDotPlot {
       let uids = store.getNearestUid(d.uid, that.data)
       that.clicked_uids = uids
       that._colorSelectedUids('.dot')
-      bus.$emit('agg-vis.dot-click', uids)
+      bus.$emit('update-small-multiples', uids)
     }
   }
 
@@ -366,7 +364,7 @@ class StackedDotPlot {
       let uids = store.getNearestUid(d.uid, that.data)
       that.clicked_uids = uids
       that._colorSelectedUids('.uncertainty-curve')
-      bus.$emit('agg-vis.dot-click', uids)
+      bus.$emit('update-small-multiples', uids)
     }
   }
 

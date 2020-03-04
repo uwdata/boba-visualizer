@@ -37,6 +37,13 @@
   }
 
   function update (uids) {
+    // empty uids
+    if (!uids || uids.length < 1) {
+      this.uid = -1
+      clear.call(this)
+      return
+    }
+
     // fetch data
     store.fetchRaw(uids)
       .then((ret) => {
@@ -104,12 +111,7 @@
       })
 
       // register event listeners
-      bus.$on('agg-vis.dot-click', update.bind(this))
-      bus.$on('brush', () => {
-        this.uid = -1
-        clear.call(this)
-        bus.$emit('small-multiple.clear')
-      })
+      bus.$on('update-small-multiples', update.bind(this))
     }
   }
 </script>
