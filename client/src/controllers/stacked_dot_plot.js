@@ -109,12 +109,32 @@ class StackedDotPlot {
 
     // dot callbacks
     function dotMouseover(d) {
+      // tooltip
       bus.$emit('agg-vis.dot-mouseover',
         {data: d, x: d3.event.clientX, y: d3.event.clientY})
+      d3.select(this).classed('brushed', true)
+
+      // draw pdf
+      if (uncertainty[d.uid]) {
+        let estimator = util.kde(util.epanechnikov(0.5), scale.x.ticks(40))
+        let density = estimator(uncertainty[d.uid])
+        let h = 300
+        let ys = d3.scaleLinear().range([scale.height(), scale.height() - h])
+          .domain([0, 1])
+        let line = d3.line().curve(d3.curveBasis)
+          .x((d) => scale.x(d[0]))
+          .y((d) => ys(d[1]))
+        objects.append('path')
+          .attr('class', 'uncertainty-curve from-dot')
+          .datum(density)
+          .attr('d', line)
+      }
     }
 
     function dotMouseout(d) {
       bus.$emit('agg-vis.dot-mouseout', {data: d})
+      d3.select(this).classed('brushed', false)
+      objects.selectAll('.uncertainty-curve.from-dot').remove()
     }
 
     function dotClick(d) {

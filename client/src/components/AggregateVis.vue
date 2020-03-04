@@ -308,4 +308,8 @@
     stroke #f58518
     opacity 1
     stroke-width 2
+
+  .uncertainty-curve.from-dot
+    stroke #37c2e8
+    opacity 1
 </style>

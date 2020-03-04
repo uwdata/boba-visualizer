@@ -75,7 +75,9 @@
         this.initColor()
 
         this.has_uncertainty = store.configs.agg_plot.uncertainty != null
-        this.onUncertaintyChange(this.uncertainty)
+        if (this.has_uncertainty) {
+          this.onUncertaintyChange(this.uncertainty)
+        }
       })
     },
     methods: {
