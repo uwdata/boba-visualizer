@@ -129,7 +129,7 @@ class StackedDotPlot {
     this.uncertainty_vis = u
     let view = u === UNC_TYPE.AGG ? 0 : 1
 
-    this.svg.selectAll('.uncertainty-curve').remove()
+    this.curve_view.clear()
 
     if (view === 1) {
       this.curve_view.draw()

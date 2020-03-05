@@ -93,6 +93,27 @@ class CurveView {
     return this.active ? label : ''
   }
 
+  clear () {
+    let svg = this.parent.svg
+    svg.selectAll('.uncertainty-curve').remove()
+    svg.selectAll('.y.axis').remove()
+  }
+
+  _drawAxis (ys, svg) {
+    // axis
+    let yAxis = d3.axisLeft(ys).tickSize(1)
+      .ticks(2)
+
+    svg.append("g")
+      .classed("y axis muted", true)
+      .call(yAxis)
+      .call(g => g.selectAll('.tick:first-of-type').remove())
+      .call(g => g.selectAll('.tick text')
+        .attr('x', 18))
+      .call(g => g.selectAll('.tick line')
+        .attr('x2', 3))
+  }
+
   /**
    * To display uncertainty, overlay PDFs or CDFs from individual universes
    * Prototype 0: PDF curves, 1: CDF curves
@@ -103,7 +124,7 @@ class CurveView {
     }
 
     if (redraw) {
-      svg.selectAll('.uncertainty-curve').remove()
+      this.clear()
     }
 
     let scale = this.parent.scale
@@ -126,6 +147,9 @@ class CurveView {
     let emax = prototype === 1 ? 1 : d3.max(_.flatten(data), (d) => d[1])
     let ys = d3.scaleLinear().range([scale.height(), scale.height() - h])
       .domain([0, emax])
+
+    // axis
+    this._drawAxis(ys, svg)
 
     // line
     let line = d3.line().curve(d3.curveBasis)
