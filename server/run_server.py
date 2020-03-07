@@ -2,6 +2,7 @@
 
 import click
 import os
+import pandas as pd
 from server import app
 from .util import read_json, read_key_safe
 
@@ -30,6 +31,48 @@ def read_meta():
     if (err):
         print_help(err)
     app.visualizer = read_key_safe(res, ['visualizer'], {})
+    app.decisions = read_key_safe(res, ['decisions'], {})
+
+
+def cal_sensitivity():
+    """ Compute sensitivity """
+    # read summary.csv
+    fn = os.path.join(app.data_folder, 'summary.csv')
+    smr = pd.read_csv(fn, na_filter=False)
+    smr['uid'] = smr.apply(lambda r: r.name + 1, axis=1).astype(int)
+
+    # read the prediction and join with summary
+    fn = read_key_safe(app.visualizer, ['agg_plot', 'data'], 'pred.csv')
+    fn = os.path.join(app.data_folder, fn)
+    df = pd.read_csv(fn, na_filter=False)
+    col = read_key_safe(app.visualizer, ['agg_plot', 'x_field'], 'diff')
+    df = pd.merge(smr, df[['uid', col]], on='uid')
+
+    # compute one-way F-test
+    res = {}
+    x_mean = df[col].mean()
+    for d in app.decisions:
+        dec = d['var']
+        groups = []
+        for opt in d['options']:
+            groups.append(df.loc[df[dec] == opt][['uid', col]])
+
+        # ms between
+        ms_b = 0
+        for g in groups:
+            ms_b += len(g) * (g[col].mean() - x_mean)**2
+        ms_b /= len(groups) - 1
+
+        # ms within
+        ms_w = 0
+        for g in groups:
+            g_mean = g[col].mean()
+            ms_w += sum((g[col] - g_mean)**2)
+        ms_w /= len(df) - len(groups)
+
+        res[dec] = ms_b / ms_w
+
+    app.sensitivity = res
 
 
 @click.command()
@@ -39,6 +82,7 @@ def main(input):
     check_path(input)
     app.data_folder = os.path.realpath(input)
     read_meta()
+    cal_sensitivity()
 
     msg = """\033[92m
     Server started!
