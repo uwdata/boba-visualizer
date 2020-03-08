@@ -72,7 +72,7 @@ def cal_sensitivity():
 
         res[dec] = ms_b / ms_w
 
-    app.sensitivity = res
+    app.sensitivity_f = res
 
 
 @click.command()

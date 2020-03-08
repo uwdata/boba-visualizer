@@ -125,8 +125,9 @@ class ADGPlot {
 
     if (this.show_options < 2) {
       // color scale
+      let s_max = d3.max(this.nodes, (nd) => Math.sqrt(nd.sensitivity))
       let colormap = d3.scaleSequential(d3.interpolateBlues)
-        .domain([0, d3.max(this.nodes, (nd) => nd.sensitivity) * 1.2])
+        .domain([0, Math.max(5, s_max) * 1.2])
 
       // nodes
       objects.selectAll('.adg_node')
@@ -137,7 +138,7 @@ class ADGPlot {
         .attr('r', (d) => d.radius - this.node_stroke_width)
         .attr('cx', (d) => d.x)
         .attr('cy', (d) => d.y)
-        .attr('fill', (d) => colormap(d.sensitivity))
+        .attr('fill', (d) => colormap(Math.sqrt(d.sensitivity)))
         // .attr('fill', "#fff")
         .on('click', this._nodeClick)
         .on('mouseover', this._nodeHover.bind(this, true))

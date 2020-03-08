@@ -103,141 +103,6 @@ class Store {
     })
   }
 
-  /**
-   * Get the predicted outcomes.
-   * @returns {Promise<any>}
-   */
-  fetchPredictions () {
-    return new Promise((resolve, reject) => {
-      if (this.predicted_diff.length) {
-        resolve()
-        return
-      }
-
-      http.post('/api/get_pred', {})
-        .then((response) => {
-          let msg = response.data
-
-          if (msg && msg.status === 'success') {
-            // predicted outcomes
-            this.predicted_diff = _.map(msg.data, (d) => {
-              let obj = {}
-              _.each(d, (val, idx) => {
-                obj[msg.header[idx]] = Number(val)
-              })
-              obj.diff = obj[default_config.agg_plot.x_field] // legacy
-              return obj
-            })
-
-            // sort
-            this.predicted_diff = _.sortBy(this.predicted_diff, (d) => d.diff)
-            this.x_range = [this.predicted_diff[0].diff * 1.1,
-              this.predicted_diff[this.predicted_diff.length - 1].diff * 1.1]
-
-            // compute sensitivity
-            _.each(this.decisions, (x, dec) => {
-              this.sensitivity[dec] = this._computeSensitivity(dec)
-            })
-
-            resolve()
-          } else {
-            reject(msg.message || 'Internal server error.')
-          }
-        }, () => {
-          reject('Network error.')
-        })
-    })
-  }
-
-  fetchUncertainty () {
-    return new Promise((resolve, reject) => {
-      if (this.uncertainty.length || default_config.agg_plot.uncertainty == null) {
-        resolve()
-        return
-      }
-
-      http.post('/api/get_uncertainty', {})
-        .then((response) => {
-          let msg = response.data
-
-          if (msg && msg.status === 'success') {
-            let i_uid = _.findIndex(msg.header, (d) => d === 'uid')
-            let i_diff = _.findIndex(msg.header, (d) => d ===
-              default_config.agg_plot.x_field)
-            _.each(_.groupBy(msg.data, i_uid), (rows, k) => {
-              this.uncertainty[k] = _.map(rows, (row) => Number(row[i_diff]))
-            })
-
-            let flat = _.flatten(this.uncertainty)
-            this.x_range = [Math.min(this.x_range[0], _.min(flat)),
-              Math.max(this.x_range[1], _.max(flat))]
-
-            resolve()
-          } else {
-            reject(msg.message || 'Internal server error.')
-          }
-        }, () => {
-          reject('Network error.')
-        })
-    })
-  }
-
-  _computeSensitivity (dec) {
-    // other decisions
-    let od = _.keys(this.decisions)
-    _.remove(od, d => d === dec)
-
-    // record the effect size for every combination of other decisions
-    let res = {}
-    _.each(this.predicted_diff, d => {
-      let uni = this.getUniverseById(d.uid)
-      let key = _.reduce(od, (s, dec) => s + '$' + uni[dec], '')
-      if (key in res) {
-        res[key].push(d.diff)
-      } else {
-        res[key] = [d.diff]
-      }
-    })
-
-    // compute variance of each combination
-    let vs = _.map(res, (arr) => {
-      let avg = _.reduce(arr, (sum, a) => sum + a, 0) / arr.length
-      let v = _.reduce(arr, (sum ,a) => Math.pow(a - avg, 2), 0)
-      return Math.sqrt(v / arr.length)
-    })
-
-    // summary stats
-    // let avg = _.reduce(vs, (sum, v) => sum + v, 0) / vs.length
-    let sorted = _.sortBy(vs)
-    let md = sorted[Math.floor(vs.length / 2)]
-
-    // return the average of the variances
-    return md
-  }
-
-  /**
-   * Given a uid, get the universes that are most similar in predicted diff.
-   * @param uid
-   * @param data
-   * @param num How many universes to return.
-   * @returns {*}
-   * @private
-   */
-  _getNearestUidByDiff (uid, data, num = 8) {
-    data = data || this.predicted_diff
-
-    let j = _.findIndex(data, (d) => d.uid === uid)
-    let i = Math.min(Math.max(0, j - Math.floor(num / 2)),
-      data.length - num)
-    let uids = _.map(_.range(i, i + num), (idx) => data[idx].uid)
-    let ret = _.filter(uids, (d) => d !== uid)
-    ret.unshift(uid)
-    return ret
-  }
-
-  getNearestUid (uid, data, num = 8) {
-    return this._getNearestUidByDiff(uid, data, num)
-  }
 
   /**
    * Get the actual and predicted outcomes of all data points for each uid.
@@ -303,6 +168,10 @@ class Store {
             // config
             this.configs = _.assign(default_config, msg.data.visualizer)
 
+            // sensitivity
+            this.sensitivity = msg.sensitivity
+            console.log(this.sensitivity)
+
             resolve()
           } else {
             reject(msg.message || 'Internal server error.')
@@ -311,6 +180,148 @@ class Store {
           reject('Network error.')
         })
     })
+  }
+
+  /**
+   * Get the predicted outcomes.
+   * @returns {Promise<any>}
+   */
+  fetchPredictions () {
+    return new Promise((resolve, reject) => {
+      if (this.predicted_diff.length) {
+        resolve()
+        return
+      }
+
+      http.post('/api/get_pred', {})
+        .then((response) => {
+          let msg = response.data
+
+          if (msg && msg.status === 'success') {
+            // predicted outcomes
+            this.predicted_diff = _.map(msg.data, (d) => {
+              let obj = {}
+              _.each(d, (val, idx) => {
+                obj[msg.header[idx]] = Number(val)
+              })
+              obj.diff = obj[default_config.agg_plot.x_field] // legacy
+              return obj
+            })
+
+            // sort
+            this.predicted_diff = _.sortBy(this.predicted_diff, (d) => d.diff)
+            this.x_range = [this.predicted_diff[0].diff * 1.1,
+              this.predicted_diff[this.predicted_diff.length - 1].diff * 1.1]
+
+            // // compute sensitivity
+            // _.each(this.decisions, (x, dec) => {
+            //   this.sensitivity[dec] = this._computeSensitivity(dec)
+            // })
+
+            resolve()
+          } else {
+            reject(msg.message || 'Internal server error.')
+          }
+        }, () => {
+          reject('Network error.')
+        })
+    })
+  }
+
+  fetchUncertainty () {
+    return new Promise((resolve, reject) => {
+      if (this.uncertainty.length || default_config.agg_plot.uncertainty == null) {
+        resolve()
+        return
+      }
+
+      http.post('/api/get_uncertainty', {})
+        .then((response) => {
+          let msg = response.data
+
+          if (msg && msg.status === 'success') {
+            let i_uid = _.findIndex(msg.header, (d) => d === 'uid')
+            let i_diff = _.findIndex(msg.header, (d) => d ===
+              default_config.agg_plot.x_field)
+            _.each(_.groupBy(msg.data, i_uid), (rows, k) => {
+              this.uncertainty[k] = _.map(rows, (row) => Number(row[i_diff]))
+            })
+
+            let flat = _.flatten(this.uncertainty)
+            this.x_range = [Math.min(this.x_range[0], _.min(flat)),
+              Math.max(this.x_range[1], _.max(flat))]
+
+            resolve()
+          } else {
+            reject(msg.message || 'Internal server error.')
+          }
+        }, () => {
+          reject('Network error.')
+        })
+    })
+  }
+
+  /**
+   * Compute the sensitivity for a decision as mean pairwise std.
+   * @param dec The decision name.
+   * @returns number The sensitivity score.
+   * @deprecated
+   */
+  _computeSensitivity (dec) {
+    // other decisions
+    let od = _.keys(this.decisions)
+    _.remove(od, d => d === dec)
+
+    // record the effect size for every combination of other decisions
+    let res = {}
+    _.each(this.predicted_diff, d => {
+      let uni = this.getUniverseById(d.uid)
+      let key = _.reduce(od, (s, dec) => s + '$' + uni[dec], '')
+      if (key in res) {
+        res[key].push(d.diff)
+      } else {
+        res[key] = [d.diff]
+      }
+    })
+
+    // compute variance of each combination
+    let vs = _.map(res, (arr) => {
+      let avg = _.reduce(arr, (sum, a) => sum + a, 0) / arr.length
+      let v = _.reduce(arr, (sum ,a) => Math.pow(a - avg, 2), 0)
+      return Math.sqrt(v / arr.length)
+    })
+
+    // summary stats
+    // let avg = _.reduce(vs, (sum, v) => sum + v, 0) / vs.length
+    let sorted = _.sortBy(vs)
+    let md = sorted[Math.floor(vs.length / 2)]
+
+    // return the average of the variances
+    return md
+  }
+
+  /**
+   * Given a uid, get the universes that are most similar in predicted diff.
+   * @param uid
+   * @param data
+   * @param num How many universes to return.
+   * @returns {*}
+   * @private
+   */
+  _getNearestUidByDiff (uid, data, num = 8) {
+    data = data || this.predicted_diff
+
+    let j = _.findIndex(data, (d) => d.uid === uid)
+    let i = Math.min(Math.max(0, j - Math.floor(num / 2)),
+      data.length - num)
+    let uids = _.map(_.range(i, i + num), (idx) => data[idx].uid)
+    let ret = _.filter(uids, (d) => d !== uid)
+    ret.unshift(uid)
+    return ret
+  }
+
+  getNearestUid (uid, data, num = 8) {
+    return this._getNearestUidByDiff(uid, data, num)
   }
 
   /**
