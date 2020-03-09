@@ -45,7 +45,7 @@ def get_overview():
     fn = os.path.join(app.data_folder, 'overview.json')
     err, res = read_json(fn)
     reply = err if err else {'status': 'success', 'data': res,
-                             'sensitivity': app.sensitivity_f}
+                             'sensitivity': app.sensitivity_ks}
     return jsonify(reply), 200
 
 # read the actual and predicted data of all data points in a universe

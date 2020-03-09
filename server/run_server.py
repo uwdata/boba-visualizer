@@ -3,6 +3,8 @@
 import click
 import os
 import pandas as pd
+import numpy as np
+from scipy import stats
 from server import app
 from .util import read_json, read_key_safe
 
@@ -73,6 +75,24 @@ def cal_sensitivity():
         res[dec] = ms_b / ms_w
 
     app.sensitivity_f = res
+
+    # compute Kolmogorov-Smirnov statistic
+    res = {}
+    for d in app.decisions:
+        dec = d['var']
+        groups = []
+        for opt in d['options']:
+            groups.append(df.loc[df[dec] == opt][col].to_numpy())
+
+        kss = []
+        for i in range(len(groups)):
+            for j in range(i + 1, len(groups)):
+                ks = stats.ks_2samp(groups[i], groups[j])
+                kss.append(ks.statistic)  # ks.pvalue gives p-value
+
+        res[dec] = np.median(kss)  # median KS stat
+
+    app.sensitivity_ks = res
 
 
 @click.command()
