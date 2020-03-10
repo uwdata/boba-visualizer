@@ -84,6 +84,11 @@
         if (p) {
           this.color_options.push(COLOR_TYPE.P)
         }
+
+        let fit = store.configs.agg_plot.fit_field
+        if (fit) {
+          this.color_options.splice(1, 0, COLOR_TYPE.FIT)
+        }
       },
       initSlider () {
         // figure out the interval

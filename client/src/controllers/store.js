@@ -170,7 +170,6 @@ class Store {
 
             // sensitivity
             this.sensitivity = msg.sensitivity
-            console.log(this.sensitivity)
 
             resolve()
           } else {

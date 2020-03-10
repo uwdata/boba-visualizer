@@ -287,7 +287,6 @@
     display none !important
 
   .dot
-    fill #3e8dc3
     cursor pointer
 
   .envelope

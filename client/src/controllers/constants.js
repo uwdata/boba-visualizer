@@ -6,7 +6,8 @@ const UNC_TYPE = {
 
 const COLOR_TYPE = {
   P: 'P-value',
-  SIGN: 'Sign'
+  SIGN: 'Sign',
+  FIT: 'Model Fit'
 }
 
 const sign = 0

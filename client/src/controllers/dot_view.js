@@ -9,6 +9,7 @@ class DotView {
 
     this.dot_radius = params.dot_radius || 4
     this.jitter = true
+    this.color = '#3e8dc3'
 
     // pass by caller
     this.parent = caller
@@ -81,6 +82,7 @@ class DotView {
     let svg = this.parent.svg
     svg.selectAll('.dot')
       .classed('colored', false)
+      .attr('fill', this.color)
 
     if (color === COLOR_TYPE.SIGN) {
       svg.selectAll('.dot')
@@ -90,6 +92,13 @@ class DotView {
       svg.selectAll('.dot')
         .filter((d) => d[store.configs.agg_plot.p_value_field] < 0.05)
         .classed('colored', true)
+    } else if (color === COLOR_TYPE.FIT) {
+      // we do not use the lightest colors in the scheme
+      let colormap = d3.scaleSequential(d3.interpolateBlues)
+        .domain([1.2, 0])
+      let name = store.configs.agg_plot.fit_field
+      svg.selectAll('.dot')
+        .attr('fill', (d) => colormap(Math.min(d[name], 1.0)))
     }
   }
 
@@ -227,6 +236,18 @@ class DotView {
     let i = _.findIndex(data, (d) => d.diff >= sign)
     this._computeDensityDots(i, data.length, true)
     this._computeDensityDots(i - 1, -1, false)
+
+    // sort by model fit
+    let fit = store.configs.agg_plot.fit_field
+    if (fit) {
+      data = _.reduce(_.groupBy(data, '_x'), (res, ds) => {
+        ds = _.map(_.sortBy(ds, fit), (d, i) => {
+          d._y = i
+          return d
+        })
+        return res.concat(ds)
+      }, [])
+    }
 
     // compute y based on counts
     let dm = scale.x.range()
