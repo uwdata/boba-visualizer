@@ -128,12 +128,10 @@ class CurveView {
     }
 
     let scale = this.parent.scale
-    let kernel_bw= 0.5
 
     let data = []
     _.each(uncertainty, (arr, idx) => {
-      let estimator = util.kde(util.epanechnikov(kernel_bw), scale.x.ticks(40))
-      let density = estimator(arr)
+      let density = util.kde_smart(arr)
       if (prototype === 1) {
         density = util.toCdf(density)
       }

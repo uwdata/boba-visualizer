@@ -19,6 +19,7 @@ class DotView {
 
     // internal
     this._envelop_h = 200
+    this._y_step = this.dot_radius
   }
 
   draw (svg) {
@@ -37,9 +38,9 @@ class DotView {
       d3.select(this).classed('hovered', true)
 
       // draw pdf
-      if (uncertainty[d.uid]) {
-        let estimator = util.kde(util.epanechnikov(0.5), scale.x.ticks(40))
-        let density = estimator(uncertainty[d.uid])
+      let u = uncertainty[d.uid]
+      if (u) {
+        let density = util.kde_smart(u)
         let h = Math.min(scale.height(), that._envelop_h)
         let emax = d3.max(density, (d) => d[1])
         let ys = d3.scaleLinear().range([scale.height(), scale.height() - h])
@@ -164,11 +165,10 @@ class DotView {
       .thresholds(bins)(dp)
 
     // area
-    // fixme: height of a dot is not necessarily dot_radius
     let area = d3.area()
       .x((d) => scale.x(d.x1))
       .y0(scale.height())
-      .y1((d) => scale.height() - d.length * this.dot_radius * 2 * ratio)
+      .y1((d) => scale.height() - d.length * this._y_step * ratio)
     this._envelop_h = d3.max(hist, (d) => d.length * this.dot_radius * 2 * ratio)
 
     // plot the upper curve
@@ -253,6 +253,7 @@ class DotView {
     let dm = scale.x.range()
     let maxy = d3.max(data, (d) => d._x >= dm[0] && d._x <= dm[1] ? d._y : 0)
     let step = Math.min(scale.height() / (maxy + 1), this.dot_radius * 2)
+    this._y_step = step
     _.each(data, (d) => {
       d._y = scale.height() - d._y * step - step * 0.5
     })
