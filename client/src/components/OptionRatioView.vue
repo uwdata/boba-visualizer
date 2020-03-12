@@ -43,14 +43,22 @@
         this.baseline = store.getOptionRatio(_.map(store.predicted_diff, (d) => d.uid))
       },
 
+      isDominant (dec, i, w) {
+        // find out baseline width
+        let opts = this.baseline[dec]
+        let total = _.reduce(opts, (sum, opt) => sum + opt.count, 0)
+        let bw = Math.round(opts[i].count / total * 100)
+        return w > bw + 5
+      },
+
       calDecisions (ors) {
         this.decisions = _.map(ors, (opts, dec) => {
           let total = _.reduce(opts, (sum, opt) => sum + opt.count, 0)
           let i = 0
-          let res = _.map(opts, (opt) => {
+          let res = _.map(opts, (opt, idx) => {
             let color = tableau10.substr(++i * 6, 6)
             let w = Math.round(opt.count / total * 100)
-            let alpha = w > 100/_.size(opts) + 5 ? 1 : 0.5
+            let alpha = this.isDominant(dec, idx, w) ? 1 : 0.5
             return {name: opt.name, width: w, more: alpha === 1, alpha: alpha,
               color: color, stripe: _.includes(store.facet, dec)}
           })
