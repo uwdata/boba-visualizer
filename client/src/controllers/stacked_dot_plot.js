@@ -49,7 +49,7 @@ class StackedDotPlot {
     this.clicked_uids = []
   }
 
-  draw (parent, data, uncertainty) {
+  init (parent, data, uncertainty) {
     this.parent = parent
     this.data = data
     this.uncertainty = uncertainty
@@ -93,30 +93,40 @@ class StackedDotPlot {
     // title and labels
     this._drawTitles()
 
-    let objects = this.svg.append('svg')
+    this.svg.append('svg')
       .classed('objects', true)
       .attr('width', scale.width())
       .attr('height', scale.height())
 
+    this._changeViewFlag()
+  }
+
+  draw (y_range) {
+    let objects = this.svg.select('.objects')
+
     // dots and curves
-    this.dot_view.draw(objects)
-    this.curve_view.draw(objects)
+    this.dot_view.draw(objects, y_range)
+    this.curve_view.draw(y_range)
     this._switchView()
     this.updateColor(this.color_by)
   }
 
-  updateScale () {
-    // update x scale
-    let scale = this.scale
-    scale.x.domain(store.x_range)
+  getRange () {
+    this.scale.x.domain(store.x_range)
+    return this.dot_view.getRange() || this.curve_view.getRange()
+  }
+
+  updateScale (y_range) {
+    // x scale has been updated in getRange()
+    // update x axis
     this._drawXAxis(true)
 
     // we don't handle brush resize for now
     this.brush.clear()
 
     // update dots/curves
-    this.dot_view.updateScale()
-    this.curve_view.updateScale()
+    this.dot_view.updateScale(y_range)
+    this.curve_view.updateScale(y_range)
   }
 
   updateColor (color) {
@@ -125,15 +135,16 @@ class StackedDotPlot {
     this.curve_view.updateColor(color)
   }
 
-  updateUncertainty (u) {
-    this.uncertainty_vis = u
-    let view = u === UNC_TYPE.AGG ? 0 : 1
+  updateUncertainty (y_range) {
+    let view = this.uncertainty_vis === UNC_TYPE.AGG ? 0 : 1
 
     this.curve_view.clear()
 
     if (view === 1) {
+      this.curve_view._y_range = y_range
       this.curve_view.draw()
     } else {
+      this.dot_view._y_range = y_range
       this.dot_view.drawEnvelope()
     }
 
@@ -150,12 +161,15 @@ class StackedDotPlot {
     this.curve_view.colorClicked()
   }
 
-  _switchView () {
+  _changeViewFlag () {
     let view = this.uncertainty_vis === UNC_TYPE.CDF
-      || this.uncertainty_vis === UNC_TYPE.PDF ? 1 : 0
+    || this.uncertainty_vis === UNC_TYPE.PDF ? 1 : 0
 
     this.dot_view.active = view === 0
     this.curve_view.active = view === 1
+  }
+
+  _switchView () {
     this.dot_view.switchView()
     this.curve_view.switchView()
     this._labelYAxis(true)

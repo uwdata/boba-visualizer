@@ -10,27 +10,57 @@ class CurveView {
 
     // flag
     this.active = false
+
+    // internal
+    this._y_range = null
   }
 
-  draw (redraw = false) {
-    let uncertainty = this.parent.uncertainty
-    let svg = this.parent.svg.select('.objects')
-
-    switch (this.parent.uncertainty_vis) {
-      case UNC_TYPE.PDF:
-        this._drawCurves(svg, uncertainty, 0, redraw)
-        break
-      case UNC_TYPE.CDF:
-        this._drawCurves(svg, uncertainty, 1, redraw)
-        break
+  draw (y_range = null, redraw = false) {
+    if (y_range) {
+      this._y_range = y_range
     }
+
+    // skip if the dataset does not have uncertainty
+    let uncertainty = this.parent.uncertainty
+    if (!_.keys(uncertainty).length || !this.active) {
+      return
+    }
+
+    let svg = this.parent.svg.select('.objects')
+    let prototype = this.parent.uncertainty_vis === UNC_TYPE.PDF ? 0 : 1
+    this._drawCurves(svg, prototype, redraw)
   }
 
-  updateScale () {
+  getRange () {
+    let uncertainty = this.parent.uncertainty
+    if (!_.keys(uncertainty).length || !this.active) {
+      return
+    }
+
+    let prototype = this.parent.uncertainty_vis === UNC_TYPE.PDF ? 0 : 1
+    let data = []
+    _.each(uncertainty, (arr, idx) => {
+      let density = util.kde_smart(arr)
+      if (prototype === 1) {
+        density = util.toCdf(density)
+      }
+      density.uid = Number(idx)
+
+      data.push(density)
+    })
+    this._density = data
+
+    // scale
+    let emax = prototype === 1 ? 1 : d3.max(_.flatten(data), (d) => d[1])
+    return [0, emax]
+  }
+
+
+  updateScale (y_range) {
     if (!this.active) {
       return
     }
-    this.draw(true)
+    this.draw(y_range, true)
   }
 
   updateColor (color) {
@@ -118,33 +148,17 @@ class CurveView {
    * To display uncertainty, overlay PDFs or CDFs from individual universes
    * Prototype 0: PDF curves, 1: CDF curves
    */
-  _drawCurves (svg, uncertainty, prototype, redraw) {
-    if (!_.keys(uncertainty).length) {
-      return
-    }
-
+  _drawCurves (svg, prototype, redraw) {
     if (redraw) {
       this.clear()
     }
 
     let scale = this.parent.scale
 
-    let data = []
-    _.each(uncertainty, (arr, idx) => {
-      let density = util.kde_smart(arr)
-      if (prototype === 1) {
-        density = util.toCdf(density)
-      }
-      density.uid = Number(idx)
-
-      data.push(density)
-    })
-
     // scale
     let h = Math.min(scale.height(), prototype === 0 ? 120 : 100)
-    let emax = prototype === 1 ? 1 : d3.max(_.flatten(data), (d) => d[1])
     let ys = d3.scaleLinear().range([scale.height(), scale.height() - h])
-      .domain([0, emax])
+      .domain(this._y_range)
 
     // axis
     this._drawAxis(ys, svg)
@@ -156,7 +170,7 @@ class CurveView {
 
     // plot the curve
     svg.selectAll('.uncertainty-curve')
-      .data(data)
+      .data(this._density)
       .enter()
       .append('path')
       .classed('uncertainty-curve', true)

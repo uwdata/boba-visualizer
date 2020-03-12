@@ -125,6 +125,12 @@
     return res
   }
 
+  function mergeIntervals (ranges) {
+    let low = Math.min(..._.map(ranges, (r) => r[0]))
+    let high = Math.max(..._.map(ranges, (r) => r[1]))
+    return [low, high]
+  }
+
   function draw () {
     // remove previous charts
     clear.call(this)
@@ -138,7 +144,7 @@
     data = tmp.data
     let labels = tmp.labels
 
-    // redraw
+    // create subplots
     _.each(data, (row, ir) => {
       let g = document.createElement('div')
       g.setAttribute('class', 'd-flex')
@@ -161,10 +167,17 @@
         chart.color_by = store.color_by
         chart.uncertainty_vis = store.uncertainty_vis
         chart.clicked_uids = store.small_multiple_uids
-        chart.draw(`#${div_id}`, data[ir][ip], getUncertainty(data[ir][ip]))
+        chart.init(`#${div_id}`, data[ir][ip], getUncertainty(data[ir][ip]))
 
         this.charts.push(chart)
       })
+    })
+
+    // unify scale, and draw
+    let rgs = _.map(this.charts, (chart) => chart.getRange())
+    let y_range = mergeIntervals(rgs)
+    _.each(this.charts, (chart) => {
+      chart.draw(y_range)
     })
   }
 
@@ -196,8 +209,10 @@
       bus.$on('filter', draw.bind(this))
       bus.$on('facet', draw.bind(this))
       bus.$on('update-scale', () => {
+        let rgs = _.map(this.charts, (chart) => chart.getRange())
+        let y_range = mergeIntervals(rgs)
         _.each(this.charts, (chart) => {
-          chart.updateScale()
+          chart.updateScale(y_range)
         })
       })
       bus.$on('update-color', () => {
@@ -206,8 +221,14 @@
         })
       })
       bus.$on('update-uncertainty', () => {
+        let rgs = _.map(this.charts, (chart) => {
+          chart.uncertainty_vis = store.uncertainty_vis
+          chart._changeViewFlag()
+          return chart.getRange()
+        })
+        let y_range = mergeIntervals(rgs)
         _.each(this.charts, (chart) => {
-          chart.updateUncertainty(store.uncertainty_vis)
+          chart.updateUncertainty(y_range)
         })
       })
 

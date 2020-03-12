@@ -20,14 +20,16 @@ class DotView {
     // internal
     this._envelop_h = 200
     this._y_step = this.dot_radius
+    this._y_range = []
   }
 
-  draw (svg) {
+  draw (svg, range) {
+    this._y_range = range
     let that = this
     let scale = this.parent.scale
     let uncertainty = this.parent.uncertainty
 
-    this._drawDensityDots(svg)  // replace different chart types here
+    this._drawDensityDots(svg, range[1])  // replace different chart types here
       .on('mouseover', dotMouseover)
       .on('mouseout', dotMouseout)
       .on('click', dotClick)
@@ -68,11 +70,27 @@ class DotView {
     this.drawEnvelope()
   }
 
-  updateScale () {
+  getRange () {
     if (!this.active) {
       return
     }
-    this._drawDensityDots(this.parent.svg.select('.objects'), true)
+    let data = this.parent.data
+
+    let i = _.findIndex(data, (d) => d.diff >= sign)
+    this._computeDensityDots(i, data.length, true)
+    this._computeDensityDots(i - 1, -1, false)
+
+    let dm = this.parent.scale.x.range()
+    let maxy = d3.max(data, (d) => d._x >= dm[0] && d._x <= dm[1] ? d._y : 0)
+    return [0, maxy]
+  }
+
+  updateScale (range) {
+    this._y_range = range
+    if (!this.active) {
+      return
+    }
+    this._drawDensityDots(this.parent.svg.select('.objects'), range[1], true)
     this.drawEnvelope(true)
   }
 
@@ -131,7 +149,7 @@ class DotView {
     if (this.active) {
       svg.selectAll('.dot').classed('hidden', false)
       this.colorClicked()
-      this.updateScale()
+      this.updateScale(this._y_range)
       this.updateColor(this.parent.color_by)
     } else {
       svg.selectAll('.dot').classed('hidden', true)
@@ -224,18 +242,10 @@ class DotView {
   /**
    * Draw density dot plots (from Allison & Cicchetti, 1976) without smoothing
    * Opacity will be adjusted based on the amount of overlap
-   * @param parent
-   * @param redraw
-   * @returns {*}
-   * @private
    */
-  _drawDensityDots (parent, redraw = false) {
+  _drawDensityDots (parent, maxy, redraw = false) {
     let scale = this.parent.scale
     let data = this.parent.data
-
-    let i = _.findIndex(data, (d) => d.diff >= sign)
-    this._computeDensityDots(i, data.length, true)
-    this._computeDensityDots(i - 1, -1, false)
 
     // sort by model fit
     let fit = store.configs.agg_plot.fit_field
@@ -250,8 +260,6 @@ class DotView {
     }
 
     // compute y based on counts
-    let dm = scale.x.range()
-    let maxy = d3.max(data, (d) => d._x >= dm[0] && d._x <= dm[1] ? d._y : 0)
     let step = Math.min(scale.height() / (maxy + 1), this.dot_radius * 2)
     this._y_step = step
     _.each(data, (d) => {
