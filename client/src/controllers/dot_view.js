@@ -9,7 +9,7 @@ class DotView {
 
     this.dot_radius = params.dot_radius || 4
     this.jitter = true
-    this.color = '#3e8dc3'
+    this.color = '#5D9FCD'
 
     // pass by caller
     this.parent = caller
@@ -266,7 +266,7 @@ class DotView {
       d._y = scale.height() - d._y * step - step * 0.5
     })
 
-    let opacity = Math.max(0.3, Math.min(0.85, step / this.dot_radius * 0.5))
+    let opacity = Math.max(0.3, Math.min(1, step / this.dot_radius * 0.75))
     let dots = parent.selectAll('.dot')
     if (!redraw) {
       return dots.data(data)
