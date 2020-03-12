@@ -64,7 +64,7 @@
       let pass = true
       _.each(filter, (x, dec) => {
         let opt = uni[dec]
-        pass = pass && (filter[dec][opt])
+        pass = opt === '' || (pass && (filter[dec][opt]))
       })
 
       if (pass) {

@@ -88,7 +88,7 @@ class Store {
             this.universes = _.map(msg.data, (d, i) => {
               let obj = {uid: i + 1}
               _.each(d, (val, idx) => {
-                obj[msg.header[idx]] = val
+                obj[msg.header[idx]] = val + ''
               })
               return obj
             })
@@ -158,7 +158,7 @@ class Store {
             // decisions
             this.decisions = {}
             _.each(msg.data.decisions, (dec) => {
-              this.decisions[dec.var] = dec.options
+              this.decisions[dec.var] = _.map(dec.options, (opt) => opt + '')
             })
             this.resetFilter()
 
@@ -357,12 +357,14 @@ class Store {
         let opt = uni[dec]
         let i = _.indexOf(this.decisions[dec], opt)
 
-        // sanity check
-        if (res[dec][i].name !== opt) {
-          console.error(`Option mismatch: ${opt} in ${dec}`, res, this.decisions)
-        }
+        if (i >=0) {
+          // sanity check
+          if (res[dec][i].name !== opt) {
+            console.error(`Option mismatch: ${opt} in ${dec}`, res, this.decisions)
+          }
 
-        res[dec][i].count += 1
+          res[dec][i].count += 1
+        }
       })
     })
 

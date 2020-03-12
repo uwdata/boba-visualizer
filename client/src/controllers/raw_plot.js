@@ -128,11 +128,9 @@ class RawPlot {
 
   _drawViolin (svg, data, y0) {
     let scale = this.scale
-    let kernel_bw= 0.5
 
     // compute kernel density estimation
-    let estimator = util.kde(util.epanechnikov(kernel_bw), scale.x.ticks(40))
-    let density = estimator(data)
+    let density = util.kde_smart(data)
 
     // scale
     let h = scale.y.bandwidth() / 2
