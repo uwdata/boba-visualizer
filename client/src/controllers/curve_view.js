@@ -7,16 +7,9 @@ class CurveView {
   constructor (caller) {
     // pass by caller
     this.parent = caller
-
-    // internal
-    this._y_range = null
   }
 
-  draw (y_range = null, redraw = false) {
-    if (y_range) {
-      this._y_range = y_range
-    }
-
+  draw (redraw = false) {
     // skip if the dataset does not have uncertainty
     let uncertainty = this.parent.uncertainty
     if (!_.keys(uncertainty).length) {
@@ -53,8 +46,8 @@ class CurveView {
   }
 
 
-  updateScale (y_range) {
-    this.draw(y_range, true)
+  updateScale () {
+    this.draw(true)
   }
 
   updateColor (color) {
@@ -135,7 +128,7 @@ class CurveView {
     // scale
     let h = Math.min(scale.height(), prototype === 0 ? 120 : 100)
     let ys = d3.scaleLinear().range([scale.height(), scale.height() - h])
-      .domain(this._y_range)
+      .domain(this.parent.y_range)
 
     // axis
     this._drawAxis(ys, svg)

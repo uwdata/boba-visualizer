@@ -42,6 +42,7 @@ class StackedDotPlot {
 
     // intermediate objects
     this.x_axis = null
+    this.y_range = []
     this.svg = null
 
     // to be persistent through view change
@@ -103,9 +104,9 @@ class StackedDotPlot {
       .attr('height', scale.height())
   }
 
-  draw (y_range) {
+  draw () {
     // dots and curves
-    this.active_view.draw(y_range)
+    this.active_view.draw()
 
     this.updateColor(this.color_by)
     this.colorClicked()
@@ -116,7 +117,11 @@ class StackedDotPlot {
     return this.active_view.getRange()
   }
 
-  updateScale (y_range) {
+  setRange (y_range) {
+    this.y_range = y_range
+  }
+
+  updateScale () {
     // x scale has been updated in getRange()
     // update x axis
     this._drawXAxis(true)
@@ -125,7 +130,7 @@ class StackedDotPlot {
     this.brush.clear()
 
     // update dots/curves
-    this.active_view.updateScale(y_range)
+    this.active_view.updateScale()
   }
 
   updateColor (color) {
@@ -133,15 +138,14 @@ class StackedDotPlot {
     this.active_view.updateColor(color)
   }
 
-  updateUncertainty (y_range) {
+  updateUncertainty () {
     // we don't know about the previous active view, because view flag
     // has already been changed in update range
     this.curve_view.clear()
     this.dot_view.clear()
 
     // redraw
-    this.active_view._y_range = y_range
-    this.active_view.draw(y_range)
+    this.active_view.draw()
 
     // keep color and axis label consistent
     this.colorClicked()

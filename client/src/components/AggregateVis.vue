@@ -125,10 +125,17 @@
     return res
   }
 
-  function mergeIntervals (ranges) {
+  function updateRange () {
+    // get range from each subplot
+    let ranges = _.map(this.charts, (chart) => chart.getRange())
+
+    // merge the intervals
     let low = Math.min(..._.map(ranges, (r) => r[0]))
     let high = Math.max(..._.map(ranges, (r) => r[1]))
-    return [low, high]
+    ranges = [low, high]
+
+    // set
+    _.each(this.charts, (chart) => { chart.setRange(ranges) })
   }
 
   function draw () {
@@ -174,10 +181,9 @@
     })
 
     // unify scale, and draw
-    let rgs = _.map(this.charts, (chart) => chart.getRange())
-    let y_range = mergeIntervals(rgs)
+    updateRange.call(this)
     _.each(this.charts, (chart) => {
-      chart.draw(y_range)
+      chart.draw()
     })
   }
 
@@ -209,10 +215,9 @@
       bus.$on('filter', draw.bind(this))
       bus.$on('facet', draw.bind(this))
       bus.$on('update-scale', () => {
-        let rgs = _.map(this.charts, (chart) => chart.getRange())
-        let y_range = mergeIntervals(rgs)
+        updateRange.call(this)
         _.each(this.charts, (chart) => {
-          chart.updateScale(y_range)
+          chart.updateScale()
         })
       })
       bus.$on('update-color', () => {
@@ -221,14 +226,13 @@
         })
       })
       bus.$on('update-uncertainty', () => {
-        let rgs = _.map(this.charts, (chart) => {
+        _.each(this.charts, (chart) => {
           chart.uncertainty_vis = store.uncertainty_vis
           chart._changeViewFlag()
-          return chart.getRange()
         })
-        let y_range = mergeIntervals(rgs)
+        updateRange.call(this)
         _.each(this.charts, (chart) => {
-          chart.updateUncertainty(y_range)
+          chart.updateUncertainty()
         })
       })
 

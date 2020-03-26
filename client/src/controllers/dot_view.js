@@ -17,17 +17,15 @@ class DotView {
     // internal
     this._envelop_h = 200
     this._y_step = this.dot_radius
-    this._y_range = []
   }
 
-  draw (range) {
-    this._y_range = range
+  draw () {
     let that = this
     let scale = this.parent.scale
     let uncertainty = this.parent.uncertainty
     let svg = this.parent.svg.select('.objects')
 
-    this._drawDensityDots(svg, range[1])  // replace different chart types here
+    this._drawDensityDots(svg)  // replace different chart types here
       .on('mouseover', dotMouseover)
       .on('mouseout', dotMouseout)
       .on('click', dotClick)
@@ -80,9 +78,8 @@ class DotView {
     return [0, maxy]
   }
 
-  updateScale (range) {
-    this._y_range = range
-    this._drawDensityDots(this.parent.svg.select('.objects'), range[1], true)
+  updateScale () {
+    this._drawDensityDots(this.parent.svg.select('.objects'), true)
     this.drawEnvelope(true)
   }
 
@@ -218,9 +215,10 @@ class DotView {
    * Draw density dot plots (from Allison & Cicchetti, 1976) without smoothing
    * Opacity will be adjusted based on the amount of overlap
    */
-  _drawDensityDots (parent, maxy, redraw = false) {
+  _drawDensityDots (parent, redraw = false) {
     let scale = this.parent.scale
     let data = this.parent.data
+    let maxy = this.parent.y_range[1]
 
     // sort by model fit
     let fit = store.configs.agg_plot.fit_field
