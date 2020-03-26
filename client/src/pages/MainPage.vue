@@ -98,6 +98,9 @@
           return store.fetchUncertainty()
         })
         .then(() => {
+          if (store.configs.agg_plot.x_range_outer) {
+            store.x_range = store.configs.agg_plot.x_range_outer
+          }
           this.loading = false
 
           // notify other components that data is ready

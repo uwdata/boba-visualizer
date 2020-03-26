@@ -38,6 +38,7 @@ class StackedDotPlot {
     this.brush = null
     this.dot_view = new DotView(this)
     this.curve_view = new CurveView(this)
+    this.active_view = null
 
     // intermediate objects
     this.x_axis = null
@@ -87,6 +88,9 @@ class StackedDotPlot {
     brush.attach(this.svg)
     this.brush = brush
 
+    // figure out which view is active
+    this._changeViewFlag()
+
     // axis
     this._drawAxis()
 
@@ -97,23 +101,19 @@ class StackedDotPlot {
       .classed('objects', true)
       .attr('width', scale.width())
       .attr('height', scale.height())
-
-    this._changeViewFlag()
   }
 
   draw (y_range) {
-    let objects = this.svg.select('.objects')
-
     // dots and curves
-    this.dot_view.draw(objects, y_range)
-    this.curve_view.draw(y_range)
-    this._switchView()
+    this.active_view.draw(y_range)
+
     this.updateColor(this.color_by)
+    this.colorClicked()
   }
 
   getRange () {
     this.scale.x.domain(store.x_range)
-    return this.dot_view.getRange() || this.curve_view.getRange()
+    return this.active_view.getRange()
   }
 
   updateScale (y_range) {
@@ -125,54 +125,43 @@ class StackedDotPlot {
     this.brush.clear()
 
     // update dots/curves
-    this.dot_view.updateScale(y_range)
-    this.curve_view.updateScale(y_range)
+    this.active_view.updateScale(y_range)
   }
 
   updateColor (color) {
     this.color_by = color
-    this.dot_view.updateColor(color)
-    this.curve_view.updateColor(color)
+    this.active_view.updateColor(color)
   }
 
   updateUncertainty (y_range) {
-    let view = this.uncertainty_vis === UNC_TYPE.AGG ? 0 : 1
-
+    // we don't know about the previous active view, because view flag
+    // has already been changed in update range
     this.curve_view.clear()
+    this.dot_view.clear()
 
-    if (view === 1) {
-      this.curve_view._y_range = y_range
-      this.curve_view.draw()
-    } else {
-      this.dot_view._y_range = y_range
-      this.dot_view.drawEnvelope()
-    }
+    // redraw
+    this.active_view._y_range = y_range
+    this.active_view.draw(y_range)
 
-    this._switchView()
+    // keep color and axis label consistent
+    this.colorClicked()
+    this.updateColor(this.color_by)
+    this._labelYAxis(true)
   }
 
   clearClicked () {
-    this.dot_view.clearClicked()
-    this.curve_view.clearClicked()
+    this.active_view.clearClicked()
   }
 
   colorClicked () {
-    this.dot_view.colorClicked()
-    this.curve_view.colorClicked()
+    this.active_view.colorClicked()
   }
 
   _changeViewFlag () {
-    let view = this.uncertainty_vis === UNC_TYPE.CDF
-    || this.uncertainty_vis === UNC_TYPE.PDF ? 1 : 0
+    let is_curve = this.uncertainty_vis === UNC_TYPE.CDF
+    || this.uncertainty_vis === UNC_TYPE.PDF
 
-    this.dot_view.active = view === 0
-    this.curve_view.active = view === 1
-  }
-
-  _switchView () {
-    this.dot_view.switchView()
-    this.curve_view.switchView()
-    this._labelYAxis(true)
+    this.active_view = is_curve ? this.curve_view : this.dot_view
   }
 
   _drawXAxis (redraw = false) {
@@ -194,7 +183,7 @@ class StackedDotPlot {
       return
     }
 
-    let label = this.dot_view.getYLabel() + this.curve_view.getYLabel()
+    let label = this.active_view.getYLabel()
     if (update) {
       this.svg.select('.y.axis-label')
         .text(label)

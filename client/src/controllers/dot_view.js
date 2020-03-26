@@ -14,20 +14,18 @@ class DotView {
     // pass by caller
     this.parent = caller
 
-    // flag
-    this.active = true
-
     // internal
     this._envelop_h = 200
     this._y_step = this.dot_radius
     this._y_range = []
   }
 
-  draw (svg, range) {
+  draw (range) {
     this._y_range = range
     let that = this
     let scale = this.parent.scale
     let uncertainty = this.parent.uncertainty
+    let svg = this.parent.svg.select('.objects')
 
     this._drawDensityDots(svg, range[1])  // replace different chart types here
       .on('mouseover', dotMouseover)
@@ -71,9 +69,6 @@ class DotView {
   }
 
   getRange () {
-    if (!this.active) {
-      return
-    }
     let data = this.parent.data
 
     let i = _.findIndex(data, (d) => d.diff >= sign)
@@ -87,17 +82,11 @@ class DotView {
 
   updateScale (range) {
     this._y_range = range
-    if (!this.active) {
-      return
-    }
     this._drawDensityDots(this.parent.svg.select('.objects'), range[1], true)
     this.drawEnvelope(true)
   }
 
   updateColor (color) {
-    if (!this.active) {
-      return
-    }
     let svg = this.parent.svg
     svg.selectAll('.dot')
       .classed('colored', false)
@@ -122,17 +111,11 @@ class DotView {
   }
 
   clearClicked () {
-    if (!this.active) {
-      return
-    }
     let svg = this.parent.svg
     svg.selectAll('.dot.clicked').classed('clicked', false)
   }
 
   colorClicked () {
-    if (!this.active) {
-      return
-    }
     this.clearClicked()
 
     let uids = this.parent.clicked_uids
@@ -143,22 +126,14 @@ class DotView {
       .raise()
   }
 
-  switchView () {
+  clear () {
     let svg = this.parent.svg
-
-    if (this.active) {
-      svg.selectAll('.dot').classed('hidden', false)
-      this.colorClicked()
-      this.updateScale(this._y_range)
-      this.updateColor(this.parent.color_by)
-    } else {
-      svg.selectAll('.dot').classed('hidden', true)
-      svg.selectAll('.envelope').remove()
-    }
+    svg.selectAll('.dot').remove()
+    svg.selectAll('.envelope').remove()
   }
 
   getYLabel () {
-    return this.active ? 'Count' : ''
+    return 'Count'
   }
 
   /**

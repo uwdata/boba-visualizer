@@ -8,9 +8,6 @@ class CurveView {
     // pass by caller
     this.parent = caller
 
-    // flag
-    this.active = false
-
     // internal
     this._y_range = null
   }
@@ -22,7 +19,7 @@ class CurveView {
 
     // skip if the dataset does not have uncertainty
     let uncertainty = this.parent.uncertainty
-    if (!_.keys(uncertainty).length || !this.active) {
+    if (!_.keys(uncertainty).length) {
       return
     }
 
@@ -33,7 +30,7 @@ class CurveView {
 
   getRange () {
     let uncertainty = this.parent.uncertainty
-    if (!_.keys(uncertainty).length || !this.active) {
+    if (!_.keys(uncertainty).length) {
       return
     }
 
@@ -57,16 +54,10 @@ class CurveView {
 
 
   updateScale (y_range) {
-    if (!this.active) {
-      return
-    }
     this.draw(y_range, true)
   }
 
   updateColor (color) {
-    if (!this.active) {
-      return
-    }
     let svg = this.parent.svg
     let data = this.parent.data
 
@@ -88,17 +79,11 @@ class CurveView {
   }
 
   clearClicked () {
-    if (!this.active) {
-      return
-    }
     let svg = this.parent.svg
     svg.selectAll('.uncertainty-curve.clicked').classed('clicked', false)
   }
 
   colorClicked () {
-    if (!this.active) {
-      return
-    }
     this.clearClicked()
 
     let uids = this.parent.clicked_uids
@@ -109,18 +94,10 @@ class CurveView {
       .raise()
   }
 
-  switchView () {
-    if (this.active) {
-      this.colorClicked()
-      this.updateColor(this.parent.color_by)
-    }
-  }
-
   getYLabel () {
     let u = this.parent.uncertainty_vis
-    let label = u === UNC_TYPE.PDF ? 'Probability Density' :
+    return u === UNC_TYPE.PDF ? 'Probability Density' :
       (u === UNC_TYPE.CDF ? 'Cumulative Density' : '')
-    return this.active ? label : ''
   }
 
   clear () {
