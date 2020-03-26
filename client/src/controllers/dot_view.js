@@ -15,8 +15,8 @@ class DotView {
     this.parent = caller
 
     // internal
-    this._envelop_h = 200
     this._y_step = this.dot_radius
+    this._total_dots = 0
   }
 
   draw () {
@@ -39,10 +39,17 @@ class DotView {
       let u = uncertainty[d.uid]
       if (u) {
         let density = util.kde_smart(u)
-        let h = Math.min(scale.height(), that._envelop_h)
+
+        // figure out the y-scale
+        let xr = scale.x.range()
+        let xd = scale.x.domain()
+        let x_ratio = (xr[1] - xr[0]) / (xd[1] - xd[0])
+        let y_ratio = that.dot_radius * 2 * that._y_step *
+          that._total_dots / x_ratio
         let emax = d3.max(density, (d) => d[1])
-        let ys = d3.scaleLinear().range([scale.height(), scale.height() - h])
-          .domain([0, emax])
+        let ys = d3.scaleLinear().domain([0, emax])
+          .range([scale.height(), scale.height() - emax * y_ratio])
+
         let line = d3.line().curve(d3.curveBasis)
           .x((d) => scale.x(d[0]))
           .y((d) => ys(d[1]))
@@ -74,7 +81,14 @@ class DotView {
     this._computeDensityDots(i - 1, -1, false)
 
     let dm = this.parent.scale.x.range()
-    let maxy = d3.max(data, (d) => d._x >= dm[0] && d._x <= dm[1] ? d._y : 0)
+    this._total_dots = 0
+    let maxy = 0
+    _.each(data, (d) => {
+      if (d._x >= dm[0] && d._x <= dm[1]) {
+        this._total_dots += 1
+        maxy = Math.max(maxy, d._y)
+      }
+    })
     return [0, maxy]
   }
 
@@ -159,7 +173,6 @@ class DotView {
       .x((d) => scale.x(d.x1))
       .y0(scale.height())
       .y1((d) => scale.height() - d.length * this._y_step * ratio)
-    this._envelop_h = d3.max(hist, (d) => d.length * this.dot_radius * 2 * ratio)
 
     // plot the upper curve
     if (!redraw) {

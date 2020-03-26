@@ -302,10 +302,10 @@
   .dot.colored.brushed
     fill #ff8786
 
-  .dot.brushed, .dot.hovered
+  .dot.brushed
     fill #37c2e8
 
-  .dot.clicked, .dot.clicked.brushed
+  .dot.hovered, .dot.clicked, .dot.clicked.brushed
     fill #f58518
 
   .dot.hidden
@@ -316,7 +316,7 @@
 
   .envelope
     fill #999
-    opacity 0.15
+    opacity 0.25
     stroke-linejoin round
 
   .uncertainty-curve
@@ -327,14 +327,10 @@
     stroke-linejoin round
     cursor pointer
 
-  .uncertainty-curve.from-dot
-    stroke #37c2e8
-    opacity 1
-
   .uncertainty-curve.colored
     stroke #e45756
 
-  .uncertainty-curve.hovered
+  .uncertainty-curve.hovered, .uncertainty-curve.from-dot
     stroke #f58518
     opacity 1
     stroke-width 2
