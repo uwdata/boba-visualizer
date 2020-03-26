@@ -126,7 +126,8 @@ class CurveView {
     let scale = this.parent.scale
 
     // scale
-    let h = Math.min(scale.height(), prototype === 0 ? 120 : 100)
+    // let h = Math.min(scale.height(), prototype === 0 ? 250 : 200)
+    let h = scale.height() - 5
     let ys = d3.scaleLinear().range([scale.height(), scale.height() - h])
       .domain(this.parent.y_range)
 

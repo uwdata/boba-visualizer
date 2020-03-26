@@ -114,6 +114,7 @@
   .bb-or-container
     border 1px solid rgba(0,0,0,0.07)
     min-height 230px
+    height 230px
 
   .bb-or-title
     background-color #fafafa

@@ -1,5 +1,5 @@
 <template>
-  <div ref="parent" class="d-flex flex-column">
+  <div ref="parent">
     <!--tool-tip-->
     <detail-tip :left="left" :top="top" :detail="tooltip"></detail-tip>
 
@@ -10,7 +10,7 @@
       <div class="bb-divider flex-grow-1 mr-4"></div>
     </div>
     <div v-else class="mt-3"></div>
-    <div class="d-flex mt-1 flex-grow-1">
+    <div class="bb-agg-container d-flex mt-1">
       <!--vis container-->
       <div id="agg-vis-container" ref="chart" class="ml-2 flex-grow-1"></div>
 
@@ -40,6 +40,8 @@
   }
 
   function set_chart_size (s, nx, ny, x, y, wrap) {
+    let h_max = 350 // max chart height
+    let h_min = 160 // min chart height
     let padding = 20  // space for option title
     let title = 3  // space for decision title
     let dim_y = ny > 1 && !wrap  // whether there will be titles on the y dimension
@@ -51,10 +53,14 @@
     w = dim_y ? (w - padding) / nx : w / nx
     h = wrap ? h / ny - padding : (nx > 1 ? (h - padding) / ny : h / ny)
 
+    // adjust h according to aspect ratio and min/max chart height
+    h = Math.max(Math.min(w, h, h_max), h_min)
+
     s.outerWidth = Math.floor(w + px)
     s.outerHeight = Math.floor(h + py)
     s.margin.right += px
     s.margin.top += py
+    s.title_font_size = h < 250 ? 11 : 12
   }
 
   function applyFilter (data, filter) {
@@ -270,6 +276,10 @@
 </script>
 
 <style lang="stylus">
+  .bb-agg-container
+    height calc(100vh - 230px - 9rem)
+    overflow-y scroll
+
   .bb-divider
     border-bottom 1px solid rgba(0,0,0,0.08)
     margin-bottom 0.6rem
@@ -279,7 +289,7 @@
     margin-left 0.5rem
 
   .facet-dec-title
-    font-size 11px
+    font-size 12px
     font-weight 500
     color #4c555d
     text-transform capitalize !important

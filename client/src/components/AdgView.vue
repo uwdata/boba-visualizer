@@ -51,13 +51,11 @@
         store.facet = [label]
       } else {
         // add a second facet
-        let d1 = store.getDecisionByName(store.facet[0])
-        let d2 = store.getDecisionByName(label)
-        if (d1.options.length >= d2.options.length) {
-          store.facet.push(label)
-        } else {
-          store.facet.unshift(label)
-        }
+        let ds = [store.facet[0], label]
+        ds = _.map(ds, (name) => store.getDecisionByName(name))
+        ds = _.sortBy(ds, (dec) => dec.options.length)
+        ds = ds[1].options.length <= 3 ? _.reverse(ds) : ds
+        store.facet = _.map(ds, (dec) => dec.name)
       }
     }
   }
