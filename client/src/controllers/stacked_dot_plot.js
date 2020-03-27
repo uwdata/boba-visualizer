@@ -105,11 +105,13 @@ class StackedDotPlot {
   }
 
   draw () {
-    // dots and curves
+    // draw dots/curves
     this.active_view.draw()
 
+    // keep color and axis label consistent
     this.updateColor(this.color_by)
     this.colorClicked()
+    this._updateAxis()
   }
 
   getRange () {
@@ -150,7 +152,7 @@ class StackedDotPlot {
     // keep color and axis label consistent
     this.colorClicked()
     this.updateColor(this.color_by)
-    this._labelYAxis(true)
+    this._updateAxis()
   }
 
   clearClicked () {
@@ -168,6 +170,20 @@ class StackedDotPlot {
     this.active_view = is_curve ? this.curve_view : this.dot_view
   }
 
+  _updateAxis () {
+    // update y axis label
+    if (this.y_axis_label) {
+      let label = this.active_view.getYLabel()
+      this.svg.select('.y.axis-label')
+        .text(label)
+    }
+
+    // update x axis position
+    let h = this.active_view.strip_height || 0
+    this.svg.select('.x.axis')
+      .attr('transform', `translate(0,${this.scale.height() - h})`)
+  }
+
   _drawXAxis (redraw = false) {
     let scale = this.scale
     let xAxis = d3.axisBottom(scale.x).tickSize(-scale.height())
@@ -180,27 +196,6 @@ class StackedDotPlot {
         .attr('stroke-dasharray', '2, 2'))
       .call(g => g.selectAll('.domain')
         .attr('d', `M0.5,0H${scale.width()}`))
-  }
-
-  _labelYAxis (update = false) {
-    if (!this.y_axis_label) {
-      return
-    }
-
-    let label = this.active_view.getYLabel()
-    if (update) {
-      this.svg.select('.y.axis-label')
-        .text(label)
-    } else {
-      this.svg.append('text')
-        .classed('y axis-label muted', true)
-        .attr('transform', 'rotate(-90)')
-        .attr('x', 0 - (this.scale.height() / 2))
-        .attr('y', -3)
-        .style('text-anchor', 'middle')
-        .style('font-size', this.label_font_size)
-        .text(label)
-    }
   }
 
   _drawAxis () {
@@ -226,7 +221,17 @@ class StackedDotPlot {
       }
 
       // y-axis label
-      this._labelYAxis()
+      if (this.y_axis_label) {
+        let label = this.active_view.getYLabel()
+        this.svg.append('text')
+          .classed('y axis-label muted', true)
+          .attr('transform', 'rotate(-90)')
+          .attr('x', 0 - (this.scale.height() / 2))
+          .attr('y', -3)
+          .style('text-anchor', 'middle')
+          .style('font-size', this.label_font_size)
+          .text(label)
+      }
     }
   }
 

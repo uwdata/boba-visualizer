@@ -5,6 +5,9 @@ import {COLOR_TYPE, UNC_TYPE, sign} from './constants'
 
 class CurveView {
   constructor (caller) {
+    this.strip_height = 13
+    this.strip_padding = 5
+
     // pass by caller
     this.parent = caller
   }
@@ -19,6 +22,7 @@ class CurveView {
     let svg = this.parent.svg.select('.objects')
     let prototype = this.parent.uncertainty_vis === UNC_TYPE.PDF ? 0 : 1
     this._drawCurves(svg, prototype, redraw)
+    this._drawStrip(redraw)
   }
 
   getRange () {
@@ -69,11 +73,17 @@ class CurveView {
       .classed('colored', false)
       .filter((d) => d.uid in uids)
       .classed('colored', true)
+
+    svg.selectAll('.chip')
+      .classed('colored', false)
+      .filter((d) => d.uid in uids)
+      .classed('colored', true)
   }
 
   clearClicked () {
     let svg = this.parent.svg
     svg.selectAll('.uncertainty-curve.clicked').classed('clicked', false)
+    svg.selectAll('.chip.clicked').classed('clicked', false)
   }
 
   colorClicked () {
@@ -82,6 +92,11 @@ class CurveView {
     let uids = this.parent.clicked_uids
     let dict = _.zipObject(uids)
     this.parent.svg.selectAll('.uncertainty-curve')
+      .filter(d => d.uid in dict)
+      .classed('clicked', true)
+      .raise()
+
+    this.parent.svg.selectAll('.chip')
       .filter(d => d.uid in dict)
       .classed('clicked', true)
       .raise()
@@ -94,12 +109,27 @@ class CurveView {
   }
 
   clear () {
+    this._clearCurves()
+    this.parent.svg.select('.strip-plot').remove()
+  }
+
+  _clearCurves () {
     let svg = this.parent.svg
     svg.selectAll('.uncertainty-curve').remove()
     svg.selectAll('.y.axis').remove()
   }
 
+  /**
+   * Draw the y-axis, if applicable
+   * @param ys The y-scale used for curves
+   * @param svg
+   * @private
+   */
   _drawAxis (ys, svg) {
+    if (!this.parent.y_axis_label) {
+      return
+    }
+
     // axis
     let yAxis = d3.axisLeft(ys).tickSize(1)
       .ticks(2)
@@ -115,12 +145,42 @@ class CurveView {
   }
 
   /**
+   * Draw the strip plot underneath the x axis.
+   */
+  _drawStrip(redraw = false) {
+    let scale = this.parent.scale
+    // account for x axis label height
+    let h0 = scale.height() - this.strip_height + 17
+
+    if (redraw) {
+      this.parent.svg.selectAll('.chip')
+        .transition()
+        .duration(1000)
+        .attr('x1', (d) => scale.x(d.diff))
+        .attr('x2', (d) => scale.x(d.diff))
+    } else {
+      let svg = this.parent.svg.append('g')
+        .classed('strip-plot', true)
+
+      svg.selectAll('.chip')
+        .data(this.parent.data)
+        .enter()
+        .append('line')
+        .classed('chip', true)
+        .attr('x1', (d) => scale.x(d.diff))
+        .attr('y1', h0)
+        .attr('x2', (d) => scale.x(d.diff))
+        .attr('y2', h0 + this.strip_height - this.strip_padding)
+    }
+  }
+
+  /**
    * To display uncertainty, overlay PDFs or CDFs from individual universes
    * Prototype 0: PDF curves, 1: CDF curves
    */
   _drawCurves (svg, prototype, redraw) {
     if (redraw) {
-      this.clear()
+      this._clearCurves()
     }
 
     let scale = this.parent.scale
@@ -128,8 +188,8 @@ class CurveView {
     // scale
     // let h = Math.min(scale.height(), prototype === 0 ? 250 : 200)
     let h = scale.height() - 5
-    let ys = d3.scaleLinear().range([scale.height(), scale.height() - h])
-      .domain(this.parent.y_range)
+    let ys = d3.scaleLinear().domain(this.parent.y_range)
+      .range([scale.height() - this.strip_height, scale.height() - h])
 
     // axis
     this._drawAxis(ys, svg)

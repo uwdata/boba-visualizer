@@ -348,4 +348,16 @@
   .uncertainty-curve.clicked
     stroke #f58518
     opacity 0.7
+
+  .chip
+    stroke #5D9FCD
+    opacity 0.2
+
+  .chip.colored
+    stroke #e45756
+
+  .chip.hovered, .chip.clicked
+    stroke #f58518
+    opacity 1
+    stroke-width 2
 </style>
