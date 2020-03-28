@@ -26,9 +26,7 @@ class DotView {
     let svg = this.parent.svg.select('.objects')
 
     // attach brush
-    this.parent.brush.brush.extent([[0, 0], [scale.width(), scale.height()]])
-    this.parent.brush.attach(svg)
-    this.parent.brush.selector = `${this.parent.parent} .dot`
+    this._attachBrush()
 
     this._drawDensityDots(svg)  // replace different chart types here
       .on('mouseover', dotMouseover)
@@ -193,6 +191,16 @@ class DotView {
         .transition().duration(1000)
         .attr('d', area)
     }
+  }
+
+  _attachBrush () {
+    let scale = this.parent.scale
+    let brush = this.parent.brush
+    brush.brush.extent([[0, 0], [scale.width(), scale.height()]])
+    brush.attach(this.parent.svg)
+    brush.selector = `${this.parent.parent} .dot`
+    brush.brushstart_callback = null
+    brush.brushing_callback = null
   }
 
   /**

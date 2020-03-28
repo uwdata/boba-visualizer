@@ -341,8 +341,8 @@
     stroke #e45756
 
   .uncertainty-curve.brushed
-    stroke #5D9FCD
-    opacity 1
+    stroke #37c2e8
+    opacity 0.16
 
   .uncertainty-curve.hovered, .uncertainty-curve.from-dot
     stroke #f58518

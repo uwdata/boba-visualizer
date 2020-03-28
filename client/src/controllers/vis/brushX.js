@@ -3,9 +3,14 @@ import {bus} from '../config'
 import _ from 'lodash'
 
 class BrushX {
-  constructor (data, scale, selector) {
-    this.selector = selector
+  constructor (data, scale) {
+    // the d3 brush object
     this.brush = this.init(data, scale)
+
+    // attributes
+    this.selector = ''
+    this.brushstart_callback = null
+    this.brushing_callback = null
   }
 
   init (data, scale) {
@@ -13,6 +18,9 @@ class BrushX {
 
     function brushstart () {
       d3.selectAll(that.selector).classed('brushed', false)
+      if (that.brushstart_callback) {
+        that.brushstart_callback()
+      }
       bus.$emit('brush-remove', that.selector)
     }
 
@@ -25,11 +33,19 @@ class BrushX {
       let bounds = _.map(sel, (s) => s)
 
       // change color of selected points
+      let uids = {}
       d3.selectAll(that.selector)
         .classed('brushed', (p) => {
-          return scale.getRawX(p) >= bounds[0] &&
+          let is_in = scale.getRawX(p) >= bounds[0] &&
             scale.getRawX(p) <= bounds[1]
+          uids[p.uid] = is_in
+          return is_in
         })
+
+      // callback
+      if (that.brushing_callback) {
+        that.brushing_callback(uids)
+      }
     }
 
     function brushended () {

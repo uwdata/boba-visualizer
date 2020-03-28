@@ -90,7 +90,7 @@ class StackedDotPlot {
       .attr('height', scale.height())
 
     // brush
-    this.brush = new BrushX(data, scale, `${this.parent} .dot`)
+    this.brush = new BrushX(data, scale)
 
     // figure out which view is active
     this._changeViewFlag()

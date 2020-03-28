@@ -179,10 +179,24 @@ class CurveView {
         .attr('y2', this.strip_height)
 
       // attach brush
-      this.parent.brush.brush.extent([[0, 0],
-        [scale.width(), this.strip_height + this.strip_padding]])
-      this.parent.brush.attach(svg)
-      this.parent.brush.selector = `${this.parent.parent} .chip`
+      this._attachBrush(svg)
+    }
+  }
+
+  _attachBrush (svg) {
+    let scale = this.parent.scale
+    let brush = this.parent.brush
+    brush.brush.extent([[0, 0],
+      [scale.width(), this.strip_height + this.strip_padding]])
+    brush.attach(svg)
+    brush.selector = `${this.parent.parent} .chip`
+    brush.brushing_callback = (uids) => {
+      this.parent.svg.selectAll('.uncertainty-curve')
+        .classed('brushed', (c) => uids[c.uid])
+    }
+    brush.brushstart_callback = () => {
+      this.parent.svg.selectAll('.uncertainty-curve')
+        .classed('brushed', false)
     }
   }
 
