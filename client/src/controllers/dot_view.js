@@ -25,6 +25,11 @@ class DotView {
     let uncertainty = this.parent.uncertainty
     let svg = this.parent.svg.select('.objects')
 
+    // attach brush
+    this.parent.brush.brush.extent([[0, 0], [scale.width(), scale.height()]])
+    this.parent.brush.attach(svg)
+    this.parent.brush.selector = `${this.parent.parent} .dot`
+
     this._drawDensityDots(svg)  // replace different chart types here
       .on('mouseover', dotMouseover)
       .on('mouseout', dotMouseout)
@@ -141,6 +146,7 @@ class DotView {
     let svg = this.parent.svg
     svg.selectAll('.dot').remove()
     svg.selectAll('.envelope').remove()
+    this.parent.brush.remove()
   }
 
   getYLabel () {

@@ -340,6 +340,10 @@
   .uncertainty-curve.colored
     stroke #e45756
 
+  .uncertainty-curve.brushed
+    stroke #5D9FCD
+    opacity 1
+
   .uncertainty-curve.hovered, .uncertainty-curve.from-dot
     stroke #f58518
     opacity 1
@@ -352,6 +356,10 @@
   .chip
     stroke #5D9FCD
     opacity 0.2
+
+  .chip.brushed
+    stroke #37c2e8
+    opacity 1
 
   .chip.colored
     stroke #e45756

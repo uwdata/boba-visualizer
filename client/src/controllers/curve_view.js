@@ -111,6 +111,7 @@ class CurveView {
   clear () {
     this._clearCurves()
     this.parent.svg.select('.strip-plot').remove()
+    this.parent.brush.remove()
   }
 
   _clearCurves () {
@@ -150,27 +151,38 @@ class CurveView {
   _drawStrip(redraw = false) {
     let scale = this.parent.scale
     // account for x axis label height
-    let h0 = scale.height() - this.strip_height + 17
+    let h0 = scale.height() - this.strip_height + 12
+
+    // pre-compute _x, to be consistent with dot view
+    _.each(this.parent.data, (d) => d._x = scale.x(d.diff))
 
     if (redraw) {
       this.parent.svg.selectAll('.chip')
         .transition()
         .duration(1000)
-        .attr('x1', (d) => scale.x(d.diff))
-        .attr('x2', (d) => scale.x(d.diff))
+        .attr('x1', (d) => d._x)
+        .attr('x2', (d) => d._x)
     } else {
       let svg = this.parent.svg.append('g')
         .classed('strip-plot', true)
+        .attr('transform', `translate(0, ${h0})`)
+        .attr('height', this.strip_height)
 
       svg.selectAll('.chip')
         .data(this.parent.data)
         .enter()
         .append('line')
         .classed('chip', true)
-        .attr('x1', (d) => scale.x(d.diff))
-        .attr('y1', h0)
-        .attr('x2', (d) => scale.x(d.diff))
-        .attr('y2', h0 + this.strip_height - this.strip_padding)
+        .attr('x1', (d) => d._x)
+        .attr('y1', this.strip_padding)
+        .attr('x2', (d) => d._x)
+        .attr('y2', this.strip_height)
+
+      // attach brush
+      this.parent.brush.brush.extent([[0, 0],
+        [scale.width(), this.strip_height + this.strip_padding]])
+      this.parent.brush.attach(svg)
+      this.parent.brush.selector = `${this.parent.parent} .chip`
     }
   }
 

@@ -9,11 +9,11 @@ class BrushX {
   }
 
   init (data, scale) {
-    let selector = this.selector
+    let that = this
 
     function brushstart () {
-      d3.selectAll(selector).classed('brushed', false)
-      bus.$emit('brush-remove', selector)
+      d3.selectAll(that.selector).classed('brushed', false)
+      bus.$emit('brush-remove', that.selector)
     }
 
     function brushing () {
@@ -25,7 +25,7 @@ class BrushX {
       let bounds = _.map(sel, (s) => s)
 
       // change color of selected points
-      d3.selectAll(selector)
+      d3.selectAll(that.selector)
         .classed('brushed', (p) => {
           return scale.getRawX(p) >= bounds[0] &&
             scale.getRawX(p) <= bounds[1]
@@ -64,15 +64,15 @@ class BrushX {
     // manually reset brush styling because calling brush.move will invoke
     // brushstart, and brushstart will fire the event again
     d3.selectAll(this.selector).classed('brushed', false)
-    let p = this.selector.split(' ')[0]
-    d3.select(`${p} .brush .selection`).style('display', 'none')
+    d3.select(`${this._container()} .brush .selection`)
+      .style('display', 'none')
   }
 
   /**
    * Remove brush div
    */
   remove () {
-    d3.selectAll('.brush')
+    d3.selectAll(`${this._container()} .brush`)
       .call(this.brush.move, null)
       .remove()
   }
@@ -83,6 +83,13 @@ class BrushX {
    */
   attach (svg) {
     svg.append('g').attr('class', 'brush').call(this.brush)
+  }
+
+  /**
+   * Helper function to get the selector for the subplot container.
+   */
+  _container () {
+    return this.selector.split(' ')[0]
   }
 }
 

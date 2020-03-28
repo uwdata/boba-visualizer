@@ -84,10 +84,13 @@ class StackedDotPlot {
       .append('g')
       .attr('transform', `translate(${margin.left},${margin.top})`)
 
+    this.svg.append('svg')
+      .classed('objects', true)
+      .attr('width', scale.width())
+      .attr('height', scale.height())
+
     // brush
-    let brush = new BrushX(data, scale, `${this.parent} .dot`)
-    brush.attach(this.svg)
-    this.brush = brush
+    this.brush = new BrushX(data, scale, `${this.parent} .dot`)
 
     // figure out which view is active
     this._changeViewFlag()
@@ -97,11 +100,6 @@ class StackedDotPlot {
 
     // title and labels
     this._drawTitles()
-
-    this.svg.append('svg')
-      .classed('objects', true)
-      .attr('width', scale.width())
-      .attr('height', scale.height())
   }
 
   draw () {
