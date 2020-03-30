@@ -31,7 +31,7 @@
       </div>
     </div>
 
-    <!--legend-->
+    <!--categorical color legend-->
     <div v-if="legend.length" class="mr-3 mt-2">
       <div class="bb-menu-item text-muted mb-1">Legend</div>
       <div class="d-flex" style="font-size: 11px">
@@ -41,6 +41,18 @@
         </div>
       </div>
     </div>
+
+    <!--colormap-->
+    <div v-if="colormap" class="mr-3 mt-2">
+      <div class="bb-menu-item text-muted">{{colormap.title}}</div>
+      <div style="font-size: 9px; width: 80px;">
+        <img src="blues.png" class="w-100"/>
+        <div class="w-100 d-flex justify-content-between text-muted">
+          <div>{{colormap.light}}</div><div>{{colormap.dark}}</div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -64,6 +76,7 @@
         color_options: ['None', COLOR_TYPE.SIGN],
         color: 'None',
         legend: [],
+        colormap: false,
         has_uncertainty: false,
         uncertainty_options: [UNC_TYPE.AGG, UNC_TYPE.PDF, UNC_TYPE.CDF],
         uncertainty: UNC_TYPE.AGG
@@ -141,6 +154,8 @@
         let p_pvalue = [{color: '#e45756', text: 'p<0.05'}]
         this.legend = c === COLOR_TYPE.SIGN ? p_sign :
           c === COLOR_TYPE.P ? p_pvalue : []
+        this.colormap = c === COLOR_TYPE.FIT ? {title: 'Model Fit', light: 'poor',
+          dark: 'good'} : null
       },
       onUncertaintyChange (u) {
         if (this.uncertainty === u) {

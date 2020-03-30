@@ -197,7 +197,7 @@ class DotView {
     let scale = this.parent.scale
     let brush = this.parent.brush
     brush.brush.extent([[0, 0], [scale.width(), scale.height()]])
-    brush.attach(this.parent.svg)
+    brush.attach(this.parent.svg.select('.objects'))
     brush.selector = `${this.parent.parent} .dot`
     brush.brushstart_callback = null
     brush.brushing_callback = null
