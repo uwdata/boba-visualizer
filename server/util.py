@@ -27,7 +27,6 @@ def check_path(fn):
     """ Check if path exists """
     if not os.path.exists(fn):
         msg = 'Error: {} does not exist.'.format(fn)
-        print_fail(msg)
         return {'status': 'fail', 'message': msg}
 
 
@@ -52,9 +51,13 @@ def read_json(fn):
         return err, None
 
     with open(fn, 'rb') as f:
-        res = json.load(f)
-
-    return err, res
+        try:
+            res = json.load(f)
+            return None, res
+        except json.JSONDecodeError:
+            msg = 'Cannot parse the JSON file {}'.format(fn)
+            err = {'status': 'fail', 'message': msg}
+            return err, None
 
 def read_key_safe(obj, keys, default):
     """ Recursively check if key is in obj and return the value.
@@ -66,3 +69,13 @@ def read_key_safe(obj, keys, default):
             return default
     
     return obj
+
+def group_by(lst, func):
+    res = {}
+    for item in lst:
+        k = func(item)
+        if k in res:
+            res[k].append(item)
+        else:
+            res[k] = [item]
+    return res

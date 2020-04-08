@@ -60,16 +60,6 @@
     // remove previous charts
     clear.call(this)
 
-    // transform data
-    let trans = store.configs.raw_plot.transform
-    if (trans != null) {
-      trans = trans.replace('{}', 'd')
-      _.each(all_data, (data) => {
-        data.actual = _.map(data.actual, (d) => eval(trans))
-        data.pred = _.map(data.pred, (d) => eval(trans))
-      })
-    }
-
     // compute range for shared scale
     let tmp = _.flatten(_.map(all_data, (d) => _.concat(d.actual, d.pred)))
     let range = [_.min(tmp), _.max(tmp)]
@@ -79,7 +69,7 @@
       let chart = new RawPlot()
       chart.outerWidth = this.$refs.chart.clientWidth
       chart.title = `Universe ${data.uid}`
-      chart.x_axis_label = store.configs.raw_plot.x_axis_label
+      chart.x_axis_label = store.configs.x_axis_fit
       chart.dot_opacity = 0.2
       chart.draw(`#raw-vis-${idx + 1}`, data, range)
     })
@@ -139,14 +129,14 @@
     fill #6c757d
 
   .raw-dot
-    fill #17a2b8
-
-  .raw-legend
-    color #17a2b8
-
-  .pred-dot
     fill #f58518
 
-  .pred-legend
+  .raw-legend
     color #f58518
+
+  .pred-dot
+    fill #17a2b8
+
+  .pred-legend
+    color #17a2b8
 </style>

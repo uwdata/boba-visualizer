@@ -98,8 +98,8 @@
           return store.fetchUncertainty()
         })
         .then(() => {
-          if (store.configs.agg_plot.x_range_outer) {
-            store.x_range = store.configs.agg_plot.x_range_outer
+          if (store.configs.x_range_outer) {
+            store.x_range = store.configs.x_range_outer
           }
           this.loading = false
 

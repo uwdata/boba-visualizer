@@ -1,7 +1,7 @@
 import * as d3 from 'd3'
 import _ from 'lodash'
 import {bus, store, util} from './config'
-import {COLOR_TYPE, UNC_TYPE, sign} from './constants'
+import {COLOR_TYPE, UNC_TYPE, sign, SCHEMA} from './constants'
 
 class CurveView {
   constructor (caller) {
@@ -62,7 +62,7 @@ class CurveView {
     _.each(data, (d) => {
       let isin = color === COLOR_TYPE.SIGN && d.diff < sign
       isin |= color === COLOR_TYPE.P &&
-        d[store.configs.agg_plot.p_value_field] < 0.05
+        d[SCHEMA.P] < 0.05
 
       if (isin) {
         uids[d.uid] = true

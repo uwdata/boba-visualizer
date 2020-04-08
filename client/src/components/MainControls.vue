@@ -60,7 +60,7 @@
   import {bus, store} from '../controllers/config'
   import VueSlider from 'vue-slider-component'
   import 'vue-slider-component/theme/antd.css'
-  import {COLOR_TYPE, UNC_TYPE} from '../controllers/constants'
+  import {COLOR_TYPE, UNC_TYPE, SCHEMA} from '../controllers/constants'
   export default {
     name: "MainControls",
     components: {
@@ -88,18 +88,16 @@
         this.initSlider()
         this.initColor()
 
-        this.has_uncertainty = store.configs.agg_plot.uncertainty != null
+        this.has_uncertainty = SCHEMA.UNC in store.configs.schema
       })
     },
     methods: {
       initColor () {
-        let p = store.configs.agg_plot.p_value_field
-        if (p) {
+        if (SCHEMA.P in store.configs.schema) {
           this.color_options.push(COLOR_TYPE.P)
         }
 
-        let fit = store.configs.agg_plot.fit_field
-        if (fit) {
+        if (SCHEMA.FIT in store.configs.schema) {
           this.color_options.splice(1, 0, COLOR_TYPE.FIT)
         }
       },
@@ -129,8 +127,8 @@
           this.x_max = Number(store.x_range[1].toPrecision(n))
         }
 
-        if (store.configs.agg_plot.x_range) {
-          this.x_range = store.configs.agg_plot.x_range
+        if (store.configs.x_range) {
+          this.x_range = store.configs.x_range
         } else {
           this.x_range = [this.x_min, this.x_max]
         }

@@ -1,7 +1,7 @@
 import * as d3 from 'd3'
 import _ from 'lodash'
 import {bus, store, util} from './config'
-import {COLOR_TYPE, sign} from './constants'
+import {COLOR_TYPE, sign, SCHEMA} from './constants'
 
 class DotView {
   constructor (caller, params) {
@@ -112,15 +112,14 @@ class DotView {
         .classed('colored', true)
     } else if (color === COLOR_TYPE.P) {
       svg.selectAll('.dot')
-        .filter((d) => d[store.configs.agg_plot.p_value_field] < 0.05)
+        .filter((d) => d[SCHEMA.P] < 0.05)
         .classed('colored', true)
     } else if (color === COLOR_TYPE.FIT) {
       // we do not use the lightest colors in the scheme
       let colormap = d3.scaleSequential(d3.interpolateBlues)
         .domain([1.2, 0])
-      let name = store.configs.agg_plot.fit_field
       svg.selectAll('.dot')
-        .attr('fill', (d) => colormap(Math.min(d[name], 1.0)))
+        .attr('fill', (d) => colormap(Math.min(d[SCHEMA.FIT], 1.0)))
     }
   }
 
@@ -248,10 +247,9 @@ class DotView {
     let maxy = this.parent.y_range[1]
 
     // sort by model fit
-    let fit = store.configs.agg_plot.fit_field
-    if (fit) {
+    if (SCHEMA.FIT in store.configs.schema) {
       data = _.reduce(_.groupBy(data, '_x'), (res, ds) => {
-        ds = _.map(_.sortBy(ds, fit), (d, i) => {
+        ds = _.map(_.sortBy(ds, SCHEMA.FIT), (d, i) => {
           d._y = i
           return d
         })

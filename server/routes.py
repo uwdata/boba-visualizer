@@ -1,8 +1,10 @@
 import os
 from flask import jsonify, request
 from server import app
-from .util import read_csv, read_json, read_key_safe
+from .util import read_csv, read_json, read_key_safe, group_by
 import numpy as np
+import pandas as pd
+import math
 
 
 # entry
@@ -19,45 +21,61 @@ def get_universes():
                              'header': res[0]}
     return jsonify(reply), 200
 
-# read prediction
+# read point estimates, p-value, and fit metric value
 @app.route('/api/get_pred', methods=['POST'])
 def get_pred():
-    fn = read_key_safe(app.visualizer, ['agg_plot', 'data'], 'pred.csv')
-    fn = os.path.join(app.data_folder, fn)
-    err, res = read_csv(fn, 0)
-    reply = err if err else {'status': 'success', 'data': res[1:],
-                             'header': res[0]}
+    fields = ['point_estimate', 'p_value', 'fit']
+    fields = [app.schema[f] for f in fields if f in app.schema]
+    groups = group_by(fields, lambda x: x['file'])
+
+    header = []
+    res = None
+    for fn in groups:
+        df = pd.read_csv(os.path.join(app.data_folder, fn), na_filter=False)
+        names = ['uid'] + [d['name'] for d in groups[fn]]
+        cols = ['uid'] + [d['field'] for d in groups[fn]]
+        df = df[cols].rename(columns=dict(zip(cols, names)))
+        header.extend(names)
+        res = df if res is None else pd.merge(res, df, on='uid')
+
+    res = [res[n].values.tolist() for n in header]
+    reply = {'status': 'success', 'data': res, 'header': header}
     return jsonify(reply), 200
 
 # read uncertainty
 @app.route('/api/get_uncertainty', methods=['POST'])
 def get_uncertainty():
-    fn = read_key_safe(app.visualizer, ['agg_plot', 'uncertainty'], '')
-    fn = os.path.join(app.data_folder, fn)
+    f = app.schema['uncertainty']
+    fn = os.path.join(app.data_folder, f['file'])
     err, res = read_csv(fn, 0)
+    header = ['uncertainty' if d == f['field'] else d for d in res[0]]
     reply = err if err else {'status': 'success', 'data': res[1:],
-                             'header': res[0]}
+                             'header': header}
     return jsonify(reply), 200
 
 # read the overview, including decisions and ADG
 @app.route('/api/get_overview', methods=['POST'])
 def get_overview():
-    fn = os.path.join(app.data_folder, 'overview.json')
-    err, res = read_json(fn)
-    reply = err if err else {'status': 'success', 'data': res,
-                             'sensitivity': app.sensitivity_ks}
+    res = {'schema': [app.schema[d]['name'] for d in app.schema],
+        'decisions': app.decisions}
+    res.update(app.visualizer)
+    reply = {'status': 'success', 'data': res, 
+        'sensitivity': app.sensitivity_ks}
     return jsonify(reply), 200
 
 # read the actual and predicted data of all data points in a universe
 @app.route('/api/get_raw', methods=['POST'])
 def get_raw():
+    # fixme: prediction might not exist
+    # fixme: now we assume specific column order, should use field name
     uid = request.json['uid']
-    fn = read_key_safe(app.visualizer, ['raw_plot', 'data'], 'raw_{}.csv')
-    fn = os.path.join(app.data_folder, fn.format(uid))
+    f = app.schema['prediction']
+    fn = os.path.join(app.data_folder, f['file'].format(uid))
     err, res = read_csv(fn, 1)
     reply = err if err else {'status': 'success'}
 
     if not err:
+        # sampling
         m = 100
         data = []
         for i in range(2):
@@ -68,6 +86,13 @@ def get_raw():
                 data.append(np.quantile(long, qt).tolist())
             else:
                 data.append(long)
+
+        # apply transform
+        trans = read_key_safe(f, ['transform'], None)
+        if trans:
+            trans = trans.format('x')
+            for i in range(2):
+                data[i] = [eval(trans) for x in data[i]]
 
         reply['data'] = data
 

@@ -3,6 +3,7 @@
 import http from 'axios'
 import _ from 'lodash'
 import {default_config} from './config'
+import {SCHEMA} from './constants'
 
 /**
  * Shared data store across pages.
@@ -166,7 +167,9 @@ class Store {
             this.graph = msg.data.graph
 
             // config
-            this.configs = _.assign(default_config, msg.data.visualizer)
+            let cfg = msg.data.labels
+            cfg.schema = _.zipObject(msg.data.schema, msg.data.schema)
+            this.configs = _.assign(default_config, cfg)
 
             // sensitivity
             this.sensitivity = msg.sensitivity
@@ -198,12 +201,12 @@ class Store {
 
           if (msg && msg.status === 'success') {
             // predicted outcomes
-            this.predicted_diff = _.map(msg.data, (d) => {
+            this.predicted_diff = _.map(_.zip(...msg.data), (d) => {
               let obj = {}
               _.each(d, (val, idx) => {
                 obj[msg.header[idx]] = Number(val)
               })
-              obj.diff = obj[default_config.agg_plot.x_field] // legacy
+              obj.diff = obj[SCHEMA.POINT] // legacy
               return obj
             })
 
@@ -229,7 +232,7 @@ class Store {
 
   fetchUncertainty () {
     return new Promise((resolve, reject) => {
-      if (this.uncertainty.length || default_config.agg_plot.uncertainty == null) {
+      if (this.uncertainty.length || !(SCHEMA.UNC in this.configs.schema)) {
         resolve()
         return
       }
@@ -240,8 +243,7 @@ class Store {
 
           if (msg && msg.status === 'success') {
             let i_uid = _.findIndex(msg.header, (d) => d === 'uid')
-            let i_diff = _.findIndex(msg.header, (d) => d ===
-              default_config.agg_plot.x_field)
+            let i_diff = _.findIndex(msg.header, (d) => d === SCHEMA.UNC)
             _.each(_.groupBy(msg.data, i_uid), (rows, k) => {
               this.uncertainty[k] = _.map(rows, (row) => Number(row[i_diff]))
             })

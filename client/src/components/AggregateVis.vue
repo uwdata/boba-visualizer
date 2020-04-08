@@ -215,7 +215,7 @@
 
       // register event listener
       bus.$on('data-ready', () => {
-        this.label = store.configs.agg_plot.x_axis_label
+        this.label = store.configs.x_axis
         draw.call(this)
       })
       bus.$on('filter', draw.bind(this))

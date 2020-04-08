@@ -9,12 +9,18 @@ from server import app
 from .util import read_json, read_key_safe
 
 
-def check_path(p):
+def check_path(p, more=''):
     """Check if the path exists"""
     if not os.path.exists(p):
-        msg = 'Error: Path "{}" does not exist.'.format(p)
-        print_help(msg)
+        msg = 'Error: {} does not exist.'.format(p)
+        print_help(msg + more)
 
+
+def check_required_field(obj, key, prefix=''):
+    """Check if a required field is in obj."""
+    if key not in obj:
+        err = 'Error: cannot find required field "{}" in {}'.format(key, obj)
+        print_help(prefix + err)
 
 def print_help(err=''):
     """Show help message and exit."""
@@ -22,18 +28,60 @@ def print_help(err=''):
     click.echo(ctx.get_help())
 
     if err:
-        click.echo('\n' + err)
+        click.secho('\n' + err, fg='red')
     ctx.exit()
 
 
 def read_meta():
-    """ Read overview.json and store the meta data. """
+    """ Read overview.json, verify, and store the meta data. """
     fn = os.path.join(app.data_folder, 'overview.json')
     err, res = read_json(fn)
     if (err):
-        print_help(err)
-    app.visualizer = read_key_safe(res, ['visualizer'], {})
+        print_help(err['message'])
+    
+    # check summary.csv
+    fn = os.path.join(app.data_folder, 'summary.csv')
+    check_path(fn)
+
+    # check if files exist in visualizer
+    vis = read_key_safe(res, ['visualizer'], {})
+    fs = read_key_safe(vis, ['files'], [])
+    lookup = {}
+    prefix = 'In parsing visualizer.files in overview.json:\n'
+    for f in fs:
+        check_required_field(f, 'id', prefix)
+        check_required_field(f, 'path', prefix)
+        f['multi'] = read_key_safe(f, ['multi'], False)
+        if not f['multi']:
+            check_path(os.path.join(app.data_folder, f['path']))
+        lookup[f['id']] = f
+
+    # read schema and join file
+    schema = read_key_safe(vis, ['schema'], {})
+    prefix = 'In parsing visualizer.schema in overview.json:\n'
+    check_required_field(schema, 'point_estimate', prefix)
+    for key in schema:
+        s = schema[key]
+        check_required_field(s, 'file', prefix)
+        # check_required_field(s, 'field', prefix)
+        # todo: verify if file is valid CSV and if field exist in file
+        fid = s['file']
+        if fid not in lookup:
+            msg = 'In parsing visualizer.schema in overview.json:\n'
+            msg += '{}\n'.format(s)
+            msg += 'Error: file id "{}" is not defined.'.format(fid)
+            print_help(msg)
+        s['file'] = lookup[fid]['path']
+        s['multi'] = lookup[fid]['multi']
+        s['name'] = key
+
+    # store meta data
+    app.schema = schema
     app.decisions = read_key_safe(res, ['decisions'], {})
+    app.visualizer = {
+        "labels": read_key_safe(vis, ['labels'], {}),
+        "graph": read_key_safe(res, ['graph'], {})
+    }
 
 
 def cal_sensitivity():
@@ -44,10 +92,10 @@ def cal_sensitivity():
     smr['uid'] = smr.apply(lambda r: r.name + 1, axis=1).astype(int)
 
     # read the prediction and join with summary
-    fn = read_key_safe(app.visualizer, ['agg_plot', 'data'], 'pred.csv')
-    fn = os.path.join(app.data_folder, fn)
+    info = app.schema['point_estimate']
+    fn = os.path.join(app.data_folder, info['file'])
     df = pd.read_csv(fn, na_filter=False)
-    col = read_key_safe(app.visualizer, ['agg_plot', 'x_field'], 'diff')
+    col = info['field']
     df = pd.merge(smr, df[['uid', col]], on='uid')
 
     # compute one-way F-test
