@@ -61,6 +61,19 @@ class SpecCurvePlot {
     let scale_y = d3.scaleLinear().range([height, 0])
       .domain([data[0].diff, data[l - 1].diff])
 
+    // draw CIs (if applicable)
+    let ds = _.filter(data, (d) => d.upper != null)
+    if (ds.length) {
+      let area = d3.area()
+        .x((d) => scale_x(d.i))
+        .y0((d) => scale_y(d.lower))
+        .y1((d) => scale_y(d.upper))
+      upper.append('path')
+        .datum(ds)
+        .classed('spec-curve-envelope', true)
+        .attr('d', area)
+    }
+
     // draw dots
     upper.selectAll('.curve-dot')
       .data(data)

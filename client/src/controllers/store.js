@@ -50,6 +50,12 @@ class Store {
     this.uncertainty = []
 
     /**
+     * Null distribution of point estimates.
+     * The array index is uid and the value is an array of point estimates.
+     */
+    this.null_dist = []
+
+    /**
      * Filter based on decisions.
      * Key is the decision name, value is a map of options.
      * If false, all universes with this option will be dropped in the plot.
@@ -251,6 +257,34 @@ class Store {
             let flat = _.flatten(this.uncertainty)
             this.x_range = [Math.min(this.x_range[0], _.min(flat)),
               Math.max(this.x_range[1], _.max(flat))]
+
+            resolve()
+          } else {
+            reject(msg.message || 'Internal server error.')
+          }
+        }, () => {
+          reject('Network error.')
+        })
+    })
+  }
+
+  fetchNull () {
+    return new Promise((resolve, reject) => {
+      if (this.null_dist.length || !(SCHEMA.NUL in this.configs.schema)) {
+        resolve()
+        return
+      }
+
+      http.post('/api/get_null', {})
+        .then((response) => {
+          let msg = response.data
+
+          if (msg && msg.status === 'success') {
+            let i_uid = _.findIndex(msg.header, (d) => d === 'uid')
+            let i_point = _.findIndex(msg.header, (d) => d === SCHEMA.NUL)
+            _.each(_.groupBy(msg.data, i_uid), (rows, k) => {
+              this.null_dist[k] = _.map(rows, (row) => Number(row[i_point]))
+            })
 
             resolve()
           } else {

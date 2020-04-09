@@ -5,8 +5,26 @@
 </template>
 
 <script>
-  import {store} from '../controllers/config'
+  import {store, util} from '../controllers/config'
   import SpecCurvePlot from '../controllers/spec_curve_plot'
+
+  function sample (arr, extreme = 50, total = 300) {
+    // keep the top 50, bottom 50 and a subset of 200 in-between
+    let l = arr.length
+    if (l < total || extreme * 2 >= total) {
+      return arr
+    }
+
+    let bottom = _.slice(arr, 0, extreme)
+    let top =  _.slice(arr, l - extreme, l)
+    let middle = {}
+    while (_.size(middle) < total - extreme * 2) {
+      let i = _.random(extreme, l - extreme - 1)
+      middle[i] = i
+    }
+    middle = _.sortBy(_.map(middle, (i) => arr[i]), (d) => d.diff)
+    return _.concat(bottom, middle, top)
+  }
 
   export default {
     mounted: function () {
@@ -19,24 +37,30 @@
           return store.fetchPredictions()
         })
         .then(() => {
+          return store.fetchNull()
+        })
+        .then(() => {
           let data = store.predicted_diff
           let l = data.length
 
-          // keep the top 50, bottom 50 and a subset of 200 in-between
-          // ok we excluded the top 30 to be consistent with our range
-          let bottom = _.slice(data, 0, 50)
-          let top =  _.slice(data, l - 80, l - 30)
-          let middle = {}
-          while (_.size(middle) < 200) {
-            let i = _.random(50, l - 81)
-            middle[i] = i
+          if (store.configs.dataset === 'hurricane') {
+            // ok we excluded the top 30 to be consistent with our range
+            data = _.slice(data, 0, l - 30)
           }
-          middle = _.sortBy(_.map(middle, (i) => data[i]), (d) => d.diff)
-          data = _.concat(bottom, middle, top)
+          
+          // keep the top 50, bottom 50 and a subset of 200 in-between
+          data = sample(data)
 
-          // join decision
+          // join decision and null CI
           data = _.map(data, (d, idx) => {
             d.i = idx
+            let nd = store.null_dist[d.uid]
+            if (nd) {
+              // get the 2.5 and 97.5 percentile
+              d.upper = util.quantile(nd, 0.975)
+              d.lower = util.quantile(nd, 0.025)
+            }
+
             let u = store.getUniverseById(d.uid)
             return _.assign(d, u)
           })
@@ -48,6 +72,9 @@
   }
 </script>
 
-<style scoped>
-
+<style lang="stylus">
+  .spec-curve-envelope
+    fill #eee
+    stroke #bbb
+    stroke-width 1.5
 </style>

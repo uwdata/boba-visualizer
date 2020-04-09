@@ -14,7 +14,8 @@ const SCHEMA = {
   POINT: 'point_estimate',
   FIT: 'fit',
   P: 'p_value',
-  UNC: 'uncertainty'
+  UNC: 'uncertainty',
+  NUL: 'null_point'
 }
 
 const sign = 0

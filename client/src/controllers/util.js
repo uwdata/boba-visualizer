@@ -92,6 +92,24 @@ class Util {
       return [d[0], sum]
     })
   }
+
+  /**
+   * Get quantiles of an array.
+   * @param arr The array
+   * @param q A number within [0, 1]
+   */
+  quantile (arr, q) {
+    let sorted = _.sortBy(arr)
+    let pos = (sorted.length - 1) * q
+    let base = Math.floor(pos)
+    let rest = pos - base
+
+    if (base + 1 < sorted.length) {
+      return sorted[base] + rest * (sorted[base + 1] - sorted[base])
+    } else {
+      return sorted[base]
+    }
+  }
 }
 
 export default Util
