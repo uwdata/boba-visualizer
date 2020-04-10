@@ -54,6 +54,29 @@ class CurveView {
     this.draw(true)
   }
 
+  updatePrune (cutoff) {
+    let data = this.parent.data
+
+    let uids = {}
+    _.each(data, (d) => {
+      let isin = d[SCHEMA.FIT] > cutoff
+
+      if (isin) {
+        uids[d.uid] = true
+      }
+    })
+
+    this.parent.svg.selectAll('.uncertainty-curve')
+      .classed('hidden', false)
+      .filter((d) => d.uid in uids)
+      .classed('hidden', true)
+
+    this.parent.svg.selectAll('.chip')
+      .classed('hidden', false)
+      .filter((d) => d[SCHEMA.FIT] > cutoff)
+      .classed('hidden', true)
+  }
+
   updateColor (color) {
     let svg = this.parent.svg
     let data = this.parent.data
@@ -68,6 +91,8 @@ class CurveView {
         uids[d.uid] = true
       }
     })
+
+    // todo: color by model fit
 
     svg.selectAll('.uncertainty-curve')
       .classed('colored', false)

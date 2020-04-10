@@ -108,6 +108,7 @@ class StackedDotPlot {
 
     // keep color and axis label consistent
     this.updateColor(this.color_by)
+    this.updatePrune(store.fit_cutoff, false)
     this.colorClicked()
     this._updateAxis()
   }
@@ -138,6 +139,12 @@ class StackedDotPlot {
     this.active_view.updateColor(color)
   }
 
+  updatePrune (cutoff, animate = true) {
+    if (cutoff != null) {
+      this.active_view.updatePrune(cutoff, animate)
+    }
+  }
+
   updateUncertainty () {
     // we don't know about the previous active view, because view flag
     // has already been changed in update range
@@ -150,6 +157,7 @@ class StackedDotPlot {
     // keep color and axis label consistent
     this.colorClicked()
     this.updateColor(this.color_by)
+    this.updatePrune(store.fit_cutoff, false)
     this._updateAxis()
   }
 

@@ -30,6 +30,7 @@
   import {bus, store} from '../controllers/config'
   import StackedDotPlot from '../controllers/stacked_dot_plot'
   import DetailTip from './DetailTip.vue'
+  import {SCHEMA} from '../controllers/constants'
 
   function clear () {
     // remove all nodes
@@ -148,9 +149,10 @@
     // remove previous charts
     clear.call(this)
     this.charts = []
+    let data = store.predicted_diff
 
     // filter data
-    let data = applyFilter(store.predicted_diff, store.filter)
+    // let data = applyFilter(data, store.filter)
 
     // facet data
     let tmp = applyFacet.call(this, data)
@@ -224,6 +226,11 @@
         updateRange.call(this)
         _.each(this.charts, (chart) => {
           chart.updateScale()
+        })
+      })
+      bus.$on('update-prune', () => {
+        _.each(this.charts, (chart) => {
+          chart.updatePrune(store.fit_cutoff)
         })
       })
       bus.$on('update-color', () => {
@@ -318,11 +325,9 @@
   .dot.hovered, .dot.clicked, .dot.clicked.brushed
     fill #f58518
 
-  .dot.hidden
-    display none !important
-
   .dot
     cursor pointer
+    transition opacity 0.5s
 
   .envelope
     fill #999
@@ -368,4 +373,10 @@
     stroke #f58518
     opacity 1
     stroke-width 2
+
+  .dot.hidden
+    opacity 0 !important
+
+  .envelope.hidden, .chip.hidden, .uncertainty-curve.hidden
+    display none !important
 </style>

@@ -100,6 +100,23 @@ class DotView {
     this.drawEnvelope(true)
   }
 
+  updatePrune (cutoff, animate = true) {
+    this.parent.svg.selectAll('.dot')
+      .classed('hidden', false)
+      .filter((d) => d[SCHEMA.FIT] > cutoff)
+      .classed('hidden', true)
+
+    // update envelope
+    let uids = _.filter(this.parent.data, (d) => d[SCHEMA.FIT] <= cutoff)
+    uids = _.map(uids, (d) => d.uid)
+    let uncertainty = _.at(this.parent.uncertainty, uids)
+    let duration = animate ? 500 : 0
+    this.drawEnvelope(true, uncertainty, duration)
+    // handle the edge case when pruning leaves no points
+    this.parent.svg.select('.envelope')
+      .classed('hidden', uncertainty.length <= 0)
+  }
+
   updateColor (color) {
     let svg = this.parent.svg
     svg.selectAll('.dot')
@@ -115,9 +132,14 @@ class DotView {
         .filter((d) => d[SCHEMA.P] < 0.05)
         .classed('colored', true)
     } else if (color === COLOR_TYPE.FIT) {
+      // use the actual min/max fit values to show more variations
+      // but the color only means *relative* fit quality
+      // users can override by setting fit_range in config
+      let fr = store.configs.fit_range || store.fit_range
+
       // we do not use the lightest colors in the scheme
       let colormap = d3.scaleSequential(d3.interpolateBlues)
-        .domain([1.2, 0])
+        .domain([1.2 * fr[1] - 0.2 * fr[0], fr[0]])
       svg.selectAll('.dot')
         .attr('fill', (d) => colormap(Math.min(d[SCHEMA.FIT], 1.0)))
     }
@@ -153,16 +175,16 @@ class DotView {
   /**
    * To display uncertainty, aggregate all possible outcomes from bootstrapping
    */
-  drawEnvelope (redraw = false) {
+  drawEnvelope (redraw = false, uncertainty = null, duration = 1000) {
     let svg = this.parent.svg
-    let uncertainty = this.parent.uncertainty
+    uncertainty = uncertainty || this.parent.uncertainty
 
     let dp = _.flatten(_.map(uncertainty, (arr) => arr))
     if (!dp.length) {
       return
     }
 
-    let ratio = this.parent.data.length / dp.length
+    let ratio = 1 / _.sample(uncertainty).length
     let scale = this.parent.scale
 
     let dm = scale.x.domain()
@@ -187,7 +209,7 @@ class DotView {
     } else {
       svg.select('.envelope')
         .datum(hist)
-        .transition().duration(1000)
+        .transition().duration(duration)
         .attr('d', area)
     }
   }

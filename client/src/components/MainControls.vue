@@ -27,7 +27,15 @@
         <div class="bb-menu-item text-muted mb-1">X-axis Range</div>
         <vue-slider v-model="x_range" :width="100" :min="x_min" :max="x_max"
                     @drag-end="onSliderChange" :interval="interval" :clickable="false"
-                    :enableCross="false" :minRange="min_range" :silent="true"/>
+                    :enableCross="false" :minRange="interval" :silent="true"/>
+      </div>
+
+      <!--pruning-->
+      <div v-if="allow_prune" class="ml-3 mr-3 mt-2">
+        <div class="bb-menu-item text-muted mb-1">Prune</div>
+        <vue-slider v-model="fit_cutoff" :width="75" :min="fit_min" :max="fit_max"
+                    @drag-end="onPruneChange" :interval="fit_step" :clickable="false"
+                    :minRange="fit_step" :silent="true"/>
       </div>
     </div>
 
@@ -68,18 +76,29 @@
     },
     data () {
       return {
+        // x-axis slider
         x_range: [0, 1],
         x_min: 0,
         x_max: 1,
         interval: 1,
-        min_range: 1,
+
+        // color by
         color_options: ['None', COLOR_TYPE.SIGN],
         color: 'None',
         legend: [],
         colormap: false,
+
+        // uncertainty
         has_uncertainty: false,
         uncertainty_options: [UNC_TYPE.AGG, UNC_TYPE.PDF, UNC_TYPE.CDF],
-        uncertainty: UNC_TYPE.AGG
+        uncertainty: UNC_TYPE.AGG,
+
+        // pruning slider
+        allow_prune: false,
+        fit_cutoff: 1,
+        fit_min: 0,
+        fit_max: 1,
+        fit_step: 0.01
       }
     },
     mounted () {
@@ -87,6 +106,7 @@
       bus.$on('data-ready', () => {
         this.initSlider()
         this.initColor()
+        this.initPruneSlider()
 
         this.has_uncertainty = SCHEMA.UNC in store.configs.schema
       })
@@ -101,9 +121,8 @@
           this.color_options.splice(1, 0, COLOR_TYPE.FIT)
         }
       },
-      initSlider () {
-        // figure out the interval
-        let step = (store.x_range[1] - store.x_range[0]) / 200
+      calStep (range) {
+        let step = (range[1] - range[0]) / 200
         if (step > 1) {
           let i = 1
           while (step > 1) {
@@ -111,9 +130,11 @@
             i *= 10
           }
 
-          this.x_min = Math.floor(store.x_range[0] / i) * i
-          this.x_max = Math.ceil(store.x_range[1] / i) * i
-          this.interval = i
+          return {
+            min: Math.floor(range[0] / i) * i,
+            max: Math.ceil(range[1] / i) * i,
+            step: i
+          }
         } else {
           let n = 0
           let i = 1
@@ -122,22 +143,44 @@
             n += 1
             i /= 10
           }
-          this.interval = i
-          this.x_min = Number(store.x_range[0].toPrecision(n))
-          this.x_max = Number(store.x_range[1].toPrecision(n))
+          return {
+            min: Number(range[0].toPrecision(n)),
+            max: Number(range[1].toPrecision(n)),
+            step: i
+          }
         }
+      },
+      initSlider () {
+        // figure out the interval
+        let res = this.calStep(store.x_range)
+        this.x_min = res.min
+        this.x_max = res.max
+        this.interval = res.step
 
         if (store.configs.x_range) {
           this.x_range = store.configs.x_range
         } else {
           this.x_range = [this.x_min, this.x_max]
         }
+      },
+      initPruneSlider () {
+        if (!(SCHEMA.FIT in store.configs.schema)) {
+          return
+        }
 
-        this.min_range = this.interval
+        let res = this.calStep(store.fit_range)
+        this.fit_min = res.min
+        this.fit_max = res.max
+        this.fit_cutoff = this.fit_max
+        this.fit_step = res.step
       },
       onSliderChange () {
         store.x_range = this.x_range
         bus.$emit('update-scale')
+      },
+      onPruneChange () {
+        store.fit_cutoff = this.fit_cutoff
+        bus.$emit('update-prune')
       },
       onColorChange (c) {
         if (this.color === c) {
@@ -148,12 +191,17 @@
         store.color_by = c
         bus.$emit('update-color')
 
+        // color legend
         let p_sign = [{color: '#e45756', text: 'x<0'}]
         let p_pvalue = [{color: '#e45756', text: 'p<0.05'}]
         this.legend = c === COLOR_TYPE.SIGN ? p_sign :
           c === COLOR_TYPE.P ? p_pvalue : []
-        this.colormap = c === COLOR_TYPE.FIT ? {title: 'Model Fit', light: 'poor',
-          dark: 'good'} : null
+        this.colormap = c === COLOR_TYPE.FIT ? {title: 'Model Fit',
+          light: store.configs.fit_range ? 'poor' : 'worse',
+          dark: store.configs.fit_range ? 'good' : 'better'} : null
+
+        // only show the prune slider when we color by model fit
+        this.allow_prune = c === COLOR_TYPE.FIT
       },
       onUncertaintyChange (u) {
         if (this.uncertainty === u) {

@@ -70,6 +70,8 @@ class Store {
 
     // derived data but accessed by multiple views
     this.x_range = []
+    this.fit_cutoff = null
+    this.fit_range = []
     this.color_by = null
     this.uncertainty_vis = null
     this.small_multiple_uids = []
@@ -220,6 +222,17 @@ class Store {
             this.predicted_diff = _.sortBy(this.predicted_diff, (d) => d.diff)
             this.x_range = [this.predicted_diff[0].diff * 1.1,
               this.predicted_diff[this.predicted_diff.length - 1].diff * 1.1]
+
+            // get min and max model fit values, if applicable
+            if (SCHEMA.FIT in this.configs.schema) {
+              if (this.configs.fit_range) {
+                this.fit_range = this.configs.fit_range
+              } else {
+                let fits = _.map(this.predicted_diff, (d) => d[SCHEMA.FIT])
+                fits = _.sortBy(fits)
+                this.fit_range = [fits[0], fits[fits.length - 1]]
+              }
+            }
 
             // // compute sensitivity
             // _.each(this.decisions, (x, dec) => {
