@@ -3,16 +3,22 @@
 
     <!--Header-->
     <header class="navbar bb-navbar">
-      <span class="ml-3 font-weight-bold">boba</span>
+      <div style="width: 180px">
+        <span class="ml-3 font-weight-bold">boba</span>
+      </div>
       <title-menu></title-menu>
-      <help-button class="mr-3"></help-button>
+      <div style="width: 180px">
+        <b-button v-if="mode === 0" variant="outline-info" size="sm" class="mr-3"
+                  style="margin-top: 2px" v-b-modal.modal-warn>Make Inference</b-button>
+        <help-button class="mr-3 float-right"></help-button>
+      </div>
     </header>
 
     <!--Loading Spinner-->
     <loading-spinner :loading="loading"></loading-spinner>
 
-    <!--Main View-->
-    <div class="bb-main-view d-flex">
+    <!--Exploration Views-->
+    <div v-if="mode === 0" class="bb-main-view d-flex">
 
       <!--Left Panel-->
       <div class="bb-left-panel d-flex flex-column">
@@ -54,8 +60,18 @@
         <!--Small multiples-->
         <small-multiples-view></small-multiples-view>
       </div>
-
     </div>
+
+    <!--Warning-->
+    <b-modal id="modal-warn" title="Proceed to Make Inference" ref="modal"
+             @ok="onInfer">
+      <p>Are you sure? Once you view the inference visualizations,
+        you cannot return to the current views.</p>
+    </b-modal>
+
+    <!--Config before inference-->
+    <inference-config v-if="mode === 1"></inference-config>
+
   </div>
 </template>
 
@@ -71,9 +87,11 @@
   import LegendView from '../components/LegendView.vue'
   import SmallMultiplesView from '../components/SmallMultiplesView.vue'
   import MainControls from '../components/MainControls.vue'
+  import InferenceConfig from '../components/InferenceConfig.vue'
 
   export default {
     components: {
+      InferenceConfig,
       MainControls,
       SmallMultiplesView,
       LegendView, FilterOptionView, AdgView, LoadingSpinner, AggregateVis,
@@ -81,6 +99,7 @@
 
     data () {
       return {
+        mode: 0,  // 0-explore, 1-pick, 2-infer
         loading: false //fixme
       }
     },
@@ -109,6 +128,12 @@
           this.loading = false
           console.error(e)
         })
+    },
+
+    methods : {
+      onInfer () {
+        this.mode = 1
+      }
     }
   }
 </script>
