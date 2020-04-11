@@ -175,9 +175,9 @@ class DotView {
   /**
    * To display uncertainty, aggregate all possible outcomes from bootstrapping
    */
-  drawEnvelope (redraw = false, uncertainty = null, duration = 1000) {
+  drawEnvelope (redraw = false, new_data = null, duration = 1000) {
     let svg = this.parent.svg
-    uncertainty = uncertainty || this.parent.uncertainty
+    let uncertainty = new_data || this.parent.uncertainty
 
     let dp = _.flatten(_.map(uncertainty, (arr) => arr))
     if (!dp.length) {

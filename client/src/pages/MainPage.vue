@@ -72,6 +72,10 @@
     <!--Config before inference-->
     <inference-config v-if="mode === 1"></inference-config>
 
+    <!--Inference View-->
+    <infer-view v-if="mode === 2" :type="infer_type"
+                :prune="infer_prune"></infer-view>
+
   </div>
 </template>
 
@@ -88,9 +92,11 @@
   import SmallMultiplesView from '../components/SmallMultiplesView.vue'
   import MainControls from '../components/MainControls.vue'
   import InferenceConfig from '../components/InferenceConfig.vue'
+  import InferView from '../components/InferView.vue'
 
   export default {
     components: {
+      InferView,
       InferenceConfig,
       MainControls,
       SmallMultiplesView,
@@ -99,7 +105,9 @@
 
     data () {
       return {
-        mode: 0,  // 0-explore, 1-pick, 2-infer
+        mode: 2,  // 0-explore, 1-pick, 2-infer
+        infer_type: 'simple', //fixme
+        infer_prune: false,
         loading: false //fixme
       }
     },
@@ -128,9 +136,15 @@
           this.loading = false
           console.error(e)
         })
-    },
 
-    methods : {
+      // event listener
+      bus.$on('infer', (v) => {
+        this.mode = 2
+        this.infer_type = v.type
+        this.infer_prune = v.prune
+      })
+    },
+    methods: {
       onInfer () {
         this.mode = 1
       }

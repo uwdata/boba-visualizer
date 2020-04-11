@@ -67,15 +67,17 @@ class Util {
   /**
    * KDE which chooses range and bandwidth based on data.
    * @param u Input data array.
+   * @param smooth Smoothing factor, larger makes smoother
    * @returns Array Density array.
    */
-  kde_smart (u) {
+  kde_smart (u, smooth = 1) {
     u = _.sortBy(u)
     let n = u.length
     let step = (u[n - 1] - u[0]) / 40
     let rg = _.range(u[0] - step * 5, u[n - 1] + step * 5, step)
     let iqr = u[Math.floor(n * 0.75)] - u[Math.floor(n * 0.25)]
     let bw = 0.9 * iqr / 1.34 * Math.pow(n, 0.2)
+    bw *= smooth
 
     let estimator = this.kde(this.epanechnikov(bw * 0.2), rg)
     return estimator(u)

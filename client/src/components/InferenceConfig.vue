@@ -8,7 +8,7 @@
     <div class="mt-4 d-flex justify-content-center">
       <!--simple-->
       <div class="bb-card bb-chart-option mr-3" @click="selected='simple'">
-        <div class="font-weight-bold">Simple</div>
+        <div class="font-weight-bold">Density vs. Line</div>
         <div class="mt-2 mb-2">
           <img src="simple.png" class="img-responsive">
         </div>
@@ -54,7 +54,7 @@
 </template>
 
 <script>
-  import {store} from '../controllers/config'
+  import {store, bus} from '../controllers/config'
 
   export default {
     name: "InferenceConfig",
@@ -74,7 +74,7 @@
 
     methods: {
       onNext () {
-        console.log(this.selected, this.include_prune)
+        bus.$emit('infer', {type: this.selected, prune: this.include_prune})
       }
     }
   }
