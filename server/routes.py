@@ -58,12 +58,12 @@ def get_uncertainty():
 # read the null distribution of point estimates
 @app.route('/api/get_null', methods=['POST'])
 def get_null():
-    f = app.schema['null_point']
+    f = app.schema['null_distribution']
     fn = os.path.join(app.data_folder, f['file'])
     err, res = read_csv(fn, 0)
     reply = err if err else {'status': 'success', 'data': res[1:]}
     if not err:
-        header = ['null_point' if d == f['field'] else d for d in res[0]]
+        header = ['null_distribution' if d == f['field'] else d for d in res[0]]
         reply['header'] = header
     return jsonify(reply), 200
 

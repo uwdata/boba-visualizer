@@ -15,7 +15,7 @@ const SCHEMA = {
   FIT: 'fit',
   P: 'p_value',
   UNC: 'uncertainty',
-  NUL: 'null_point'
+  NUL: 'null_distribution'
 }
 
 const sign = 0

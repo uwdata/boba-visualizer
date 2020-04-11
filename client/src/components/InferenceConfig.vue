@@ -40,13 +40,13 @@
     <!--checkbox for pruning-->
     <div v-if="pruned && selected" class="mt-4">
       <b-form-checkbox v-model="include_prune">
-        Do not show pruned universes</b-form-checkbox>
+        Exclude pruned universes from inference</b-form-checkbox>
     </div>
     <div v-else class="pt-4"></div>
 
     <!--button-->
     <div v-if="selected" class="mt-3">
-      <b-button variant="info" style="width: 250px;" @click="onNext">
+      <b-button variant="info" style="width: 300px;" @click="onNext">
         View Chart</b-button>
     </div>
 
@@ -62,12 +62,13 @@
       return {
         selected: '',
         pruned: false,
-        include_prune: true
+        include_prune: false
       }
     },
 
     mounted () {
       this.pruned = store.fit_cutoff != null
+      this.include_prune = this.pruned
 
       //todo: determine available chart types
     },
