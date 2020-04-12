@@ -19,6 +19,7 @@
   import InferSimplePlot from '../controllers/inference/infer_simple_plot'
   import {SCHEMA} from '../controllers/constants'
   import InferNullPlot from '../controllers/inference/infer_null_plot'
+  import InferStackingPlot from '../controllers/inference/infer_stacking_plot'
 
   export default {
     name: "InferView",
@@ -43,9 +44,15 @@
             }, (e) => {
               console.log(e)
             })
+        } else if (this.type === 'stacking') {
+          store.fetchNull()
+            .then(() => {
+              this.drawStacking()
+            }, (e) => {
+              console.log(e)
+            })
         }
       })
-
     },
 
     methods: {
@@ -95,6 +102,11 @@
       drawNull () {
         let data = store.predicted_diff
 
+        // filter
+        if (this.prune) {
+          data = _.filter(data, (d) => d[SCHEMA.FIT] <= store.fit_cutoff)
+        }
+
         // join point estimate with null CIs
         data = _.map(data, (d, idx) => {
           d.i = idx
@@ -128,7 +140,36 @@
         this.setChartSize(chart, pw)
         chart.x_axis_label = store.configs.x_axis
         chart.draw('#vis-container', data)
-      }
+      },
+
+      drawStacking () {
+        let data = store.predicted_diff
+        let nul = store.null_dist
+        let unc = store.uncertainty
+
+        // assign weights
+        _.each(data, (d) => {
+          let n = nul[d.uid]
+          let u = unc[d.uid]
+          if (n) {
+            n.weight = d[SCHEMA.WEIGHT]
+          }
+          if (u) {
+            u.weight = d[SCHEMA.WEIGHT]
+          }
+        })
+
+        // caption
+        this.caption = 'The blue density depicts the possible multiverse outcomes across' +
+            ' sampling and decision variations. The red density depicts the possible outcomes' +
+            ' under the null distribution. Both densities use stacking to aggregate the outcomes.'
+
+        // draw
+        let chart = new InferStackingPlot()
+        this.setChartSize(chart, 700)
+        chart.x_axis_label = store.configs.x_axis
+        chart.draw('#vis-container', unc, nul)
+      },
     }
   }
 </script>
@@ -151,4 +192,14 @@
 
   .null-box
     fill #dcdcdc
+
+  .density-observed, .density-null
+    opacity 0.3
+    stroke-linejoin round
+
+  .density-observed
+    fill #5D9FCD
+
+  .density-null
+    fill #e45756
 </style>

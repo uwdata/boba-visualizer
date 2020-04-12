@@ -106,7 +106,7 @@
     data () {
       return {
         mode: 2,  // 0-explore, 1-pick, 2-infer
-        infer_type: 'simple', //fixme
+        infer_type: 'stacking', //fixme
         infer_prune: false,
         loading: false //fixme
       }

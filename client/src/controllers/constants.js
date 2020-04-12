@@ -15,7 +15,8 @@ const SCHEMA = {
   FIT: 'fit',
   P: 'p_value',
   UNC: 'uncertainty',
-  NUL: 'null_distribution'
+  NUL: 'null_distribution',
+  WEIGHT: 'stacking_weight'
 }
 
 const sign = 0

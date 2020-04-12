@@ -21,10 +21,10 @@ def get_universes():
                              'header': res[0]}
     return jsonify(reply), 200
 
-# read point estimates, p-value, and fit metric value
+# read point estimates, p-value, fit metric value, and stacking weights
 @app.route('/api/get_pred', methods=['POST'])
 def get_pred():
-    fields = ['point_estimate', 'p_value', 'fit']
+    fields = ['point_estimate', 'p_value', 'fit', 'stacking_weight']
     fields = [app.schema[f] for f in fields if f in app.schema]
     groups = group_by(fields, lambda x: x['file'])
 

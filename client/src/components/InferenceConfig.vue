@@ -6,35 +6,21 @@
 
     <!--cards-->
     <div class="mt-4 d-flex justify-content-center">
-      <!--simple-->
-      <div class="bb-card bb-chart-option mr-3" @click="selected='simple'">
-        <div class="font-weight-bold">Density vs. Line</div>
+      <div v-for="c in charts" @click="selected=c"
+           class="bb-card bb-chart-option mr-3">
+        <div class="font-weight-bold">{{titles[c]}}</div>
         <div class="mt-2 mb-2">
-          <img src="simple.png" class="img-responsive">
+          <img :src="`${c}.png`" :alt="c" class="img-responsive">
         </div>
-        <div class="text-left">This chart compares the aggregated sampling uncertainty
-          in the multiverse to the expected effect size.</div>
-      </div>
-
-      <!--null-->
-      <div class="bb-card bb-chart-option mr-3" @click="selected='null'">
-        <div class="font-weight-bold">Specification Curve</div>
-        <div class="mt-2 mb-2">
-          <img src="null.png" class="img-responsive">
-        </div>
-        <div class="text-left">This chart compares the point estimates in universes to the
-          null distribution.</div>
+        <div class="text-left">{{desc[c]}}</div>
       </div>
     </div>
 
     <!--corresponding radio buttons-->
     <div class="mt-2 d-flex justify-content-center">
-     <div class="bb-chart-option mr-3">
-       <b-form-radio v-model="selected" value="simple"></b-form-radio>
+     <div v-for="c in charts" class="bb-chart-option mr-3">
+       <b-form-radio v-model="selected" :value="c"></b-form-radio>
      </div>
-      <div class="bb-chart-option mr-3">
-        <b-form-radio v-model="selected" value="null"></b-form-radio>
-      </div>
     </div>
 
     <!--checkbox for pruning-->
@@ -55,6 +41,19 @@
 
 <script>
   import {store, bus} from '../controllers/config'
+  const titles = {
+    'simple': 'Density vs. Line',
+    'null': 'Specification Curve',
+    'stacking': 'Stacking'
+  }
+  const desc = {
+    'simple': 'This chart compares the aggregated sampling uncertainty' +
+        ' in the multiverse to the expected effect size.',
+    'null': 'This chart compares the point estimates in universes to the' +
+        ' null distribution.',
+    'stacking': 'This chart uses stacking to aggregate both the universe' +
+        ' distribution and the null distribution.'
+  }
 
   export default {
     name: "InferenceConfig",
@@ -62,7 +61,12 @@
       return {
         selected: '',
         pruned: false,
-        include_prune: false
+        include_prune: false,
+        charts: ['simple', 'null', 'stacking'],
+
+        // title and description
+        titles: titles,
+        desc: desc
       }
     },
 
