@@ -1,6 +1,5 @@
 # javascript
 node_modules/
-dist/
 
 # IDE
 .idea/
@@ -11,3 +10,5 @@ env/
 # packaging
 *.egg-info/
 __pycache__/
+dist/
+build/lib/
