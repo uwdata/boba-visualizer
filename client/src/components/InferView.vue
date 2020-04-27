@@ -8,7 +8,22 @@
 
     <!--caption-->
     <div class="mt-3 d-flex justify-content-center">
-      <div class="text-justify" style="max-width: 700px">{{caption}}</div>
+      <div style="max-width: 700px" class="text-justify">
+        <div>{{caption}}</div>
+        <div v-if="disclaimer" class="mt-3 text-muted text-small">{{disclaimer}}</div>
+      </div>
+    </div>
+
+    <!--second chart-->
+    <div v-if="type === 'null'" style="height: 500px">
+      <div class="mt-4 text-center" style="font-weight: 500">
+        Going from the aggregate view to individual universes </div>
+
+      <div id="vis-container2" ref="chart2" class="mt-1"></div>
+
+      <div class="mt-1 d-flex justify-content-center">
+        <div class="text-justify" style="max-width: 700px">{{caption2}}</div>
+      </div>
     </div>
   </div>
 </template>
@@ -26,33 +41,28 @@
     props: ['prune', 'type'],
     data () {
       return {
-        title: 'Is there an effect?',
-        caption: ''
+        title: 'How reliable is the effect?',
+        caption: '',
+        disclaimer: '',
+        caption2: ''
       }
     },
 
     mounted () {
-      bus.$on('data-ready', () => { // fixme
+      // bus.$on('data-ready', () => { // fixme
         if (this.type === 'simple') {
-          this.caption = 'The density shows possible outcomes across sampling and ' +
-              'decision variations. The red line marks the expected effect.'
+
           this.drawSimple()
         } else if (this.type === 'null') {
           store.fetchNull()
             .then(() => {
+              this.drawStacking()
               this.drawNull()
             }, (e) => {
               console.log(e)
             })
-        } else if (this.type === 'stacking') {
-          store.fetchNull()
-            .then(() => {
-              this.drawStacking()
-            }, (e) => {
-              console.log(e)
-            })
         }
-      })
+      // })
     },
 
     methods: {
@@ -60,9 +70,10 @@
        * Set the chart size such that it is centered properly
        * @param chart
        * @param pw Preferred width
+       * @param ref The $refs id
        */
-      setChartSize (chart, pw) {
-        let w = this.$refs.chart.clientWidth
+      setChartSize (chart, pw, ref = 'chart') {
+        let w = this.$refs[ref].clientWidth
         chart.outerWidth = w
         if (pw < w) {
           let m = Math.round((w - pw) / 2)
@@ -89,8 +100,12 @@
         let more = _.filter(data, (d) => d > effect)
         less = (less.length / data.length * 100).toPrecision(3)
         more = (more.length / data.length * 100).toPrecision(3)
-        this.caption += ` ${less}% of the density is below ${effect} whereas` +
-            ` ${more}% of the density is above ${effect}.`
+        this.caption = 'The density shows possible outcomes across sampling and ' +
+          'decision variations. The red line marks the expected effect if the null hypothesis is true.' +
+          ` ${less}% of the density is below ${effect} whereas` +
+          ` ${more}% of the density is above ${effect}.`
+        this.disclaimer = 'Due to the lack of a proper null distribution, the' +
+            ' conclusion one can draw from this chart may be limited.'
 
         // draw
         let chart = new InferSimplePlot()
@@ -127,19 +142,19 @@
         // set caption
         let less = _.filter(data, (d) => d.diff < d.lower).length
         let more = _.filter(data, (d) => d.diff > d.upper).length
-        this.caption = 'The blue dots represent the multiverse point estimates. The gray ' +
-            'area depicts the range within the 2.5th and 97.5th percentile of the null ' +
-            'distribution. When a point estimate falls outside the range, it is colored in red.'
-        this.caption += ` Out of ${data.length} universes, ${more} has their point estimate above ` +
+        this.caption2 = 'The colored dots represent the point estimates. The gray ' +
+            'lines depict the range within the 2.5th and 97.5th percentile of the null ' +
+            'distribution. A dot is orange if it falls outside the range, otherwise it is blue.'
+        this.caption2 += ` Out of ${data.length} universes, ${more} has their point estimate above ` +
             `the 97.5th percentile of the null, whereas ${less} has their point estimate below the ` +
             '2.5th percentile of the null.'
 
         // draw
         let chart = new InferNullPlot()
         let pw = Math.min(Math.max(700, data.length), 1000)
-        this.setChartSize(chart, pw)
+        this.setChartSize(chart, pw, 'chart2')
         chart.x_axis_label = store.configs.x_axis
-        chart.draw('#vis-container', data)
+        chart.draw('#vis-container2', data)
       },
 
       drawStacking () {
@@ -147,22 +162,38 @@
         let nul = store.null_dist
         let unc = store.uncertainty
 
-        // assign weights
-        _.each(data, (d) => {
-          let n = nul[d.uid]
-          let u = unc[d.uid]
-          if (n) {
-            n.weight = d[SCHEMA.WEIGHT]
-          }
-          if (u) {
-            u.weight = d[SCHEMA.WEIGHT]
-          }
-        })
+        // let stacking = SCHEMA.WEIGHT in store.configs.schema
+        let stacking = false //fixme
+
+        if (stacking) {
+          // assign weights
+          _.each(data, (d) => {
+            let n = nul[d.uid]
+            let u = unc[d.uid]
+            if (n) {
+              n.weight = d[SCHEMA.WEIGHT]
+            }
+            if (u) {
+              u.weight = d[SCHEMA.WEIGHT]
+            }
+          })
+        } else if (this.prune) {
+          // filter
+          _.each(data, (d) => {
+            if (d[SCHEMA.FIT] > store.fit_cutoff) {
+              delete nul[d.uid]
+              delete unc[d.uid]
+            }
+          })
+        }
 
         // caption
+        let s = stacking ? ' Both densities use stacking to aggregate the outcomes.' : ''
         this.caption = 'The blue density depicts the possible multiverse outcomes across' +
             ' sampling and decision variations. The red density depicts the possible outcomes' +
-            ' under the null distribution. Both densities use stacking to aggregate the outcomes.'
+            ' under the null hypothesis.' + s +
+            ' The distance between the averages of the two densities indicates the direction of effect.' +
+            ' Comparing this distance to the spread of the densities gives a sense of whether the effect is reliable.'
 
         // draw
         let chart = new InferStackingPlot()
@@ -179,13 +210,14 @@
     background-color #fafafa
     width 100%
     height 100vh
+    overflow-y auto
 
   .null-point
     stroke #5D9FCD
     stroke-width 2px
 
   .null-point.null-outside
-    stroke #e45756
+    stroke #f58518
 
   .null-median
     stroke #999

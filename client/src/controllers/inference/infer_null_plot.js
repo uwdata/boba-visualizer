@@ -83,6 +83,7 @@ class InferNullPlot {
   drawSpecCurve (svg) {
     let scale = this.scale
     let w = scale.width() / this.data.length
+    w = Math.min(w, 1.5)
 
     // draw the CI
     svg.selectAll('.null-box')

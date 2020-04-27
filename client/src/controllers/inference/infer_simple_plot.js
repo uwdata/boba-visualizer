@@ -16,6 +16,7 @@ class InferSimplePlot {
     this.null = 0
     this.x_axis_label = 'Effect Size'
     this.label_font_size = 11
+    this.smooth = true
 
     // internal
     this.svg = null
@@ -55,8 +56,12 @@ class InferSimplePlot {
     this.drawAxis()
 
     // envelope
-    this.drawHist(obj)
-    // this.drawEnvelope(obj)
+    this.smooth = store.configs.dataset !== 'hurricane' //fixme
+    if (this.smooth) {
+      this.drawEnvelope(obj)
+    } else {
+      this.drawHist(obj)
+    }
 
     // draw a line at the effect size
     obj.append('line')
@@ -89,7 +94,7 @@ class InferSimplePlot {
 
     // plot
     svg.append('path')
-      .attr('class', 'envelope')
+      .attr('class', 'density-observed')
       .datum(density)
       .attr('d', area)
 
@@ -120,7 +125,7 @@ class InferSimplePlot {
 
     // plot
     svg.append('path')
-      .attr('class', 'envelope')
+      .attr('class', 'density-observed')
       .datum(hist)
       .attr('d', area)
   }

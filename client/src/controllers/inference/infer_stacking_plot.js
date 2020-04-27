@@ -15,6 +15,7 @@ class InferStackingPlot {
     }
     this.x_axis_label = 'Effect Size'
     this.label_font_size = 11
+    this.smooth = true
 
     // internal
     this.svg = null
@@ -51,17 +52,29 @@ class InferStackingPlot {
     this.drawAxis()
 
     // densities
+    this.smooth = store.configs.dataset !== 'hurricane' //fixme
     if (typeof nul_dist === 'number') {
       this.drawLine(obj, nul_dist)
       this.drawHist(obj, uncertainty, 'density-observed')
+    } else if (this.smooth) {
+      let den_unc = this.getDensity(uncertainty)
+      let den_nul = this.getDensity(nul_dist)
+
+      // shared y scale
+      let ym = Math.max(d3.max(den_unc, (d) => d[1]),
+        d3.max(den_nul, (d) => d[1]))
+      let ys = d3.scaleLinear().domain([0, ym])
+        .range([0, scale.height()])
+
+      this.drawEnvelope(obj, den_unc, 'density-observed', ys)
+      this.drawEnvelope(obj, den_nul, 'density-null', ys)
     } else {
-      // figure out the ratio
+      // figure out the ratio for shared y axis
       let u = _.find(uncertainty, (d) => d).length
       let n = _.find(nul_dist, (d) => d).length
       let ur = u >= n ? 1 : n / u
       let nr = n >= u ? 1 : u / n
 
-      // shared y axis
       this.drawHist(obj, uncertainty, 'density-observed', ur)
       this.drawHist(obj, nul_dist, 'density-null', nr)
     }
@@ -78,32 +91,37 @@ class InferStackingPlot {
       .attr('stroke', '#e45756')
   }
 
-  drawEnvelope (svg) {
+  /**
+   * Perform KDE and return the density
+   */
+  getDensity (data) {
     let scale = this.scale
-    let dp = this.data
+    let dp = _.flatten(_.map(data, (arr) => arr))
     // remove null and outliers (outside 10x range)
     let dm = scale.x.domain()
     let xr = (dm[1] - dm[0]) * 10
     dp = _.filter(dp, (d) => d != null && d < dm[1] + xr && d > dm[0] - xr)
 
-    let density = util.kde_smart(dp, 0.5)
+    return util.kde_smart(dp, 0.5)
+  }
 
-    // y scale
-    let ys = d3.scaleLinear().domain([0, d3.max(density, (d) => d[1])])
-      .range([0, scale.height()])
+  /**
+   * Draw the density from KDE as an envelope
+   */
+  drawEnvelope (svg, density, cls, y_scale) {
+    let scale = this.scale
 
     // area
     let area = d3.area()
       .x((d) => scale.x(d[0]))
       .y0(scale.height())
-      .y1((d) => scale.height() - ys(d[1]))
+      .y1((d) => scale.height() - y_scale(d[1]))
 
     // plot
     svg.append('path')
-      .attr('class', 'envelope')
+      .attr('class', cls)
       .datum(density)
       .attr('d', area)
-
   }
 
   stackHist (data) {
@@ -121,6 +139,7 @@ class InferStackingPlot {
       let hist = d3.histogram().domain(scale.x.domain())
         .thresholds(bins)(arr)
       let w = arr.weight
+      w = w == null ? 1 : w
       _.each(hist, (d) => {
         res[d.x1] += d.length * w
       })

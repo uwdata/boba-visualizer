@@ -67,6 +67,11 @@
              @ok="onInfer">
       <p>Are you sure? Once you view the inference visualizations,
         you cannot return to the current views.</p>
+
+      <div v-if="show_prune" class="mt-3">
+        <b-form-checkbox v-model="infer_prune">
+          Exclude pruned universes from inference</b-form-checkbox>
+      </div>
     </b-modal>
 
     <!--Config before inference-->
@@ -81,6 +86,7 @@
 
 <script>
   import {store, bus} from '../controllers/config'
+  import {SCHEMA} from '../controllers/constants'
   import HelpButton from '../components/HelpButton.vue'
   import TitleMenu from '../components/TitleMenu.vue'
   import AggregateVis from '../components/AggregateVis.vue'
@@ -105,9 +111,10 @@
 
     data () {
       return {
-        mode: 2,  // 0-explore, 1-pick, 2-infer
-        infer_type: 'stacking', //fixme
+        mode: 0,  // 0-explore, 1-pick, 2-infer
+        infer_type: 'null',
         infer_prune: false,
+        show_prune: false,
         loading: false //fixme
       }
     },
@@ -138,15 +145,19 @@
         })
 
       // event listener
-      bus.$on('infer', (v) => {
-        this.mode = 2
-        this.infer_type = v.type
-        this.infer_prune = v.prune
+      this.$root.$on('bv::modal::show', () => {
+        // modal is about to show
+        this.show_prune = store.fit_cutoff != null
+        this.infer_prune = this.show_prune
       })
     },
     methods: {
       onInfer () {
-        this.mode = 1
+        // determine type
+        let has_null = SCHEMA.NUL in store.configs.schema
+        this.infer_type = has_null ? 'null' : 'simple'
+
+        this.mode = 2
       }
     }
   }
