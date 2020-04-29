@@ -148,6 +148,7 @@
       this.$root.$on('bv::modal::show', () => {
         // modal is about to show
         this.show_prune = store.fit_cutoff != null
+          && !(SCHEMA.WEIGHT in store.configs.schema)
         this.infer_prune = this.show_prune
       })
     },

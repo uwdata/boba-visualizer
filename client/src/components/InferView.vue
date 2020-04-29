@@ -162,8 +162,8 @@
         let nul = store.null_dist
         let unc = store.uncertainty
 
-        // let stacking = SCHEMA.WEIGHT in store.configs.schema
-        let stacking = false //fixme
+        let stacking = SCHEMA.WEIGHT in store.configs.schema
+        // let stacking = false //fixme
 
         if (stacking) {
           // assign weights
@@ -195,6 +195,9 @@
             ' The distance between the averages of the two densities indicates the direction of effect.' +
             ' Comparing this distance to the spread of the densities gives a sense of whether the effect is reliable.'
 
+        this.disclaimer = (!stacking && this.prune) ?
+          `Universes with the model quality metric less than ${store.fit_cutoff.toFixed(2)} are excluded in both plots.` : ''
+
         // draw
         let chart = new InferStackingPlot()
         this.setChartSize(chart, 700)
@@ -223,7 +226,7 @@
     stroke #999
 
   .null-box
-    fill #dcdcdc
+    fill #bbb
 
   .density-observed, .density-null
     opacity 0.3
