@@ -259,6 +259,10 @@
       })
 
       bus.$on('agg-vis.dot-click', (uid, data) => {
+        if (store.fit_cutoff) {
+          // do not include those dots hidden by pruning
+          data = _.filter(data, (d) => d[SCHEMA.FIT] <= store.fit_cutoff)
+        }
         let uids = store.getNearestUid(uid, data)
         bus.$emit('update-small-multiples', uids)
 

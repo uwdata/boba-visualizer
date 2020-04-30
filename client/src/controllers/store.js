@@ -349,15 +349,16 @@ class Store {
   }
 
   /**
-   * Given a uid, get the universes that are most similar in predicted diff.
+   * Given a uid, get the universes that are closest in the given array
    * @param uid
    * @param data
    * @param num How many universes to return.
    * @returns {*}
    * @private
    */
-  _getNearestUidByDiff (uid, data, num = 8) {
+  getNearestUid (uid, data, num = 8) {
     data = data || this.predicted_diff
+    num = Math.min(num, data.length)
 
     let j = _.findIndex(data, (d) => d.uid === uid)
     let i = Math.min(Math.max(0, j - Math.floor(num / 2)),
@@ -366,10 +367,6 @@ class Store {
     let ret = _.filter(uids, (d) => d !== uid)
     ret.unshift(uid)
     return ret
-  }
-
-  getNearestUid (uid, data, num = 8) {
-    return this._getNearestUidByDiff(uid, data, num)
   }
 
   /**

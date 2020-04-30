@@ -70,7 +70,22 @@ class DotView {
     }
 
     function dotClick(d) {
-      bus.$emit('agg-vis.dot-click', d.uid, that.parent.data)
+      let data = that.parent.data
+
+      // group by _x and sort the bins
+      let gp = _.groupBy(data, '_x')
+      let bins = _.map(_.keys(gp), (k) => Number(k))
+      bins = _.sortBy(bins)
+
+      // sort by _y and serialize all points
+      let res = []
+      _.each(bins, (key) => {
+        let g = _.sortBy(gp[key], '_y')
+        res = _.concat(res, g)
+      })
+
+      // finally we can find neighbors
+      bus.$emit('agg-vis.dot-click', d.uid, res)
     }
 
     this.drawEnvelope()
