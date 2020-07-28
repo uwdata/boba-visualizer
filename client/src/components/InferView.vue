@@ -153,7 +153,7 @@
         let chart = new InferNullPlot()
         let pw = Math.min(Math.max(700, data.length), 1000)
         this.setChartSize(chart, pw, 'chart2')
-        chart.x_axis_label = store.configs.x_axis
+        chart.y_axis_label = store.configs.x_axis
         chart.draw('#vis-container2', data)
       },
 

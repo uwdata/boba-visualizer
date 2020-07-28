@@ -13,7 +13,8 @@ class InferNullPlot {
       bottom: 30,
       left: 20
     }
-    this.x_axis_label = 'Effect Size'
+    this.x_axis_label = 'Universe'
+    this.y_axis_label = 'Effect Size'
     this.label_font_size = 11
 
     // internal
@@ -24,6 +25,10 @@ class InferNullPlot {
 
   draw (parent, data) {
     this.data = data
+
+    // make space for labels
+    this.margin.bottom += this.x_axis_label ? this.label_font_size : 0
+    this.margin.right += this.y_axis_label ? this.label_font_size : 0
 
     // scale
     let scale_params = {
@@ -78,6 +83,27 @@ class InferNullPlot {
         .attr('stroke-dasharray', '2, 2'))
       .call(g => g.selectAll('.domain')
         .attr('d', `M0.5,${scale.height()} V0.5`))
+
+    // y axis label
+    // fixme: replace 20 with the actual width of axis tick labels
+    let tw = -scale.width() - this.label_font_size - 20
+    this.svg.append('text')
+      .classed('y axis-label muted', true)
+      .attr('transform', 'rotate(90)')
+      .attr('x', scale.height() / 2)
+      .attr('y', tw)
+      .style('text-anchor', 'middle')
+      .style('font-size', this.label_font_size)
+      .text(this.y_axis_label)
+
+    // x axis title
+    let th = scale.height() + this.label_font_size + 3
+    this.svg.append('text')
+      .classed('x axis-label muted', true)
+      .attr('transform', `translate(${scale.width() / 2}, ${th})`)
+      .style('text-anchor', 'middle')
+      .style('font-size', this.label_font_size)
+      .text(this.x_axis_label)
   }
 
   drawSpecCurve (svg) {
@@ -106,6 +132,7 @@ class InferNullPlot {
   drawDash (svg, cls, x_col, y_col) {
     let scale = this.scale
     let w = scale.width() / this.data.length
+    w -= w > 2.5 ? 1 : 0
 
     return svg.selectAll('.' + cls)
       .data(this.data)
