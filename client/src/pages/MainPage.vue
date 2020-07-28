@@ -65,8 +65,11 @@
     <!--Warning-->
     <b-modal id="modal-warn" title="Proceed to Make Inference" ref="modal"
              @ok="onInfer">
-      <p>Are you sure? Once you view the inference visualizations,
-        you cannot return to the current views.</p>
+      <p><b>Inference should be the final step</b> in your multiverse analysis workflow.
+        After you view the inference results, you should probably not return to
+        modifying the Boba DSL script. Also, <b>the current views will be unavailable</b>. </p>
+
+      <p>Are you sure you would like to proceed?</p>
 
       <div v-if="show_prune" class="mt-3">
         <b-form-checkbox v-model="infer_prune">

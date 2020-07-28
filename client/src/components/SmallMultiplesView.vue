@@ -129,10 +129,10 @@
     fill #6c757d
 
   .raw-dot
-    fill #f58518
+    fill #EF5FA7
 
   .raw-legend
-    color #f58518
+    color #EF5FA7
 
   .pred-dot
     fill #17a2b8
