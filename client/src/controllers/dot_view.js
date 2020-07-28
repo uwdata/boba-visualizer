@@ -95,6 +95,7 @@ class DotView {
     let data = this.parent.data
 
     let i = _.findIndex(data, (d) => d.diff >= sign)
+    i = Math.max(i, 0)
     this._computeDensityDots(i, data.length, true)
     this._computeDensityDots(i - 1, -1, false)
 
