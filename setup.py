@@ -45,5 +45,7 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     zip_safe=False,
+    package_dir={'server': 'server/'},
+    package_data={'server': ['../client/dist/*']},
     include_package_data=True
 )
