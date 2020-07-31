@@ -18,15 +18,15 @@ test_requirements = []
 setup(
     name='boba-visualizer',
     url='https://github.com/yyyliu/boba-visualizer',
-    version='0.1.0',
+    version='1.0.0',
     author="Yang Liu",
     author_email='yliu0@uw.edu',
     license="BSD license",
     description="Visualize multiverse outcomes",
     keywords='multiverse analysis',
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
-        'Intended Audience :: Developers',
+        'Development Status :: 3 - Alpha',
+        'Intended Audience :: Science/Research',
         'License :: OSI Approved :: BSD License',
         'Natural Language :: English',
         'Programming Language :: Python :: 3',

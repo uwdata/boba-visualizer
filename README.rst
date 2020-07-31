@@ -6,7 +6,7 @@ The Boba Visualizer is a visual analysis interface for exploring multiverse outc
 It helps users explore how analytic decisions impact statistical estimates, inferential uncertainty, and model fit.
 Watch the visualizer in action in this `video`_.
 
-.. image:: https://yangliu.life/build/images/vis20-boba.png
+.. image:: https://yangliu.life/build/images/boba-teaser.png
   :alt: Teaser image
 
 .. _video: https://youtu.be/NtHrUm4_kyw
