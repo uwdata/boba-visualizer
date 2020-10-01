@@ -1,6 +1,6 @@
 import os
 from flask import jsonify, request
-from server import app
+from bobaserver import app
 from .util import read_csv, read_json, read_key_safe, group_by
 import numpy as np
 import pandas as pd

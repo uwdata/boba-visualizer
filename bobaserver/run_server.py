@@ -5,7 +5,7 @@ import os
 import pandas as pd
 import numpy as np
 from scipy import stats
-from server import app
+from bobaserver import app
 from .util import read_json, read_key_safe
 
 

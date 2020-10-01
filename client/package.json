@@ -14,11 +14,11 @@
   "scripts": {
     "build": "npm run prebuild && npm run webpack-prod",
     "dev": "npm run prebuild && npm run webpack-dev",
-    "prebuild": "rm -rf dist && mkdir dist && cp -R assets/ dist && cp index.html dist",
+    "prebuild": "rm -rf ../bobaserver/dist && mkdir ../bobaserver/dist && cp -R assets/ ../bobaserver/dist && cp index.html ../bobaserver/dist",
     "lint": "eslint --ext .js,.vue src",
     "webpack-dev": "webpack --config webpack.dev.js",
     "webpack-prod": "webpack --progress --hide-modules --config webpack.prod.js",
-    "start": "cd dist && python -m SimpleHTTPServer 8080"
+    "start": "cd ../bobaserver/dist && python -m SimpleHTTPServer 8080"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.11.2",
