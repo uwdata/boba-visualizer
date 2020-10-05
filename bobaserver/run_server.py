@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 from scipy import stats
 from bobaserver import app
-from .util import read_json, read_key_safe
+from .util import read_json, read_key_safe, print_fail
 
 
 def check_path(p, more=''):
@@ -84,19 +84,58 @@ def read_meta():
     }
 
 
-def cal_sensitivity():
-    """ Compute sensitivity """
-    # read summary.csv
+def read_summary ():
+    """ read summary.csv """
     fn = os.path.join(app.data_folder, 'summary.csv')
     smr = pd.read_csv(fn, na_filter=False)
     smr['uid'] = smr.apply(lambda r: r.name + 1, axis=1).astype(int)
+    return smr
 
-    # read the prediction and join with summary
-    info = app.schema['point_estimate']
+
+def read_results (field, dtype=str, diagnostics=True):
+    """ read a result field and join with summary """
+    # read summary.csv
+    smr = read_summary()
+
+    # read the result file
+    info = app.schema[field]
     fn = os.path.join(app.data_folder, info['file'])
     df = pd.read_csv(fn, na_filter=False)
     col = info['field']
+
+    # join
     df = pd.merge(smr, df[['uid', col]], on='uid')
+
+    # convert data type and remove NA
+    n_df = df.shape[0]
+    if dtype != str:
+        dc = 'float' if dtype == float else 'integer'
+        df[col] = pd.to_numeric(df[col], errors='coerce', downcast=dc)
+    # remove Inf and NA
+    df = df.replace([np.inf, -np.inf], np.nan)
+    df = df.dropna(subset=[col])
+    # print warning messages
+    if diagnostics:
+        total = smr.shape[0]
+        n_failed = total - n_df
+        n_na = n_df - df.shape[0]
+        if n_failed > 0 or n_na > 0:
+            print_fail(f'Data quality warning: out of {total} universes, ')
+            if n_failed > 0:
+                percent = round(n_failed / total * 100, 1)
+                print_fail(f' * {n_failed} ({percent}%) failed to run')
+            if n_na > 0:
+                percent = round(n_na / total * 100, 1)
+                print_fail(f' * {n_na} {field} ({percent}%) contains NA value')
+
+    return df
+
+
+def cal_sensitivity():
+    """ Compute sensitivity """
+    # read the prediction and join with summary
+    df = read_results('point_estimate', dtype=float)
+    col = app.schema['point_estimate']['field']
 
     # compute one-way F-test
     res = {}
