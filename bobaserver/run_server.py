@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 from scipy import stats
 from bobaserver import app
-from .util import read_json, read_key_safe, print_fail
+from .util import read_json, read_key_safe, print_fail, print_warn
 
 
 def check_path(p, more=''):
@@ -120,23 +120,19 @@ def read_results (field, dtype=str, diagnostics=True):
         n_failed = total - n_df
         n_na = n_df - df.shape[0]
         if n_failed > 0 or n_na > 0:
-            print_fail(f'Data quality warning: out of {total} universes, ')
+            print_warn(f'Data quality warning: out of {total} universes, ')
             if n_failed > 0:
                 percent = round(n_failed / total * 100, 1)
-                print_fail(f' * {n_failed} ({percent}%) failed to run')
+                print_warn(f' * {n_failed} ({percent}%) failed to run')
             if n_na > 0:
                 percent = round(n_na / total * 100, 1)
-                print_fail(f' * {n_na} {field} ({percent}%) contains NA value')
+                print_warn(f' * {n_na} {field} ({percent}%) contains NA value')
 
     return df
 
 
-def cal_sensitivity():
-    """ Compute sensitivity """
-    # read the prediction and join with summary
-    df = read_results('point_estimate', dtype=float)
-    col = app.schema['point_estimate']['field']
-
+def sensitivity_f_test (df, col):
+    """ Compute one-way F-test to estimate decision sensitivity """
     # compute one-way F-test
     res = {}
     x_mean = df[col].mean()
@@ -161,9 +157,18 @@ def cal_sensitivity():
 
         res[dec] = ms_b / ms_w
 
-    app.sensitivity_f = res
+    # check NaN
+    for d in res:
+        if np.isnan(res[d]):
+            print_fail('ERROR: cannot compute sensitivity')
+            print(f'F-test returns NaN value for decision "{d}"')
+            exit(1)
 
-    # compute Kolmogorov-Smirnov statistic
+    return res
+
+
+def sensitivity_ks (df, col):
+    """ compute Kolmogorov-Smirnov statistic """
     res = {}
     for d in app.decisions:
         dec = d['var']
@@ -178,8 +183,20 @@ def cal_sensitivity():
                 kss.append(ks.statistic)  # ks.pvalue gives p-value
 
         res[dec] = np.median(kss)  # median KS stat
+    return res
 
-    app.sensitivity_ks = res
+
+def cal_sensitivity():
+    """ Compute sensitivity """
+    # read the prediction and join with summary
+    df = read_results('point_estimate', dtype=float)
+    col = app.schema['point_estimate']['field']
+
+    # compute one-way F-test
+    app.sensitivity_f = sensitivity_f_test(df, col)
+
+    # compute Kolmogorov-Smirnov statistic
+    app.sensitivity_ks = sensitivity_ks(df, col)
 
 
 @click.command()

@@ -20,7 +20,7 @@ def print_fail(msg):
 
 
 def print_warn(msg):
-    print(Colors.WARNING + msg + Colors.ENDC)
+    print(Colors.OKBLUE + msg + Colors.ENDC)
 
 
 def check_path(fn):
