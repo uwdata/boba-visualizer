@@ -1,7 +1,7 @@
 import os
 from flask import jsonify, request
 from bobaserver import app
-from .util import read_csv, read_json, read_key_safe, group_by
+from .util import read_csv, read_json, read_key_safe, group_by, remove_na
 import numpy as np
 import pandas as pd
 import math
@@ -37,6 +37,9 @@ def get_pred():
         df = df[cols].rename(columns=dict(zip(cols, names)))
         header.extend(names)
         res = df if res is None else pd.merge(res, df, on='uid')
+
+    # remove Inf and NA in point estimates
+    res = remove_na(res, 'point_estimate', dtype=float)
 
     res = [res[n].values.tolist() for n in header]
     reply = {'status': 'success', 'data': res, 'header': header}

@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 from scipy import stats
 from bobaserver import app
-from .util import read_json, read_key_safe, print_fail, print_warn
+from .util import read_json, read_key_safe, print_fail, print_warn, remove_na
 
 
 def check_path(p, more=''):
@@ -106,14 +106,10 @@ def read_results (field, dtype=str, diagnostics=True):
     # join
     df = pd.merge(smr, df[['uid', col]], on='uid')
 
-    # convert data type and remove NA
+    # convert data type, remove Inf and NA
     n_df = df.shape[0]
-    if dtype != str:
-        dc = 'float' if dtype == float else 'integer'
-        df[col] = pd.to_numeric(df[col], errors='coerce', downcast=dc)
-    # remove Inf and NA
-    df = df.replace([np.inf, -np.inf], np.nan)
-    df = df.dropna(subset=[col])
+    df = remove_na(df, col, dtype)
+
     # print warning messages
     if diagnostics:
         total = smr.shape[0]
@@ -123,10 +119,10 @@ def read_results (field, dtype=str, diagnostics=True):
             print_warn(f'Data quality warning: out of {total} universes, ')
             if n_failed > 0:
                 percent = round(n_failed / total * 100, 1)
-                print_warn(f' * {n_failed} ({percent}%) failed to run')
+                print_warn(f' * {n_failed} universes ({percent}%) failed to run')
             if n_na > 0:
                 percent = round(n_na / total * 100, 1)
-                print_warn(f' * {n_na} {field} ({percent}%) contains NA value')
+                print_warn(f' * {n_na} {field} ({percent}%) contains Inf or NaN value')
 
     return df
 

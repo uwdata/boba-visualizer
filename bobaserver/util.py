@@ -2,6 +2,8 @@
 import os
 import csv
 import json
+import pandas as pd
+import numpy as np
 
 
 class Colors:
@@ -79,3 +81,17 @@ def group_by(lst, func):
         else:
             res[k] = [item]
     return res
+
+def remove_na (df, col, dtype=str):
+    """ convert a column in a dataframe to a data type, and remove any rows
+    with Inf or NA values in this column"""
+
+    if dtype != str:
+        dc = 'float' if dtype == float else 'integer'
+        df[col] = pd.to_numeric(df[col], errors='coerce', downcast=dc)
+
+    # remove Inf and NA
+    df = df.replace([np.inf, -np.inf], np.nan)
+    df = df.dropna(subset=[col])
+
+    return df
