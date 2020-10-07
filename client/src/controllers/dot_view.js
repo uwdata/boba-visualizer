@@ -10,6 +10,7 @@ class DotView {
     this.dot_radius = params.dot_radius || 4
     this.jitter = true
     this.color = '#5D9FCD'
+    this.allow_dot_click = true
 
     // pass by caller
     this.parent = caller
@@ -28,10 +29,14 @@ class DotView {
     // attach brush
     this._attachBrush()
 
-    this._drawDensityDots(svg)  // replace different chart types here
-      .on('mouseover', dotMouseover)
-      .on('mouseout', dotMouseout)
-      .on('click', dotClick)
+    let dots = this._drawDensityDots(svg)  // replace different chart types here
+    if (this.allow_dot_click) {
+      dots
+        .classed('mouse-pointer', true)
+        .on('mouseover', dotMouseover)
+        .on('mouseout', dotMouseout)
+        .on('click', dotClick)
+    }
 
     // dot callbacks
     function dotMouseover(d) {

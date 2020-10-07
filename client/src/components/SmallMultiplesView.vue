@@ -13,15 +13,22 @@
     </div>
 
     <!--plots-->
-    <div id="raw-vis-container" class="ml-4">
+    <div v-if="!disabled" id="raw-vis-container" class="ml-4">
       <div id="raw-vis-1" ref="chart" class="mt-2 mr-4"></div>
       <div v-for="i in [2,3,4,5,6,7,8]" class="mt-2 mr-4" :id="`raw-vis-${i}`"></div>
+    </div>
+
+    <!--<error-->
+    <div v-if="disabled" class="text-muted text-center text-small"
+         style="line-height: calc(100vh - 10rem)">
+      No data available.
     </div>
   </div>
 </template>
 
 <script>
   import {store, bus} from '../controllers/config'
+  import {SCHEMA} from '../controllers/constants'
   import RawPlot from '../controllers/raw_plot'
   import _ from 'lodash'
   import DetailTip from './DetailTip.vue'
@@ -38,6 +45,11 @@
 
   function update (uids) {
     store.small_multiple_uids = uids
+
+    // disabled
+    if (this.disabled) {
+      return
+    }
 
     // empty uids
     if (!uids || uids.length < 1) {
@@ -81,6 +93,7 @@
     components: {DetailTip},
     data () {
       return {
+        disabled: false,
         uid: -1,
         left: 0,
         top: 0,
@@ -100,6 +113,11 @@
       })
       bus.$on('raw.mouseout', () => {
         this.tooltip = null
+      })
+
+      // disable if the disaggregated prediction dataset is not available
+      bus.$on('data-ready', () => {
+        this.disabled = !(SCHEMA.RAW in store.configs.schema)
       })
 
       // register event listeners

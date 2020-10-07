@@ -18,7 +18,8 @@ const SCHEMA = {
   ANNOTATE: 'annotation',
   UNC: 'uncertainty',
   NUL: 'null_distribution',
-  WEIGHT: 'stacking_weight'
+  WEIGHT: 'stacking_weight',
+  RAW: 'prediction'
 }
 
 const DTYPE = {

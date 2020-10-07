@@ -15,3 +15,7 @@
     font-weight: 500;
     text-transform: capitalize;
 }
+
+.mouse-pointer {
+    cursor: pointer
+}

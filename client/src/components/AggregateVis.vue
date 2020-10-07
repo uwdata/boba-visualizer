@@ -184,6 +184,7 @@
         chart.color_by = store.color_by
         chart.uncertainty_vis = store.uncertainty_vis
         chart.clicked_uids = store.small_multiple_uids
+        chart.dot_view.allow_dot_click = this.allow_dot_click
         chart.init(`#${div_id}`, data[ir][ip], getUncertainty(data[ir][ip]))
 
         this.charts.push(chart)
@@ -203,6 +204,7 @@
     data () {
       return {
         label: '',
+        allow_dot_click: true,
         charts: [],
         title_x: null,
         title_y: null,
@@ -220,6 +222,7 @@
       // register event listener
       bus.$on('data-ready', () => {
         this.label = store.configs.x_axis
+        this.allow_dot_click = SCHEMA.RAW in store.configs.schema
         draw.call(this)
       })
       bus.$on('filter', draw.bind(this))
@@ -335,7 +338,6 @@
     fill #f58518
 
   .dot
-    cursor pointer
     transition opacity 0.5s
 
   .envelope
