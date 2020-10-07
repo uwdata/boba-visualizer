@@ -160,7 +160,9 @@
     let labels = tmp.labels
 
     // create subplots
+    let n_columns = 0
     _.each(data, (row, ir) => {
+      n_columns = Math.max(n_columns, row.length)
       let g = document.createElement('div')
       g.setAttribute('class', 'd-flex')
 
@@ -172,7 +174,7 @@
         g.appendChild(div)
 
         let chart = new StackedDotPlot()
-        set_chart_size.call(this, chart, row.length, data.length, ip, ir, tmp.wrap)
+        set_chart_size.call(this, chart, n_columns, data.length, ip, ir, tmp.wrap)
         chart.title = ''
         chart.row_title = tmp.wrap ? labels[ir][ip].x
           : ir === 0 ? labels[ir][ip].x : null
