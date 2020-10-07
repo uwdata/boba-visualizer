@@ -139,7 +139,13 @@ class DotView {
       .classed('colored', false)
       .attr('fill', this.color)
 
-    if (color === COLOR_TYPE.SIGN) {
+    if (color === COLOR_TYPE.CUSTOM) {
+      svg.selectAll('.dot')
+        .filter((d) => d[SCHEMA.ANNOTATE])
+        .classed('colored', true)
+        // bring to front
+        .raise()
+    } else if (color === COLOR_TYPE.SIGN) {
       svg.selectAll('.dot')
         .filter((d) => d.diff < sign)
         .classed('colored', true)

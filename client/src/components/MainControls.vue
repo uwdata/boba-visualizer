@@ -120,6 +120,11 @@
         if (SCHEMA.FIT in store.configs.schema) {
           this.color_options.splice(1, 0, COLOR_TYPE.FIT)
         }
+
+        if (SCHEMA.ANNOTATE in store.configs.schema) {
+          this.color_options.splice(1, 0, COLOR_TYPE.CUSTOM)
+          this.onColorChange(COLOR_TYPE.CUSTOM)
+        }
       },
       calStep (range) {
         let step = (range[1] - range[0]) / 200

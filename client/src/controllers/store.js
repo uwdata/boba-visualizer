@@ -3,7 +3,7 @@
 import http from 'axios'
 import _ from 'lodash'
 import {default_config} from './config'
-import {SCHEMA} from './constants'
+import {SCHEMA, DTYPE} from './constants'
 
 /**
  * Shared data store across pages.
@@ -212,7 +212,21 @@ class Store {
             this.predicted_diff = _.map(_.zip(...msg.data), (d) => {
               let obj = {}
               _.each(d, (val, idx) => {
-                obj[msg.header[idx]] = Number(val)
+                let field = msg.header[idx]
+                let value = val
+
+                // convert data type
+                switch (DTYPE[field]) {
+                  case 'float':
+                    value = Number(val)
+                    break
+                  case 'string':
+                  default:
+                    value = val
+                }
+
+                // assign
+                obj[field] = value
               })
               obj.diff = obj[SCHEMA.POINT] // legacy
               return obj
