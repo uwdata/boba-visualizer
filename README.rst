@@ -33,5 +33,8 @@ accompanying meta data. Learn more about the appropriate file format here_.
 After running the above command in your console, open your browser and navigate to
 http://127.0.0.1:8080/ to start the user interface.
 
+You might also use a `configuration file`_ to control various aspects of the visualizer.
+
 .. _Boba DSL: https://github.com/uwdata/boba
 .. _here: https://github.com/uwdata/boba-visualizer/tree/master/doc/format.md
+.. _configuration file: https://github.com/uwdata/boba-visualizer/tree/master/doc/visualizer_config.md
