@@ -136,13 +136,17 @@ class DotView {
   updateColor (color) {
     let svg = this.parent.svg
     svg.selectAll('.dot')
+      .attr('fill', this.color)
       .classed('colored', false)
+      .classed('emphasized', false)
       .attr('fill', this.color)
 
     if (color === COLOR_TYPE.CUSTOM) {
       svg.selectAll('.dot')
+        .attr('fill', '#ccc')
         .filter((d) => d[SCHEMA.ANNOTATE])
         .classed('colored', true)
+        .classed('emphasized', true)
         // bring to front
         .raise()
     } else if (color === COLOR_TYPE.SIGN) {

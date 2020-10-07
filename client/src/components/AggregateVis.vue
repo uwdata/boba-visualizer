@@ -323,6 +323,9 @@
   .dot.colored.brushed
     fill #ff8786
 
+  .dot.emphasized
+    fill-opacity 0.6
+
   .dot.brushed
     fill #37c2e8
 
