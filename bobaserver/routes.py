@@ -78,7 +78,7 @@ def get_overview():
         'decisions': app.decisions}
     res.update(app.visualizer)
     reply = {'status': 'success', 'data': res, 
-        'sensitivity': app.sensitivity_ks}
+        'sensitivity': app.sensitivity[app.visualizer['sensitivity']]}
     return jsonify(reply), 200
 
 # read the actual and predicted data of all data points in a universe

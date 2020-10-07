@@ -75,10 +75,19 @@ def read_meta():
         s['multi'] = lookup[fid]['multi']
         s['name'] = key
 
+    # check sensitivity flag
+    sen = read_key_safe(vis, ['sensitivity'], 'ks')
+    if sen not in ('f', 'ks'):
+        msg = f'Invalid sensitivity flag "{sen}". Available values:\n'
+        msg += ' - "f": algorithm based on the F-test\n'
+        msg += ' - "ks": algorithm based on Kolmogorov–Smirnov statistic'
+        print_help(msg)
+
     # store meta data
     app.schema = schema
     app.decisions = read_key_safe(res, ['decisions'], {})
     app.visualizer = {
+        "sensitivity": sen,
         "labels": read_key_safe(vis, ['labels'], {}),
         "graph": read_key_safe(res, ['graph'], {})
     }
@@ -189,10 +198,13 @@ def cal_sensitivity():
     col = app.schema['point_estimate']['field']
 
     # compute one-way F-test
-    app.sensitivity_f = sensitivity_f_test(df, col)
+    f = sensitivity_f_test(df, col)
 
     # compute Kolmogorov-Smirnov statistic
-    app.sensitivity_ks = sensitivity_ks(df, col)
+    ks = sensitivity_ks(df, col)
+
+    # save
+    app.sensitivity = {'f': f, 'ks': ks}
 
 
 @click.command()
