@@ -1,6 +1,6 @@
 import * as d3 from 'd3'
 import _ from 'lodash'
-import {store, tableau10} from './config'
+import {store, tableau10} from '../controllers/config'
 
 class SpecCurvePlot {
   constructor () {

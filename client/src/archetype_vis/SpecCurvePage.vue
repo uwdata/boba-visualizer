@@ -6,7 +6,7 @@
 
 <script>
   import {store, util} from '../controllers/config'
-  import SpecCurvePlot from '../controllers/spec_curve_plot'
+  import SpecCurvePlot from './spec_curve_plot'
 
   function sample (arr, extreme = 50, total = 300) {
     // keep the top 50, bottom 50 and a subset of 200 in-between

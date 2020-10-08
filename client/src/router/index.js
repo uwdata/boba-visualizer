@@ -2,7 +2,8 @@ import Vue from 'vue'
 import Router from 'vue-router'
 
 import MainPage from '../pages/MainPage.vue'
-import SpecCurvePage from '../pages/SpecCurvePage.vue'
+import SpecCurvePage from '../archetype_vis/SpecCurvePage.vue'
+import ChartsPage from '../archetype_vis/ChartsPage.vue'
 
 Vue.use(Router)
 
@@ -12,6 +13,11 @@ export default new Router({
       path: '/',
       name: 'home',
       component: MainPage
+    },
+    {
+      path: '/charts',
+      name: 'charts',
+      component: ChartsPage
     },
     {
       path: '/spec-curve',
