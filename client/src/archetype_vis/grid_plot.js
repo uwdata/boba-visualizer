@@ -7,14 +7,14 @@ class GridPlot {
     this.margin = {
       top: 2,
       right: 30,
-      bottom: 20,
-      left: 250
+      bottom: 30,
+      left: 2
     }
     this.cell_width = 36
     this.cell_height = 24
     this.text_height = 15
     this.text_width = 26
-    this.color_func = GridPlot.colorP
+    this.color_func = GridPlot.colorBinary.bind(null, 0.05)
 
     // assigned in calling draw
     this.parent = ''
@@ -32,8 +32,8 @@ class GridPlot {
     this.svg = null
   }
 
-  static colorP (num) {
-    return num < 0.05 ? '#333' : '#fff'
+  static colorBinary (cutoff, num) {
+    return num < cutoff ? '#333' : '#fff'
   }
 
   prepareMatrix () {

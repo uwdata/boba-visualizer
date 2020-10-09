@@ -1,6 +1,17 @@
 <template>
-  <div class="mt-3 ml-3">
-    <div id="vis-container"></div>
+  <div>
+    <!--chart-->
+    <div class="mt-3 ml-5">
+      <div id="vis-container"></div>
+    </div>
+
+    <!--caption-->
+    <div class="text-small mt-3 ml-5 mr-3">
+      <p class="text-muted">
+        Columns map to decisions. Cells represent {{column}}.
+        Cells where {{column}} < {{cutoff}} are shaded in gray.
+      </p>
+    </div>
   </div>
 </template>
 
@@ -11,6 +22,12 @@
 
   export default {
     name: 'GridPage.vue',
+    data () {
+      return {
+        column: 'p-value',
+        cutoff: 0.05
+      }
+    },
     mounted () {
       // fetch data from server
       store.fetchUniverses()
@@ -22,10 +39,17 @@
         })
         .then(() => {
           let data = store.predicted_diff
-          let col = SCHEMA.P in store.configs.schema ? SCHEMA.P : SCHEMA.POINT
-
           let chart = new GridPlot()
-          chart.draw('#vis-container', data, col)
+          this.column = SCHEMA.P
+
+          if (!(SCHEMA.P in store.configs.schema)) {
+            // use point estimates if p-value is unavailable
+            this.column = SCHEMA.POINT
+            this.cutoff = 0
+            chart.color_func = GridPlot.colorBinary.bind(null, this.cutoff)
+          }
+
+          chart.draw('#vis-container', data, this.column)
         })
     }
   }
