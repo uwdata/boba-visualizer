@@ -9,13 +9,14 @@ class SpecCurvePlot {
     this.lowerHeight = 0 // will be computed
     this.margin = {
       top: 0,
-      right: 30,
-      bottom: 20,
+      right: 50,
+      bottom: 50,
       left: 250,
       inner: 15
     }
     this.dot_radius = 1.4
     this.row_height = 12
+    this.axis_label = 'Effect Size'
 
     // assigned in calling draw
     this.parent = ''
@@ -94,26 +95,34 @@ class SpecCurvePlot {
 
     // the horizontal line at 0
     if (scale_y.domain()[0] * scale_y.domain()[1] < 0) {
-      upper.append('line')
-        .attr('x1', 0)
-        .attr('x2', width)
-        .attr('y1', scale_y(0))
-        .attr('y2', scale_y(0))
-        .attr('stroke', '#888')
+      upper.append('path')
+        .attr('d', `M0,${scale_y(0)}H${width}`)
+        .attr('stroke', '#6c757d')
+        .attr('shape-rendering', 'crispEdges')
     }
 
     // y axis
     let yaxis = d3.axisRight(scale_y).tickSize(-width)
       .ticks(3)
-    this.svg.append("g")
+    let axis_container = this.svg.append("g")
       .classed("y axis muted", true)
       .attr('transform', `translate(${width},0)`)
+    axis_container
       .call(yaxis)
       .call(g => g.selectAll('.tick line')
         .attr('stroke-opacity', 0.1)
         .attr('stroke-dasharray', '2, 2'))
       .call(g => g.selectAll('.domain')
         .attr('d', `M0.5,${height} V0.5`))
+
+    // y axis label
+    axis_container.append('text')
+      .text(this.axis_label)
+      .attr('x', 35)
+      .attr('y', height / 2)
+      .attr('text-anchor', 'middle')
+      .attr('transform', `rotate(270, 35, ${height / 2})`)
+      .classed('spec-curve-axis-title', true)
 
     // lower plot
     height = this.lowerHeight - this.margin.top - this.margin.bottom
@@ -176,13 +185,23 @@ class SpecCurvePlot {
     height = this.upperHeight + this.lowerHeight - this.margin.bottom
     let xaxis = d3.axisBottom(scale_x).tickSize(5)
       .ticks(l / 50)
-    this.svg.append("g")
+    axis_container = this.svg.append("g")
       .classed("x axis muted", true)
       .attr('transform', `translate(0, ${height})`)
+    axis_container
       .call(xaxis)
       .call(g => g.selectAll('.tick')
         .filter((d, i) => i > 1 && i < l/50-1)
         .remove())
+
+    // bottom axis label
+    axis_container
+      .append('text')
+      .text('Specification #')
+      .attr('x', width / 2)
+      .attr('y', 30)
+      .attr('text-anchor', 'middle')
+      .classed('spec-curve-axis-title', true)
   }
 }
 

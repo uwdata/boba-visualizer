@@ -66,6 +66,7 @@
           })
 
           let chart = new SpecCurvePlot()
+          chart.axis_label = store.configs.x_axis
           chart.draw('#vis-container', data)
         })
     }
@@ -75,9 +76,15 @@
 <style lang="stylus">
   #vis-container
     background-color #EAF2F3
+
   .spec-curve-envelope
     fill #888
     fill-opacity 0.2
     stroke #bbb
     stroke-width 1.5
+
+  .spec-curve-axis-title
+    fill black
+    font-size 13px
+    font-weight bold
 </style>
