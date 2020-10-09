@@ -14,7 +14,7 @@ class GridPlot {
     this.cell_height = 24
     this.text_height = 15
     this.text_width = 26
-    this.color_func = this.colorP
+    this.color_func = GridPlot.colorP
 
     // assigned in calling draw
     this.parent = ''
@@ -32,7 +32,7 @@ class GridPlot {
     this.svg = null
   }
 
-  colorP (num) {
+  static colorP (num) {
     return num < 0.05 ? '#333' : '#fff'
   }
 
@@ -43,7 +43,28 @@ class GridPlot {
     let step = 1
     let role = 'x'
 
-    _.each(decs, (options, dec) => {
+    // optimize the layout a bit
+    // first sort by the number of options
+    let sorted = _.map(decs, (opts, dec) => {
+      return {'decision': dec, 'length': opts.length}
+    })
+    sorted = _.sortBy(sorted, 'length')
+
+    // now interleave
+    let order = []
+    for (let k = 0; k < sorted.length; k++) {
+      if (k % 2 === 0) {
+        order[k / 2] = sorted[k]
+      } else {
+        order[middle + (k - 1) / 2] = sorted[k]
+      }
+    }
+    order = _.map(order, 'decision')
+
+    // assign decisions to x- and y-axis
+    _.each(order, (dec) => {
+      let options = decs[dec]
+
       // the first N/2 decisions will belong to the x-axis
       if (role === 'x' && i >= middle) {
         this.total_x = step
@@ -69,52 +90,6 @@ class GridPlot {
     this.levels_y = i
   }
 
-  draw (parent, data, column) {
-    this.parent = parent
-    this.data = data
-    this.column = column
-
-    // compute matrix layout
-    this.prepareMatrix()
-
-    // compute width and height
-    let w = this.total_x * this.cell_width
-    let h = this.total_y * this.cell_height
-    let label_h = this.levels_x * (this.cell_height + this.text_height)
-    let label_w = this.levels_y * (this.cell_width + this.text_width)
-
-    // prepare the canvas
-    let raw = d3.select(parent)
-      .append('svg')
-      .attr('width', w + label_w + this.margin.left + this.margin.right)
-      .attr('height', h + label_h + this.margin.top + this.margin.bottom)
-    this.svg = raw.append('g')
-      .attr('transform', `translate(${this.margin.left},${this.margin.top})`)
-
-    // upper label
-    let upper = this.svg.append('g')
-      .classed('upper', true)
-      .attr('width', w)
-      .attr('height', label_h)
-    this.drawLabelTop(upper, label_h)
-
-    // right label
-    let right = this.svg.append('g')
-      .attr('transform', `translate(${w},${label_h})`)
-      .classed('right-panel', true)
-      .attr('width', label_w)
-      .attr('height', h)
-    this.drawLabelRight(right)
-
-    // cells
-    let cells = this.svg.append('g')
-      .attr('transform', `translate(0,${label_h})`)
-      .append('svg')
-      .classed('lower', true)
-      .attr('width', w)
-      .attr('height', h)
-    this.drawCells(cells)
-  }
 
   wrangleMatrix (axis) {
     // ok we need to wrangle the matrix data structure a bit
@@ -174,6 +149,53 @@ class GridPlot {
     })
 
     return lines
+  }
+
+  draw (parent, data, column) {
+    this.parent = parent
+    this.data = data
+    this.column = column
+
+    // compute matrix layout
+    this.prepareMatrix()
+
+    // compute width and height
+    let w = this.total_x * this.cell_width
+    let h = this.total_y * this.cell_height
+    let label_h = this.levels_x * (this.cell_height + this.text_height)
+    let label_w = this.levels_y * (this.cell_width + this.text_width)
+
+    // prepare the canvas
+    let raw = d3.select(parent)
+      .append('svg')
+      .attr('width', w + label_w + this.margin.left + this.margin.right)
+      .attr('height', h + label_h + this.margin.top + this.margin.bottom)
+    this.svg = raw.append('g')
+      .attr('transform', `translate(${this.margin.left},${this.margin.top})`)
+
+    // upper label
+    let upper = this.svg.append('g')
+      .classed('upper', true)
+      .attr('width', w)
+      .attr('height', label_h)
+    this.drawLabelTop(upper, label_h)
+
+    // right label
+    let right = this.svg.append('g')
+      .attr('transform', `translate(${w},${label_h})`)
+      .classed('right-panel', true)
+      .attr('width', label_w)
+      .attr('height', h)
+    this.drawLabelRight(right)
+
+    // cells
+    let cells = this.svg.append('g')
+      .attr('transform', `translate(0,${label_h})`)
+      .append('svg')
+      .classed('lower', true)
+      .attr('width', w)
+      .attr('height', h)
+    this.drawCells(cells)
   }
 
   drawLabelRight (svg) {

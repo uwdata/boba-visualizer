@@ -32,6 +32,9 @@
 </script>
 
 <style lang='stylus'>
+  #vis-container
+    overflow auto
+
   .cell
     stroke black
     stroke-width 1
