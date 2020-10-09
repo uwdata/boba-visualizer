@@ -4,6 +4,7 @@
       <h3>Multiverse charts</h3>
       <ul class="mt-3">
         <li><router-link to="/spec-curve">Specification Curve</router-link></li>
+        <li><router-link to="/grid">Grid (Steegen 2016)</router-link></li>
       </ul>
     </div>
   </div>
