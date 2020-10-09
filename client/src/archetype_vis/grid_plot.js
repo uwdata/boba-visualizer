@@ -12,6 +12,7 @@ class GridPlot {
     }
     this.cell_width = 36
     this.cell_height = 24
+    this.text_height = 15
     this.color_func = this.colorP
 
     // assigned in calling draw
@@ -54,7 +55,8 @@ class GridPlot {
       _.each(options, (opt, j) => {
         let key = dec + ':' + opt
         let idx = j * step
-        this.matrix[key] = {'axis': role, 'index': idx, 'layer': i}
+        this.matrix[key] = {'axis': role, 'index': idx, 'layer': i,
+          'step': step}
       })
 
       // increment
@@ -73,13 +75,11 @@ class GridPlot {
 
     // compute matrix layout
     this.prepareMatrix()
-    console.log(data[0], store.universes[0])
-    console.log(this.matrix, this.levels_x, this.levels_y)
 
     // compute width and height
     let w = this.total_x * this.cell_width
     let h = this.total_y * this.cell_height
-    let label_h = (this.levels_x * 2 - 1) * this.cell_height
+    let label_h = this.levels_x * (this.cell_height + this.text_height)
     let label_w = (this.levels_y * 2 - 1) * this.cell_width
 
     // prepare the canvas
@@ -95,6 +95,7 @@ class GridPlot {
       .classed('upper', true)
       .attr('width', w)
       .attr('height', label_h)
+    this.drawLabelTop(upper, label_h)
 
     // cells
     let cells = this.svg.append('g')
@@ -104,6 +105,111 @@ class GridPlot {
       .attr('width', w)
       .attr('height', h)
     this.drawCells(cells)
+  }
+
+  wrangleMatrix (axis) {
+    // ok we need to wrangle the matrix data structure a bit
+    // first extract the decision and option
+    let matrix = _.map(this.matrix, (m, key) => {
+      let i = key.search(':')
+      m['decision'] = key.substring(0, i)
+      m['option'] = key.substring(i + 1)
+      return m
+    })
+    matrix = _.filter(matrix, (m) => m['axis'] === axis)
+
+    // then group by level
+    matrix = _.groupBy(matrix, 'layer')
+    matrix = _.toArray(matrix)
+
+    // create a shorthand for compact labeling
+    matrix = _.map(matrix, (arr) => {
+      return _.map(arr, (meta, i) => {
+        meta['label'] = _.toUpper(meta['decision']).substring(0, 3) + (i + 1)
+        return meta
+      })
+    })
+
+    // now duplicate the labels
+    let res = []
+    _.each(matrix, (arr) => {
+      let step = arr[0].step
+      let stride = step * arr.length
+      for(let j = 0; j < this.total_x / stride; j+=1) {
+        res.push(_.map(arr, (m) => {
+          return {'label': m.label, 'index': m.index + j * stride,
+            'step': m.step, 'layer': m.layer, 'repeat': j}
+        }))
+      }
+    })
+
+    return _.flatten(res)
+  }
+
+  wrangleConnector (matrix) {
+    // create the data structure for the connector lines
+    let lines = []
+
+    _.each(_.groupBy(matrix, 'layer'), (arr) => {
+      let layer = arr[0].layer
+      let step = arr[0].step
+
+      arr = _.groupBy(arr, 'repeat')
+      arr = _.sortBy(arr, 'repeat')
+
+      _.each(arr, (group) => {
+        group = _.map(group, (g) => g.index)
+        lines.push({'layer': layer, 'i0': _.min(group), 'i1': _.max(group),
+          'step': step})
+      })
+    })
+
+    return lines
+  }
+
+  drawLabelTop (svg, label_h) {
+    let matrix = this.wrangleMatrix('x')
+
+    // draw the text label
+    svg
+      .selectAll('.grid-label-top')
+      .data(matrix)
+      .enter()
+      .append('text')
+      .classed('grid-label-top', true)
+      .attr('x', (d) => (d.index + d.step / 2) * this.cell_width)
+      .attr('y', (d) => label_h - (d.layer + 0.5) * (2* this.text_height) - 3)
+      .attr('text-anchor', 'middle')
+      .text((d) => d.label)
+
+    // draw the vertical lines
+    svg
+      .selectAll('.grid-guide.top-v')
+      .data(matrix)
+      .enter()
+      .append('line')
+      .classed('grid-guide', true)
+      .classed('top-v', true)
+      .attr('x1', (d) => (d.index + d.step / 2) * this.cell_width)
+      .attr('x2', (d) => (d.index + d.step / 2) * this.cell_width)
+      .attr('y1', (d) => label_h - (d.layer + 0.5) * (2* this.text_height))
+      .attr('y2', (d) => label_h - d.layer * (2* this.text_height)
+        + Math.min(1, d.layer) * this.text_height)
+
+    // connect the vertical lines
+    let lines = this.wrangleConnector(matrix)
+
+    svg
+      .selectAll('.grid-guide.top-h')
+      .data(lines)
+      .enter()
+      .append('line')
+      .classed('grid-guide', true)
+      .classed('top-h', true)
+      .attr('x1', (d) => (d.i0 + d.step / 2) * this.cell_width)
+      .attr('x2', (d) => (d.i1 + d.step / 2) * this.cell_width)
+      .attr('y1', (d) => label_h - (d.layer + 0.5) * (2* this.text_height))
+      .attr('y2', (d) => label_h - (d.layer + 0.5) * (2* this.text_height))
   }
 
   drawCells (svg) {

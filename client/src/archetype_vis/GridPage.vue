@@ -40,4 +40,11 @@
   .cell-text
     font-size 11px
     fill #666
+
+  .grid-label-top
+    font-size 11px
+
+  .grid-guide
+    stroke #555
+    stroke-width 1
 </style>
