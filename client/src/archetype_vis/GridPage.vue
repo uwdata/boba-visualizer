@@ -41,7 +41,7 @@
     font-size 11px
     fill #666
 
-  .grid-label-top
+  .grid-label
     font-size 11px
 
   .grid-guide

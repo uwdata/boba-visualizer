@@ -13,6 +13,7 @@ class GridPlot {
     this.cell_width = 36
     this.cell_height = 24
     this.text_height = 15
+    this.text_width = 26
     this.color_func = this.colorP
 
     // assigned in calling draw
@@ -80,13 +81,13 @@ class GridPlot {
     let w = this.total_x * this.cell_width
     let h = this.total_y * this.cell_height
     let label_h = this.levels_x * (this.cell_height + this.text_height)
-    let label_w = (this.levels_y * 2 - 1) * this.cell_width
+    let label_w = this.levels_y * (this.cell_width + this.text_width)
 
     // prepare the canvas
     let raw = d3.select(parent)
       .append('svg')
-      .attr('width', w + label_h + this.margin.left + this.margin.right)
-      .attr('height', h + label_w + this.margin.top + this.margin.bottom)
+      .attr('width', w + label_w + this.margin.left + this.margin.right)
+      .attr('height', h + label_h + this.margin.top + this.margin.bottom)
     this.svg = raw.append('g')
       .attr('transform', `translate(${this.margin.left},${this.margin.top})`)
 
@@ -96,6 +97,14 @@ class GridPlot {
       .attr('width', w)
       .attr('height', label_h)
     this.drawLabelTop(upper, label_h)
+
+    // right label
+    let right = this.svg.append('g')
+      .attr('transform', `translate(${w},${label_h})`)
+      .classed('right-panel', true)
+      .attr('width', label_w)
+      .attr('height', h)
+    this.drawLabelRight(right)
 
     // cells
     let cells = this.svg.append('g')
@@ -167,16 +176,62 @@ class GridPlot {
     return lines
   }
 
+  drawLabelRight (svg) {
+    let matrix = this.wrangleMatrix('y')
+
+    // draw the text label
+    svg
+      .selectAll('.grid-label.right')
+      .data(matrix)
+      .enter()
+      .append('text')
+      .classed('grid-label', true)
+      .classed('right', true)
+      .attr('x', (d) => d.layer * (2 * this.text_width) + 3)
+      .attr('y', (d) => (d.index + d.step / 2) * this.cell_height + 3)
+      .attr('dominant-baseline', 'hanging')
+      .text((d) => d.label)
+
+    // draw the horizontal lines
+    svg
+      .selectAll('.grid-guide.right-h')
+      .data(matrix)
+      .enter()
+      .append('line')
+      .classed('grid-guide', true)
+      .classed('right-h', true)
+      .attr('x1', (d) => Math.max(d.layer - 0.25, 0) * (2 * this.text_width))
+      .attr('x2', (d) => (d.layer + 0.75) * (2 * this.text_width))
+      .attr('y1', (d) => (d.index + d.step / 2) * this.cell_height)
+      .attr('y2', (d) => (d.index + d.step / 2) * this.cell_height)
+
+    // connect the lines
+    let lines = this.wrangleConnector(matrix)
+
+    svg
+      .selectAll('.grid-guide.right-v')
+      .data(lines)
+      .enter()
+      .append('line')
+      .classed('grid-guide', true)
+      .classed('right-v', true)
+      .attr('x1', (d) => (d.layer + 0.75) * (2 * this.text_width))
+      .attr('x2', (d) => (d.layer + 0.75) * (2 * this.text_width))
+      .attr('y1', (d) => (d.i0 + d.step / 2) * this.cell_height)
+      .attr('y2', (d) => (d.i1 + d.step / 2) * this.cell_height)
+  }
+
   drawLabelTop (svg, label_h) {
     let matrix = this.wrangleMatrix('x')
 
     // draw the text label
     svg
-      .selectAll('.grid-label-top')
+      .selectAll('.grid-label.top')
       .data(matrix)
       .enter()
       .append('text')
-      .classed('grid-label-top', true)
+      .classed('grid-label', true)
+      .classed('top', true)
       .attr('x', (d) => (d.index + d.step / 2) * this.cell_width)
       .attr('y', (d) => label_h - (d.layer + 0.5) * (2* this.text_height) - 3)
       .attr('text-anchor', 'middle')
