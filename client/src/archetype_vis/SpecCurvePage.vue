@@ -73,8 +73,11 @@
 </script>
 
 <style lang="stylus">
+  #vis-container
+    background-color #EAF2F3
   .spec-curve-envelope
-    fill #eee
+    fill #888
+    fill-opacity 0.2
     stroke #bbb
     stroke-width 1.5
 </style>

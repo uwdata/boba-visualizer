@@ -5,13 +5,14 @@ import {store, tableau10} from '../controllers/config'
 class SpecCurvePlot {
   constructor () {
     this.outerWidth = 1050
-    this.upperHeight = 150
+    this.upperHeight = 130
     this.lowerHeight = 0 // will be computed
     this.margin = {
-      top: 2,
+      top: 0,
       right: 30,
       bottom: 20,
-      left: 250
+      left: 250,
+      inner: 15
     }
     this.dot_radius = 1.4
     this.row_height = 12
@@ -30,7 +31,8 @@ class SpecCurvePlot {
       h += (dec.length + 2) * this.row_height
     })
 
-    return h + this.margin.top + this.margin.bottom - this.row_height
+    return h + this.margin.top + this.margin.bottom +
+      2 * this.margin.inner - this.row_height
   }
 
   draw (parent, data) {
@@ -49,17 +51,23 @@ class SpecCurvePlot {
 
     // upper plot
     let width = this.outerWidth - this.margin.left - this.margin.right
-    let height = this.upperHeight - this.margin.top - this.margin.bottom
+    let height = this.upperHeight - this.margin.top
     let upper = this.svg.append('svg')
       .classed('upper', true)
       .attr('width', width)
       .attr('height', height)
 
     // scales
-    let scale_x = d3.scaleLinear().range([0, width])
+    let scale_x = d3.scaleLinear().range([this.margin.inner, width - this.margin.inner])
       .domain([0, l])
-    let scale_y = d3.scaleLinear().range([height, 0])
+    let scale_y = d3.scaleLinear().range([height - 5, 5])
       .domain([data[0].diff, data[l - 1].diff])
+
+    // the green background
+    upper.append('rect')
+      .attr('width', width)
+      .attr('height', height)
+      .attr('fill', '#C0DCC0')
 
     // draw CIs (if applicable)
     let ds = _.filter(data, (d) => d.upper != null)
@@ -84,6 +92,16 @@ class SpecCurvePlot {
       .attr('cx', (d) => scale_x(d.i))
       .attr('cy', (d) => scale_y(d.diff))
 
+    // the horizontal line at 0
+    if (scale_y.domain()[0] * scale_y.domain()[1] < 0) {
+      upper.append('line')
+        .attr('x1', 0)
+        .attr('x2', width)
+        .attr('y1', scale_y(0))
+        .attr('y2', scale_y(0))
+        .attr('stroke', '#888')
+    }
+
     // y axis
     let yaxis = d3.axisRight(scale_y).tickSize(-width)
       .ticks(3)
@@ -105,8 +123,14 @@ class SpecCurvePlot {
       .classed('lower', true)
       .attr('width', width)
       .attr('height', height)
+    // the white background
+    lower.append('rect')
+      .attr('width', width)
+      .attr('height', height)
+      .attr('fill', '#fff')
+    // canvas for the decision labels
     let labels = raw.append('g')
-      .attr('transform', `translate(0,${this.upperHeight + this.margin.top})`)
+      .attr('transform', `translate(0,${this.upperHeight + this.margin.top + this.margin.inner})`)
       .append('svg')
       .attr('width', this.margin.left)
       .attr('height', height)
@@ -126,7 +150,7 @@ class SpecCurvePlot {
         .attr('cx', (d) => scale_x(d.i))
         .attr('cy', (d) => {
           let idx = _.indexOf(opts, d[dec])
-          return h0 + (1.5 + idx) * this.row_height
+          return h0 + (1.5 + idx) * this.row_height + this.margin.inner
         })
         .attr('fill', color)
 
@@ -135,8 +159,9 @@ class SpecCurvePlot {
       _.each(ls, (label, idx) => {
         labels.append('text')
           .attr('x', this.margin.left - 10)
-          .attr('y', h0 + (idx + 1) * this.row_height)
-          .style('text-anchor', 'end')
+          .attr('y', h0 + (idx + 0.5) * this.row_height)
+          .attr('text-anchor', 'end')
+          .attr('dominant-baseline', 'middle')
           .style('font-size', () => idx ? this.row_height - 3 : this.row_height)
           .style('font-weight', () => idx ? 'normal' : 'bold')
           .text(label)
