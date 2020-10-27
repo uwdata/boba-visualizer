@@ -210,19 +210,25 @@ def cal_sensitivity():
 @click.command()
 @click.option('--in', '-i', 'input', default='.', show_default=True,
               help='Path to the input directory')
-def main(input):
+@click.option('--port', default=8080, show_default=True,
+              help='The port to bind the server to')
+@click.option('--host', default='0.0.0.0', show_default=True,
+              help='The interface to bind the server to')
+@click.version_option()
+def main(input, port, host):
     check_path(input)
     app.data_folder = os.path.realpath(input)
     read_meta()
     cal_sensitivity()
 
+    s_host = '127.0.0.1' if host == '0.0.0.0' else host
     msg = """\033[92m
     Server started!
-    Navigate to http://127.0.0.1:8080/ in your browser
-    Press CTRL+C to stop\033[0m"""
+    Navigate to http://{0}:{1}/ in your browser
+    Press CTRL+C to stop\033[0m""".format(s_host, port)
     print(msg)
 
-    app.run(host= '0.0.0.0', port='8080')
+    app.run(host= host, port=f'{port}')
 
 
 if __name__ == '__main__':
