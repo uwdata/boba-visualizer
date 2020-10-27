@@ -92,4 +92,5 @@ Available options are:
 - `f`: an algorithm based on the F-test
 - `ks` (default): an algorithm based on Kolmogorov–Smirnov statistic
 
-For more details about these algorithms, please refer to the paper.
+For more details about these algorithms, please refer to the
+[paper](https://arxiv.org/pdf/2007.05551.pdf).

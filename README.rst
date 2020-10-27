@@ -30,7 +30,7 @@ To start the visualizer, use the following command::
 You will need to supply your own file path, which contains your multiverse outcomes and
 accompanying meta data. Learn more about the appropriate file format here_. This repository
 also include an `example folder`_ with the outcomes from the `mortgage multiverse`_. You
-could explore the example by cloning this repo and:
+could explore the example by cloning this repo and::
 
   boba-server -i ./example/mortgage
 
@@ -44,5 +44,5 @@ and use `CLI options`_ to change the behavior of the server.
 .. _here: https://github.com/uwdata/boba-visualizer/tree/master/doc/format.md
 .. _configuration file: https://github.com/uwdata/boba-visualizer/tree/master/doc/visualizer_config.md
 .. _CLI options: https://github.com/uwdata/boba-visualizer/blob/master/doc/CLI.rst
-.. _example outcome folder: https://github.com/uwdata/boba-visualizer/tree/master/example/mortgage
+.. _example folder: https://github.com/uwdata/boba-visualizer/tree/master/example/mortgage
 .. _mortgage multiverse: https://github.com/uwdata/boba/tree/master/example/mortgage
