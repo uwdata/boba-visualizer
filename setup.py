@@ -18,7 +18,7 @@ test_requirements = []
 setup(
     name='boba-visualizer',
     url='https://github.com/yyyliu/boba-visualizer',
-    version='1.0.2',
+    version='1.0.3',
     author="Yang Liu",
     author_email='yliu0@uw.edu',
     license="BSD license",
