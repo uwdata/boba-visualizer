@@ -1,0 +1,53 @@
+{
+  "decisions": [
+    {"var": "black", "options": ["+ black", ""]},
+    {"var": "housing_expense_ratio", "options": ["+ housing_expense_ratio", ""]},
+    {"var": "self_employed", "options": ["+ self_employed", ""]},
+    {"var": "married", "options": ["+ married", ""]},
+    {"var": "bad_history", "options": ["+ bad_history", ""]},
+    {"var": "PI_ratio", "options": ["+ PI_ratio", ""]},
+    {"var": "loan_to_value", "options": ["+ loan_to_value", ""]},
+    {"var": "denied_PMI", "options": ["+ denied_PMI", ""]}
+  ],
+  "graph": {
+    "nodes": [
+      {"id": 0, "name": "black"},
+      {"id": 1, "name": "housing_expense_ratio"},
+      {"id": 2, "name": "self_employed"},
+      {"id": 3, "name": "married"},
+      {"id": 4, "name": "bad_history"},
+      {"id": 5, "name": "PI_ratio"},
+      {"id": 6, "name": "loan_to_value"},
+      {"id": 7, "name": "denied_PMI"}
+    ],
+    "edges": [
+      {"source": 0, "target": 1, "type": "order"},
+      {"source": 1, "target": 2, "type": "order"},
+      {"source": 2, "target": 3, "type": "order"},
+      {"source": 3, "target": 4, "type": "order"},
+      {"source": 4, "target": 5, "type": "order"},
+      {"source": 5, "target": 6, "type": "order"},
+      {"source": 6, "target": 7, "type": "order"}
+    ]
+  },
+  "visualizer": {
+    "files": [
+      {"id": "est", "path": "estimates.csv"},
+      {"id": "unc", "path": "uncertainty.csv"},
+      {"id": "fit", "path": "raw/disagg_pred_{}.csv", "multi": true}
+    ],
+    "schema": {
+      "point_estimate": {"file": "est", "field": "estimate"},
+      "p_value": {"file": "est", "field": "p.value"},
+      "fit": {"file": "est", "field": "NRMSE"},
+      "uncertainty": {"file": "unc", "field": "estimate"},
+      "prediction": {"file": "fit"}
+    },
+    "labels": {
+      "dataset": "mortgage",
+      "x_axis": "Coefficient on female",
+      "x_axis_fit": "Approved",
+      "x_range": [-3, 8]
+    }
+  }
+}

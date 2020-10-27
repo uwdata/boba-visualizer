@@ -1,0 +1,257 @@
+Filename,Code Path,female,black,housing_expense_ratio,self_employed,married,bad_history,PI_ratio,loan_to_value,denied_PMI
+universe_1.R,_start,,+ black,+ housing_expense_ratio,+ self_employed,+ married,+ bad_history,+ PI_ratio,+ loan_to_value,+ denied_PMI
+universe_2.R,_start,,+ black,+ housing_expense_ratio,+ self_employed,+ married,+ bad_history,+ PI_ratio,+ loan_to_value,
+universe_3.R,_start,,+ black,+ housing_expense_ratio,+ self_employed,+ married,+ bad_history,+ PI_ratio,,+ denied_PMI
+universe_4.R,_start,,+ black,+ housing_expense_ratio,+ self_employed,+ married,+ bad_history,+ PI_ratio,,
+universe_5.R,_start,,+ black,+ housing_expense_ratio,+ self_employed,+ married,+ bad_history,,+ loan_to_value,+ denied_PMI
+universe_6.R,_start,,+ black,+ housing_expense_ratio,+ self_employed,+ married,+ bad_history,,+ loan_to_value,
+universe_7.R,_start,,+ black,+ housing_expense_ratio,+ self_employed,+ married,+ bad_history,,,+ denied_PMI
+universe_8.R,_start,,+ black,+ housing_expense_ratio,+ self_employed,+ married,+ bad_history,,,
+universe_9.R,_start,,+ black,+ housing_expense_ratio,+ self_employed,+ married,,+ PI_ratio,+ loan_to_value,+ denied_PMI
+universe_10.R,_start,,+ black,+ housing_expense_ratio,+ self_employed,+ married,,+ PI_ratio,+ loan_to_value,
+universe_11.R,_start,,+ black,+ housing_expense_ratio,+ self_employed,+ married,,+ PI_ratio,,+ denied_PMI
+universe_12.R,_start,,+ black,+ housing_expense_ratio,+ self_employed,+ married,,+ PI_ratio,,
+universe_13.R,_start,,+ black,+ housing_expense_ratio,+ self_employed,+ married,,,+ loan_to_value,+ denied_PMI
+universe_14.R,_start,,+ black,+ housing_expense_ratio,+ self_employed,+ married,,,+ loan_to_value,
+universe_15.R,_start,,+ black,+ housing_expense_ratio,+ self_employed,+ married,,,,+ denied_PMI
+universe_16.R,_start,,+ black,+ housing_expense_ratio,+ self_employed,+ married,,,,
+universe_17.R,_start,,+ black,+ housing_expense_ratio,+ self_employed,,+ bad_history,+ PI_ratio,+ loan_to_value,+ denied_PMI
+universe_18.R,_start,,+ black,+ housing_expense_ratio,+ self_employed,,+ bad_history,+ PI_ratio,+ loan_to_value,
+universe_19.R,_start,,+ black,+ housing_expense_ratio,+ self_employed,,+ bad_history,+ PI_ratio,,+ denied_PMI
+universe_20.R,_start,,+ black,+ housing_expense_ratio,+ self_employed,,+ bad_history,+ PI_ratio,,
+universe_21.R,_start,,+ black,+ housing_expense_ratio,+ self_employed,,+ bad_history,,+ loan_to_value,+ denied_PMI
+universe_22.R,_start,,+ black,+ housing_expense_ratio,+ self_employed,,+ bad_history,,+ loan_to_value,
+universe_23.R,_start,,+ black,+ housing_expense_ratio,+ self_employed,,+ bad_history,,,+ denied_PMI
+universe_24.R,_start,,+ black,+ housing_expense_ratio,+ self_employed,,+ bad_history,,,
+universe_25.R,_start,,+ black,+ housing_expense_ratio,+ self_employed,,,+ PI_ratio,+ loan_to_value,+ denied_PMI
+universe_26.R,_start,,+ black,+ housing_expense_ratio,+ self_employed,,,+ PI_ratio,+ loan_to_value,
+universe_27.R,_start,,+ black,+ housing_expense_ratio,+ self_employed,,,+ PI_ratio,,+ denied_PMI
+universe_28.R,_start,,+ black,+ housing_expense_ratio,+ self_employed,,,+ PI_ratio,,
+universe_29.R,_start,,+ black,+ housing_expense_ratio,+ self_employed,,,,+ loan_to_value,+ denied_PMI
+universe_30.R,_start,,+ black,+ housing_expense_ratio,+ self_employed,,,,+ loan_to_value,
+universe_31.R,_start,,+ black,+ housing_expense_ratio,+ self_employed,,,,,+ denied_PMI
+universe_32.R,_start,,+ black,+ housing_expense_ratio,+ self_employed,,,,,
+universe_33.R,_start,,+ black,+ housing_expense_ratio,,+ married,+ bad_history,+ PI_ratio,+ loan_to_value,+ denied_PMI
+universe_34.R,_start,,+ black,+ housing_expense_ratio,,+ married,+ bad_history,+ PI_ratio,+ loan_to_value,
+universe_35.R,_start,,+ black,+ housing_expense_ratio,,+ married,+ bad_history,+ PI_ratio,,+ denied_PMI
+universe_36.R,_start,,+ black,+ housing_expense_ratio,,+ married,+ bad_history,+ PI_ratio,,
+universe_37.R,_start,,+ black,+ housing_expense_ratio,,+ married,+ bad_history,,+ loan_to_value,+ denied_PMI
+universe_38.R,_start,,+ black,+ housing_expense_ratio,,+ married,+ bad_history,,+ loan_to_value,
+universe_39.R,_start,,+ black,+ housing_expense_ratio,,+ married,+ bad_history,,,+ denied_PMI
+universe_40.R,_start,,+ black,+ housing_expense_ratio,,+ married,+ bad_history,,,
+universe_41.R,_start,,+ black,+ housing_expense_ratio,,+ married,,+ PI_ratio,+ loan_to_value,+ denied_PMI
+universe_42.R,_start,,+ black,+ housing_expense_ratio,,+ married,,+ PI_ratio,+ loan_to_value,
+universe_43.R,_start,,+ black,+ housing_expense_ratio,,+ married,,+ PI_ratio,,+ denied_PMI
+universe_44.R,_start,,+ black,+ housing_expense_ratio,,+ married,,+ PI_ratio,,
+universe_45.R,_start,,+ black,+ housing_expense_ratio,,+ married,,,+ loan_to_value,+ denied_PMI
+universe_46.R,_start,,+ black,+ housing_expense_ratio,,+ married,,,+ loan_to_value,
+universe_47.R,_start,,+ black,+ housing_expense_ratio,,+ married,,,,+ denied_PMI
+universe_48.R,_start,,+ black,+ housing_expense_ratio,,+ married,,,,
+universe_49.R,_start,,+ black,+ housing_expense_ratio,,,+ bad_history,+ PI_ratio,+ loan_to_value,+ denied_PMI
+universe_50.R,_start,,+ black,+ housing_expense_ratio,,,+ bad_history,+ PI_ratio,+ loan_to_value,
+universe_51.R,_start,,+ black,+ housing_expense_ratio,,,+ bad_history,+ PI_ratio,,+ denied_PMI
+universe_52.R,_start,,+ black,+ housing_expense_ratio,,,+ bad_history,+ PI_ratio,,
+universe_53.R,_start,,+ black,+ housing_expense_ratio,,,+ bad_history,,+ loan_to_value,+ denied_PMI
+universe_54.R,_start,,+ black,+ housing_expense_ratio,,,+ bad_history,,+ loan_to_value,
+universe_55.R,_start,,+ black,+ housing_expense_ratio,,,+ bad_history,,,+ denied_PMI
+universe_56.R,_start,,+ black,+ housing_expense_ratio,,,+ bad_history,,,
+universe_57.R,_start,,+ black,+ housing_expense_ratio,,,,+ PI_ratio,+ loan_to_value,+ denied_PMI
+universe_58.R,_start,,+ black,+ housing_expense_ratio,,,,+ PI_ratio,+ loan_to_value,
+universe_59.R,_start,,+ black,+ housing_expense_ratio,,,,+ PI_ratio,,+ denied_PMI
+universe_60.R,_start,,+ black,+ housing_expense_ratio,,,,+ PI_ratio,,
+universe_61.R,_start,,+ black,+ housing_expense_ratio,,,,,+ loan_to_value,+ denied_PMI
+universe_62.R,_start,,+ black,+ housing_expense_ratio,,,,,+ loan_to_value,
+universe_63.R,_start,,+ black,+ housing_expense_ratio,,,,,,+ denied_PMI
+universe_64.R,_start,,+ black,+ housing_expense_ratio,,,,,,
+universe_65.R,_start,,+ black,,+ self_employed,+ married,+ bad_history,+ PI_ratio,+ loan_to_value,+ denied_PMI
+universe_66.R,_start,,+ black,,+ self_employed,+ married,+ bad_history,+ PI_ratio,+ loan_to_value,
+universe_67.R,_start,,+ black,,+ self_employed,+ married,+ bad_history,+ PI_ratio,,+ denied_PMI
+universe_68.R,_start,,+ black,,+ self_employed,+ married,+ bad_history,+ PI_ratio,,
+universe_69.R,_start,,+ black,,+ self_employed,+ married,+ bad_history,,+ loan_to_value,+ denied_PMI
+universe_70.R,_start,,+ black,,+ self_employed,+ married,+ bad_history,,+ loan_to_value,
+universe_71.R,_start,,+ black,,+ self_employed,+ married,+ bad_history,,,+ denied_PMI
+universe_72.R,_start,,+ black,,+ self_employed,+ married,+ bad_history,,,
+universe_73.R,_start,,+ black,,+ self_employed,+ married,,+ PI_ratio,+ loan_to_value,+ denied_PMI
+universe_74.R,_start,,+ black,,+ self_employed,+ married,,+ PI_ratio,+ loan_to_value,
+universe_75.R,_start,,+ black,,+ self_employed,+ married,,+ PI_ratio,,+ denied_PMI
+universe_76.R,_start,,+ black,,+ self_employed,+ married,,+ PI_ratio,,
+universe_77.R,_start,,+ black,,+ self_employed,+ married,,,+ loan_to_value,+ denied_PMI
+universe_78.R,_start,,+ black,,+ self_employed,+ married,,,+ loan_to_value,
+universe_79.R,_start,,+ black,,+ self_employed,+ married,,,,+ denied_PMI
+universe_80.R,_start,,+ black,,+ self_employed,+ married,,,,
+universe_81.R,_start,,+ black,,+ self_employed,,+ bad_history,+ PI_ratio,+ loan_to_value,+ denied_PMI
+universe_82.R,_start,,+ black,,+ self_employed,,+ bad_history,+ PI_ratio,+ loan_to_value,
+universe_83.R,_start,,+ black,,+ self_employed,,+ bad_history,+ PI_ratio,,+ denied_PMI
+universe_84.R,_start,,+ black,,+ self_employed,,+ bad_history,+ PI_ratio,,
+universe_85.R,_start,,+ black,,+ self_employed,,+ bad_history,,+ loan_to_value,+ denied_PMI
+universe_86.R,_start,,+ black,,+ self_employed,,+ bad_history,,+ loan_to_value,
+universe_87.R,_start,,+ black,,+ self_employed,,+ bad_history,,,+ denied_PMI
+universe_88.R,_start,,+ black,,+ self_employed,,+ bad_history,,,
+universe_89.R,_start,,+ black,,+ self_employed,,,+ PI_ratio,+ loan_to_value,+ denied_PMI
+universe_90.R,_start,,+ black,,+ self_employed,,,+ PI_ratio,+ loan_to_value,
+universe_91.R,_start,,+ black,,+ self_employed,,,+ PI_ratio,,+ denied_PMI
+universe_92.R,_start,,+ black,,+ self_employed,,,+ PI_ratio,,
+universe_93.R,_start,,+ black,,+ self_employed,,,,+ loan_to_value,+ denied_PMI
+universe_94.R,_start,,+ black,,+ self_employed,,,,+ loan_to_value,
+universe_95.R,_start,,+ black,,+ self_employed,,,,,+ denied_PMI
+universe_96.R,_start,,+ black,,+ self_employed,,,,,
+universe_97.R,_start,,+ black,,,+ married,+ bad_history,+ PI_ratio,+ loan_to_value,+ denied_PMI
+universe_98.R,_start,,+ black,,,+ married,+ bad_history,+ PI_ratio,+ loan_to_value,
+universe_99.R,_start,,+ black,,,+ married,+ bad_history,+ PI_ratio,,+ denied_PMI
+universe_100.R,_start,,+ black,,,+ married,+ bad_history,+ PI_ratio,,
+universe_101.R,_start,,+ black,,,+ married,+ bad_history,,+ loan_to_value,+ denied_PMI
+universe_102.R,_start,,+ black,,,+ married,+ bad_history,,+ loan_to_value,
+universe_103.R,_start,,+ black,,,+ married,+ bad_history,,,+ denied_PMI
+universe_104.R,_start,,+ black,,,+ married,+ bad_history,,,
+universe_105.R,_start,,+ black,,,+ married,,+ PI_ratio,+ loan_to_value,+ denied_PMI
+universe_106.R,_start,,+ black,,,+ married,,+ PI_ratio,+ loan_to_value,
+universe_107.R,_start,,+ black,,,+ married,,+ PI_ratio,,+ denied_PMI
+universe_108.R,_start,,+ black,,,+ married,,+ PI_ratio,,
+universe_109.R,_start,,+ black,,,+ married,,,+ loan_to_value,+ denied_PMI
+universe_110.R,_start,,+ black,,,+ married,,,+ loan_to_value,
+universe_111.R,_start,,+ black,,,+ married,,,,+ denied_PMI
+universe_112.R,_start,,+ black,,,+ married,,,,
+universe_113.R,_start,,+ black,,,,+ bad_history,+ PI_ratio,+ loan_to_value,+ denied_PMI
+universe_114.R,_start,,+ black,,,,+ bad_history,+ PI_ratio,+ loan_to_value,
+universe_115.R,_start,,+ black,,,,+ bad_history,+ PI_ratio,,+ denied_PMI
+universe_116.R,_start,,+ black,,,,+ bad_history,+ PI_ratio,,
+universe_117.R,_start,,+ black,,,,+ bad_history,,+ loan_to_value,+ denied_PMI
+universe_118.R,_start,,+ black,,,,+ bad_history,,+ loan_to_value,
+universe_119.R,_start,,+ black,,,,+ bad_history,,,+ denied_PMI
+universe_120.R,_start,,+ black,,,,+ bad_history,,,
+universe_121.R,_start,,+ black,,,,,+ PI_ratio,+ loan_to_value,+ denied_PMI
+universe_122.R,_start,,+ black,,,,,+ PI_ratio,+ loan_to_value,
+universe_123.R,_start,,+ black,,,,,+ PI_ratio,,+ denied_PMI
+universe_124.R,_start,,+ black,,,,,+ PI_ratio,,
+universe_125.R,_start,,+ black,,,,,,+ loan_to_value,+ denied_PMI
+universe_126.R,_start,,+ black,,,,,,+ loan_to_value,
+universe_127.R,_start,,+ black,,,,,,,+ denied_PMI
+universe_128.R,_start,,+ black,,,,,,,
+universe_129.R,_start,,,+ housing_expense_ratio,+ self_employed,+ married,+ bad_history,+ PI_ratio,+ loan_to_value,+ denied_PMI
+universe_130.R,_start,,,+ housing_expense_ratio,+ self_employed,+ married,+ bad_history,+ PI_ratio,+ loan_to_value,
+universe_131.R,_start,,,+ housing_expense_ratio,+ self_employed,+ married,+ bad_history,+ PI_ratio,,+ denied_PMI
+universe_132.R,_start,,,+ housing_expense_ratio,+ self_employed,+ married,+ bad_history,+ PI_ratio,,
+universe_133.R,_start,,,+ housing_expense_ratio,+ self_employed,+ married,+ bad_history,,+ loan_to_value,+ denied_PMI
+universe_134.R,_start,,,+ housing_expense_ratio,+ self_employed,+ married,+ bad_history,,+ loan_to_value,
+universe_135.R,_start,,,+ housing_expense_ratio,+ self_employed,+ married,+ bad_history,,,+ denied_PMI
+universe_136.R,_start,,,+ housing_expense_ratio,+ self_employed,+ married,+ bad_history,,,
+universe_137.R,_start,,,+ housing_expense_ratio,+ self_employed,+ married,,+ PI_ratio,+ loan_to_value,+ denied_PMI
+universe_138.R,_start,,,+ housing_expense_ratio,+ self_employed,+ married,,+ PI_ratio,+ loan_to_value,
+universe_139.R,_start,,,+ housing_expense_ratio,+ self_employed,+ married,,+ PI_ratio,,+ denied_PMI
+universe_140.R,_start,,,+ housing_expense_ratio,+ self_employed,+ married,,+ PI_ratio,,
+universe_141.R,_start,,,+ housing_expense_ratio,+ self_employed,+ married,,,+ loan_to_value,+ denied_PMI
+universe_142.R,_start,,,+ housing_expense_ratio,+ self_employed,+ married,,,+ loan_to_value,
+universe_143.R,_start,,,+ housing_expense_ratio,+ self_employed,+ married,,,,+ denied_PMI
+universe_144.R,_start,,,+ housing_expense_ratio,+ self_employed,+ married,,,,
+universe_145.R,_start,,,+ housing_expense_ratio,+ self_employed,,+ bad_history,+ PI_ratio,+ loan_to_value,+ denied_PMI
+universe_146.R,_start,,,+ housing_expense_ratio,+ self_employed,,+ bad_history,+ PI_ratio,+ loan_to_value,
+universe_147.R,_start,,,+ housing_expense_ratio,+ self_employed,,+ bad_history,+ PI_ratio,,+ denied_PMI
+universe_148.R,_start,,,+ housing_expense_ratio,+ self_employed,,+ bad_history,+ PI_ratio,,
+universe_149.R,_start,,,+ housing_expense_ratio,+ self_employed,,+ bad_history,,+ loan_to_value,+ denied_PMI
+universe_150.R,_start,,,+ housing_expense_ratio,+ self_employed,,+ bad_history,,+ loan_to_value,
+universe_151.R,_start,,,+ housing_expense_ratio,+ self_employed,,+ bad_history,,,+ denied_PMI
+universe_152.R,_start,,,+ housing_expense_ratio,+ self_employed,,+ bad_history,,,
+universe_153.R,_start,,,+ housing_expense_ratio,+ self_employed,,,+ PI_ratio,+ loan_to_value,+ denied_PMI
+universe_154.R,_start,,,+ housing_expense_ratio,+ self_employed,,,+ PI_ratio,+ loan_to_value,
+universe_155.R,_start,,,+ housing_expense_ratio,+ self_employed,,,+ PI_ratio,,+ denied_PMI
+universe_156.R,_start,,,+ housing_expense_ratio,+ self_employed,,,+ PI_ratio,,
+universe_157.R,_start,,,+ housing_expense_ratio,+ self_employed,,,,+ loan_to_value,+ denied_PMI
+universe_158.R,_start,,,+ housing_expense_ratio,+ self_employed,,,,+ loan_to_value,
+universe_159.R,_start,,,+ housing_expense_ratio,+ self_employed,,,,,+ denied_PMI
+universe_160.R,_start,,,+ housing_expense_ratio,+ self_employed,,,,,
+universe_161.R,_start,,,+ housing_expense_ratio,,+ married,+ bad_history,+ PI_ratio,+ loan_to_value,+ denied_PMI
+universe_162.R,_start,,,+ housing_expense_ratio,,+ married,+ bad_history,+ PI_ratio,+ loan_to_value,
+universe_163.R,_start,,,+ housing_expense_ratio,,+ married,+ bad_history,+ PI_ratio,,+ denied_PMI
+universe_164.R,_start,,,+ housing_expense_ratio,,+ married,+ bad_history,+ PI_ratio,,
+universe_165.R,_start,,,+ housing_expense_ratio,,+ married,+ bad_history,,+ loan_to_value,+ denied_PMI
+universe_166.R,_start,,,+ housing_expense_ratio,,+ married,+ bad_history,,+ loan_to_value,
+universe_167.R,_start,,,+ housing_expense_ratio,,+ married,+ bad_history,,,+ denied_PMI
+universe_168.R,_start,,,+ housing_expense_ratio,,+ married,+ bad_history,,,
+universe_169.R,_start,,,+ housing_expense_ratio,,+ married,,+ PI_ratio,+ loan_to_value,+ denied_PMI
+universe_170.R,_start,,,+ housing_expense_ratio,,+ married,,+ PI_ratio,+ loan_to_value,
+universe_171.R,_start,,,+ housing_expense_ratio,,+ married,,+ PI_ratio,,+ denied_PMI
+universe_172.R,_start,,,+ housing_expense_ratio,,+ married,,+ PI_ratio,,
+universe_173.R,_start,,,+ housing_expense_ratio,,+ married,,,+ loan_to_value,+ denied_PMI
+universe_174.R,_start,,,+ housing_expense_ratio,,+ married,,,+ loan_to_value,
+universe_175.R,_start,,,+ housing_expense_ratio,,+ married,,,,+ denied_PMI
+universe_176.R,_start,,,+ housing_expense_ratio,,+ married,,,,
+universe_177.R,_start,,,+ housing_expense_ratio,,,+ bad_history,+ PI_ratio,+ loan_to_value,+ denied_PMI
+universe_178.R,_start,,,+ housing_expense_ratio,,,+ bad_history,+ PI_ratio,+ loan_to_value,
+universe_179.R,_start,,,+ housing_expense_ratio,,,+ bad_history,+ PI_ratio,,+ denied_PMI
+universe_180.R,_start,,,+ housing_expense_ratio,,,+ bad_history,+ PI_ratio,,
+universe_181.R,_start,,,+ housing_expense_ratio,,,+ bad_history,,+ loan_to_value,+ denied_PMI
+universe_182.R,_start,,,+ housing_expense_ratio,,,+ bad_history,,+ loan_to_value,
+universe_183.R,_start,,,+ housing_expense_ratio,,,+ bad_history,,,+ denied_PMI
+universe_184.R,_start,,,+ housing_expense_ratio,,,+ bad_history,,,
+universe_185.R,_start,,,+ housing_expense_ratio,,,,+ PI_ratio,+ loan_to_value,+ denied_PMI
+universe_186.R,_start,,,+ housing_expense_ratio,,,,+ PI_ratio,+ loan_to_value,
+universe_187.R,_start,,,+ housing_expense_ratio,,,,+ PI_ratio,,+ denied_PMI
+universe_188.R,_start,,,+ housing_expense_ratio,,,,+ PI_ratio,,
+universe_189.R,_start,,,+ housing_expense_ratio,,,,,+ loan_to_value,+ denied_PMI
+universe_190.R,_start,,,+ housing_expense_ratio,,,,,+ loan_to_value,
+universe_191.R,_start,,,+ housing_expense_ratio,,,,,,+ denied_PMI
+universe_192.R,_start,,,+ housing_expense_ratio,,,,,,
+universe_193.R,_start,,,,+ self_employed,+ married,+ bad_history,+ PI_ratio,+ loan_to_value,+ denied_PMI
+universe_194.R,_start,,,,+ self_employed,+ married,+ bad_history,+ PI_ratio,+ loan_to_value,
+universe_195.R,_start,,,,+ self_employed,+ married,+ bad_history,+ PI_ratio,,+ denied_PMI
+universe_196.R,_start,,,,+ self_employed,+ married,+ bad_history,+ PI_ratio,,
+universe_197.R,_start,,,,+ self_employed,+ married,+ bad_history,,+ loan_to_value,+ denied_PMI
+universe_198.R,_start,,,,+ self_employed,+ married,+ bad_history,,+ loan_to_value,
+universe_199.R,_start,,,,+ self_employed,+ married,+ bad_history,,,+ denied_PMI
+universe_200.R,_start,,,,+ self_employed,+ married,+ bad_history,,,
+universe_201.R,_start,,,,+ self_employed,+ married,,+ PI_ratio,+ loan_to_value,+ denied_PMI
+universe_202.R,_start,,,,+ self_employed,+ married,,+ PI_ratio,+ loan_to_value,
+universe_203.R,_start,,,,+ self_employed,+ married,,+ PI_ratio,,+ denied_PMI
+universe_204.R,_start,,,,+ self_employed,+ married,,+ PI_ratio,,
+universe_205.R,_start,,,,+ self_employed,+ married,,,+ loan_to_value,+ denied_PMI
+universe_206.R,_start,,,,+ self_employed,+ married,,,+ loan_to_value,
+universe_207.R,_start,,,,+ self_employed,+ married,,,,+ denied_PMI
+universe_208.R,_start,,,,+ self_employed,+ married,,,,
+universe_209.R,_start,,,,+ self_employed,,+ bad_history,+ PI_ratio,+ loan_to_value,+ denied_PMI
+universe_210.R,_start,,,,+ self_employed,,+ bad_history,+ PI_ratio,+ loan_to_value,
+universe_211.R,_start,,,,+ self_employed,,+ bad_history,+ PI_ratio,,+ denied_PMI
+universe_212.R,_start,,,,+ self_employed,,+ bad_history,+ PI_ratio,,
+universe_213.R,_start,,,,+ self_employed,,+ bad_history,,+ loan_to_value,+ denied_PMI
+universe_214.R,_start,,,,+ self_employed,,+ bad_history,,+ loan_to_value,
+universe_215.R,_start,,,,+ self_employed,,+ bad_history,,,+ denied_PMI
+universe_216.R,_start,,,,+ self_employed,,+ bad_history,,,
+universe_217.R,_start,,,,+ self_employed,,,+ PI_ratio,+ loan_to_value,+ denied_PMI
+universe_218.R,_start,,,,+ self_employed,,,+ PI_ratio,+ loan_to_value,
+universe_219.R,_start,,,,+ self_employed,,,+ PI_ratio,,+ denied_PMI
+universe_220.R,_start,,,,+ self_employed,,,+ PI_ratio,,
+universe_221.R,_start,,,,+ self_employed,,,,+ loan_to_value,+ denied_PMI
+universe_222.R,_start,,,,+ self_employed,,,,+ loan_to_value,
+universe_223.R,_start,,,,+ self_employed,,,,,+ denied_PMI
+universe_224.R,_start,,,,+ self_employed,,,,,
+universe_225.R,_start,,,,,+ married,+ bad_history,+ PI_ratio,+ loan_to_value,+ denied_PMI
+universe_226.R,_start,,,,,+ married,+ bad_history,+ PI_ratio,+ loan_to_value,
+universe_227.R,_start,,,,,+ married,+ bad_history,+ PI_ratio,,+ denied_PMI
+universe_228.R,_start,,,,,+ married,+ bad_history,+ PI_ratio,,
+universe_229.R,_start,,,,,+ married,+ bad_history,,+ loan_to_value,+ denied_PMI
+universe_230.R,_start,,,,,+ married,+ bad_history,,+ loan_to_value,
+universe_231.R,_start,,,,,+ married,+ bad_history,,,+ denied_PMI
+universe_232.R,_start,,,,,+ married,+ bad_history,,,
+universe_233.R,_start,,,,,+ married,,+ PI_ratio,+ loan_to_value,+ denied_PMI
+universe_234.R,_start,,,,,+ married,,+ PI_ratio,+ loan_to_value,
+universe_235.R,_start,,,,,+ married,,+ PI_ratio,,+ denied_PMI
+universe_236.R,_start,,,,,+ married,,+ PI_ratio,,
+universe_237.R,_start,,,,,+ married,,,+ loan_to_value,+ denied_PMI
+universe_238.R,_start,,,,,+ married,,,+ loan_to_value,
+universe_239.R,_start,,,,,+ married,,,,+ denied_PMI
+universe_240.R,_start,,,,,+ married,,,,
+universe_241.R,_start,,,,,,+ bad_history,+ PI_ratio,+ loan_to_value,+ denied_PMI
+universe_242.R,_start,,,,,,+ bad_history,+ PI_ratio,+ loan_to_value,
+universe_243.R,_start,,,,,,+ bad_history,+ PI_ratio,,+ denied_PMI
+universe_244.R,_start,,,,,,+ bad_history,+ PI_ratio,,
+universe_245.R,_start,,,,,,+ bad_history,,+ loan_to_value,+ denied_PMI
+universe_246.R,_start,,,,,,+ bad_history,,+ loan_to_value,
+universe_247.R,_start,,,,,,+ bad_history,,,+ denied_PMI
+universe_248.R,_start,,,,,,+ bad_history,,,
+universe_249.R,_start,,,,,,,+ PI_ratio,+ loan_to_value,+ denied_PMI
+universe_250.R,_start,,,,,,,+ PI_ratio,+ loan_to_value,
+universe_251.R,_start,,,,,,,+ PI_ratio,,+ denied_PMI
+universe_252.R,_start,,,,,,,+ PI_ratio,,
+universe_253.R,_start,,,,,,,,+ loan_to_value,+ denied_PMI
+universe_254.R,_start,,,,,,,,+ loan_to_value,
+universe_255.R,_start,,,,,,,,,+ denied_PMI
+universe_256.R,_start,,,,,,,,,
