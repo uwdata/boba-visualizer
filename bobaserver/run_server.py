@@ -5,6 +5,7 @@ import os
 import pandas as pd
 import numpy as np
 from scipy import stats
+import warnings
 from bobaserver import app
 from .util import read_json, read_key_safe, print_fail, print_warn, remove_na
 
@@ -38,7 +39,7 @@ def read_meta():
     err, res = read_json(fn)
     if (err):
         print_help(err['message'])
-    
+
     # check summary.csv
     fn = os.path.join(app.data_folder, 'summary.csv')
     check_path(fn)
@@ -77,10 +78,11 @@ def read_meta():
 
     # check sensitivity flag
     sen = read_key_safe(vis, ['sensitivity'], 'ks')
-    if sen not in ('f', 'ks'):
+    if sen not in ('f', 'ks', 'ad'):
         msg = f'Invalid sensitivity flag "{sen}". Available values:\n'
         msg += ' - "f": algorithm based on the F-test\n'
         msg += ' - "ks": algorithm based on Kolmogorov–Smirnov statistic'
+        msg += ' - "ad": k-samples Anderson-Darling test'
         print_help(msg)
 
     # store meta data
@@ -191,20 +193,41 @@ def sensitivity_ks (df, col):
     return res
 
 
+def sensitivity_ad (df, col):
+    """ use k-samples Anderson-Darling test to compute sensitivity """
+    res = {}
+    for d in app.decisions:
+        dec = d['var']
+        groups = df.groupby(dec)[col].apply(list).tolist()
+        with warnings.catch_warnings():
+            # suppress the "p-value capped" warning
+            warnings.simplefilter('ignore')
+
+            # run the test
+            ad = stats.anderson_ksamp(groups)
+            res[dec] = ad.statistic
+    return res
+
+
 def cal_sensitivity():
     """ Compute sensitivity """
     # read the prediction and join with summary
     df = read_results('point_estimate', dtype=float)
     col = app.schema['point_estimate']['field']
+    method = app.visualizer['sensitivity']
 
-    # compute one-way F-test
-    f = sensitivity_f_test(df, col)
-
-    # compute Kolmogorov-Smirnov statistic
-    ks = sensitivity_ks(df, col)
+    if method == 'f':
+        # one-way F-test
+        score = sensitivity_f_test(df, col)
+    if method == 'ks':
+        # Kolmogorov-Smirnov statistic
+        score = sensitivity_ks(df, col)
+    if method == 'ad':
+        # k-samples Anderson-Darling test
+        score = sensitivity_ad(df, col)
 
     # save
-    app.sensitivity = {'f': f, 'ks': ks}
+    app.sensitivity = score
 
 
 @click.command()
