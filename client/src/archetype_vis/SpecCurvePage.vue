@@ -1,6 +1,6 @@
 <template>
   <div class="mt-3 ml-3">
-    <div id="vis-container"></div>
+    <div id="spec-curve-container"></div>
   </div>
 </template>
 
@@ -67,14 +67,14 @@
 
           let chart = new SpecCurvePlot()
           chart.axis_label = store.configs.x_axis
-          chart.draw('#vis-container', data)
+          chart.draw('#spec-curve-container', data)
         })
     }
   }
 </script>
 
 <style lang="stylus">
-  #vis-container
+  #spec-curve-container
     background-color #EAF2F3
 
   .spec-curve-envelope
