@@ -6,6 +6,7 @@ import SpecCurvePage from '../archetype_vis/SpecCurvePage.vue'
 import GridPage from '../archetype_vis/GridPage.vue'
 import ChartsPage from '../archetype_vis/ChartsPage.vue'
 import HistPage from '../archetype_vis/HistPage.vue'
+import ForestPage from '../archetype_vis/ForestPlotPage.vue'
 
 Vue.use(Router)
 
@@ -34,6 +35,10 @@ export default new Router({
       path: '/hist',
       name: 'hist',
       component: HistPage
+    },
+    {
+      path: '/forest',
+      component: ForestPage
     }
   ]
 })
