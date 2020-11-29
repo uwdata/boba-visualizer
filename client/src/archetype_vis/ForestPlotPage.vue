@@ -8,7 +8,7 @@
     <!--caption-->
     <div class="text-small mt-3 ml-5 mr-3">
       <p v-if="!err" class="text-muted">
-        Point estimates (ordered by magnitude and 95% confidence intervals.
+        Point estimates (ordered by magnitude) and 95% confidence intervals.
         <span v-if="omitted">
           Only the top {{cutoff}} and bottom {{cutoff}} universes are shown.</span>
       </p>
