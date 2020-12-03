@@ -8,6 +8,7 @@ import ChartsPage from '../archetype_vis/ChartsPage.vue'
 import HistPage from '../archetype_vis/HistPage.vue'
 import ForestPage from '../archetype_vis/ForestPlotPage.vue'
 import VolcanoPage from '../archetype_vis/VolcanoPage.vue'
+import ContourPage from '../archetype_vis/ContourPage.vue'
 
 Vue.use(Router)
 
@@ -44,6 +45,10 @@ export default new Router({
     {
       path: '/volcano',
       component: VolcanoPage
+    },
+    {
+      path: '/contour',
+      component: ContourPage
     }
   ]
 })
