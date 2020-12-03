@@ -9,6 +9,7 @@ import HistPage from '../archetype_vis/HistPage.vue'
 import ForestPage from '../archetype_vis/ForestPlotPage.vue'
 import VolcanoPage from '../archetype_vis/VolcanoPage.vue'
 import ContourPage from '../archetype_vis/ContourPage.vue'
+import FacetPage from '../archetype_vis/FacetPage.vue'
 
 Vue.use(Router)
 
@@ -24,31 +25,12 @@ export default new Router({
       name: 'charts',
       component: ChartsPage
     },
-    {
-      path: '/grid',
-      component: GridPage
-    },
-    {
-      path: '/spec-curve',
-      name: 'spec-curve',
-      component: SpecCurvePage
-    },
-    {
-      path: '/hist',
-      name: 'hist',
-      component: HistPage
-    },
-    {
-      path: '/forest',
-      component: ForestPage
-    },
-    {
-      path: '/volcano',
-      component: VolcanoPage
-    },
-    {
-      path: '/contour',
-      component: ContourPage
-    }
+    {path: '/grid', component: GridPage},
+    {path: '/spec-curve', component: SpecCurvePage},
+    {path: '/hist', component: HistPage},
+    {path: '/forest',component: ForestPage},
+    {path: '/volcano', component: VolcanoPage},
+    {path: '/contour', component: ContourPage},
+    {path: '/facet', component: FacetPage}
   ]
 })

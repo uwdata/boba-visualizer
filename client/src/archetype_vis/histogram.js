@@ -13,6 +13,13 @@ class HistPlot {
     }
     this.padding_bottom = 10
     this.padding_left = 20
+
+    this.y_label = 'Frequency'
+    this.n_bins = 80
+
+    // optional, for multi-view consistency
+    this.x_range = null
+    this.y_range = null
   }
 
   draw (parent, data, column, cutoff) {
@@ -36,16 +43,16 @@ class HistPlot {
     // bins and scale
     data = _.map(data, (d) => d[column])
     let xs = d3.scaleLinear()
-      .domain([d3.min(data), d3.max(data)])
+      .domain(this.x_range || [d3.min(data), d3.max(data)])
       .range([0, width])
     let histogram = d3.histogram()
       .value((d) => d)
       .domain(xs.domain())
-      .thresholds(80)
+      .thresholds(this.n_bins)
     let bins =histogram(data)
 
     let ys = d3.scaleLinear()
-      .domain([0, d3.max(bins, (bin) => bin.length)]).nice()
+      .domain(this.y_range || [0, d3.max(bins, (bin) => bin.length)]).nice()
       .range([height, 0])
 
     // draw axis
@@ -106,7 +113,7 @@ class HistPlot {
       .attr('y', - 38 - this.padding_left)
       .attr('x', -(height / 2))
       .style('text-anchor', 'middle')
-      .text('Frequency')
+      .text(this.y_label)
     svg.append('text')
       .attr('y', height + this.padding_bottom + 38)
       .attr('x', width / 2)
