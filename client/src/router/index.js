@@ -7,6 +7,7 @@ import GridPage from '../archetype_vis/GridPage.vue'
 import ChartsPage from '../archetype_vis/ChartsPage.vue'
 import HistPage from '../archetype_vis/HistPage.vue'
 import ForestPage from '../archetype_vis/ForestPlotPage.vue'
+import VolcanoPage from '../archetype_vis/VolcanoPage.vue'
 
 Vue.use(Router)
 
@@ -39,6 +40,10 @@ export default new Router({
     {
       path: '/forest',
       component: ForestPage
+    },
+    {
+      path: '/volcano',
+      component: VolcanoPage
     }
   ]
 })
