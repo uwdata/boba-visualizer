@@ -10,6 +10,7 @@
         <li><router-link to="/forest">Forest Plot (Silberzahn 2018)</router-link></li>
         <li><router-link to="/volcano">Volcano Plot (Patel 2015)</router-link></li>
         <li><router-link to="/contour">Contour Plot (Patel 2015)</router-link></li>
+        <li><router-link to="/cdf">CDF Plot</router-link></li>
       </ul>
     </div>
   </div>
