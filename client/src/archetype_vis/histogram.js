@@ -15,7 +15,9 @@ class HistPlot {
     this.padding_left = 20
 
     this.y_label = 'Frequency'
+    this.x_label = ''
     this.n_bins = 80
+    this.count = true // proportion or raw count
 
     // optional, for multi-view consistency
     this.x_range = null
@@ -50,9 +52,13 @@ class HistPlot {
       .domain(xs.domain())
       .thresholds(this.n_bins)
     let bins =histogram(data)
+    bins = _.map(bins, (arr) => {
+      return {x0: arr.x0, x1: arr.x1,
+        y: this.count ? arr.length : arr.length / data.length}
+    })
 
     let ys = d3.scaleLinear()
-      .domain(this.y_range || [0, d3.max(bins, (bin) => bin.length)]).nice()
+      .domain(this.y_range || [0, d3.max(bins, (bin) => bin.y)]).nice()
       .range([height, 0])
 
     // draw axis
@@ -95,17 +101,19 @@ class HistPlot {
       .append('rect')
       .attr('x', (d) => xs(d.x0))
       .attr('width', (d) => xs(d.x1) - xs(d.x0))
-      .attr('y', (d) => ys(d.length))
-      .attr('height', (d) => ys(0) - ys(d.length))
+      .attr('y', (d) => ys(d.y))
+      .attr('height', (d) => ys(0) - ys(d.y))
       .attr('fill', '#fff')
       .attr('stroke', '#222')
       .attr('stroke-width', 1)
 
     // draw the dashed line
-    svg.append('path')
-      .attr('d', `M${xs(cutoff)},-${this.margin.top}V${height + this.padding_bottom}`)
-      .attr('stroke', '#f00')
-      .attr('stroke-dasharray', '4 3')
+    if (cutoff != null) {
+      svg.append('path')
+        .attr('d', `M${xs(cutoff)},-${this.margin.top}V${height + this.padding_bottom}`)
+        .attr('stroke', '#f00')
+        .attr('stroke-dasharray', '4 3')
+    }
 
     // axis labels
     svg.append('text')
@@ -118,7 +126,7 @@ class HistPlot {
       .attr('y', height + this.padding_bottom + 38)
       .attr('x', width / 2)
       .style('text-anchor', 'middle')
-      .text(column)
+      .text(this.x_label || column)
   }
 }
 

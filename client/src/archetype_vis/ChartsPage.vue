@@ -11,6 +11,7 @@
         <li><router-link to="/volcano">Volcano Plot (Patel 2015)</router-link></li>
         <li><router-link to="/contour">Contour Plot (Patel 2015)</router-link></li>
         <li><router-link to="/cdf">CDF Plot</router-link></li>
+        <li><router-link to="/p-curve">P-Curve and Histogram</router-link></li>
       </ul>
     </div>
   </div>
