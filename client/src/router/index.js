@@ -12,6 +12,7 @@ import ContourPage from '../archetype_vis/ContourPage.vue'
 import FacetPage from '../archetype_vis/FacetPage.vue'
 import DensityPage from '../archetype_vis/DensityPage.vue'
 import PCurvePage from '../archetype_vis/PCurvePage.vue'
+import ParallelLinePlot from '../archetype_vis/ParallelLinePlot.vue'
 
 Vue.use(Router)
 
@@ -35,6 +36,7 @@ export default new Router({
     {path: '/contour', component: ContourPage},
     {path: '/facet', component: FacetPage},
     {path: '/cdf', component: DensityPage},
-    {path: '/p-curve', component: PCurvePage}
+    {path: '/p-curve', component: PCurvePage},
+    {path: '/parallel', component: ParallelLinePlot}
   ]
 })
