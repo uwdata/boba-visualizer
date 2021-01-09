@@ -9,7 +9,7 @@ class HistPlot {
       top: 15,
       right: 15,
       bottom: 60,
-      left: 70
+      left: 90
     }
     this.padding_bottom = 10
     this.padding_left = 20
@@ -18,6 +18,8 @@ class HistPlot {
     this.x_label = ''
     this.n_bins = 80
     this.count = true // proportion or raw count
+    this.axis_font_size = 16
+    this.label_font_size = 20
 
     // optional, for multi-view consistency
     this.x_range = null
@@ -93,6 +95,8 @@ class HistPlot {
       .remove()
     y_axis.select('.domain')
       .remove()
+    x_axis.selectAll('text').attr('font-size', this.axis_font_size)
+    y_axis.selectAll('text').attr('font-size', this.axis_font_size)
 
     // draw bars
     svg.selectAll('rect')
@@ -116,17 +120,20 @@ class HistPlot {
     }
 
     // axis labels
+    let gap = 28 + this.axis_font_size
     svg.append('text')
       .attr('transform', 'rotate(-90)')
-      .attr('y', - 38 - this.padding_left)
+      .attr('y', - gap - this.padding_left)
       .attr('x', -(height / 2))
       .style('text-anchor', 'middle')
       .text(this.y_label)
+      .attr('font-size', this.label_font_size)
     svg.append('text')
-      .attr('y', height + this.padding_bottom + 38)
+      .attr('y', height + this.padding_bottom + gap)
       .attr('x', width / 2)
       .style('text-anchor', 'middle')
       .text(this.x_label || column)
+      .attr('font-size', this.label_font_size)
   }
 }
 
