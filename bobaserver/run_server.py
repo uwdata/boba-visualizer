@@ -4,8 +4,7 @@ import click
 import os
 import pandas as pd
 import numpy as np
-from scipy import stats
-import warnings
+from .bobastats import sensitivity
 from bobaserver import app
 from .util import read_json, read_key_safe, print_fail, print_warn, remove_na
 
@@ -141,28 +140,8 @@ def read_results (field, dtype=str, diagnostics=True):
 def sensitivity_f_test (df, col):
     """ Compute one-way F-test to estimate decision sensitivity """
     # compute one-way F-test
-    res = {}
-    x_mean = df[col].mean()
-    for d in app.decisions:
-        dec = d['var']
-        groups = []
-        for opt in d['options']:
-            groups.append(df.loc[df[dec] == opt][['uid', col]])
-
-        # ms between
-        ms_b = 0
-        for g in groups:
-            ms_b += len(g) * (g[col].mean() - x_mean)**2
-        ms_b /= len(groups) - 1
-
-        # ms within
-        ms_w = 0
-        for g in groups:
-            g_mean = g[col].mean()
-            ms_w += sum((g[col] - g_mean)**2)
-        ms_w /= len(df) - len(groups)
-
-        res[dec] = ms_b / ms_w
+    res = {d['var']: sensitivity.sensitivity_f(df, d['var'], d['options'],
+        col) for d in app.decisions}
 
     # check NaN
     for d in res:
@@ -176,37 +155,14 @@ def sensitivity_f_test (df, col):
 
 def sensitivity_ks (df, col):
     """ compute Kolmogorov-Smirnov statistic """
-    res = {}
-    for d in app.decisions:
-        dec = d['var']
-        groups = []
-        for opt in d['options']:
-            groups.append(df.loc[df[dec] == opt][col].to_numpy())
-
-        kss = []
-        for i in range(len(groups)):
-            for j in range(i + 1, len(groups)):
-                ks = stats.ks_2samp(groups[i], groups[j])
-                kss.append(ks.statistic)  # ks.pvalue gives p-value
-
-        res[dec] = np.median(kss)  # median KS stat
-    return res
+    return {d['var']: sensitivity.sensitivity_ks(df, d['var'], d['options'],
+        col) for d in app.decisions}
 
 
 def sensitivity_ad (df, col):
     """ use k-samples Anderson-Darling test to compute sensitivity """
-    res = {}
-    for d in app.decisions:
-        dec = d['var']
-        groups = df.groupby(dec)[col].apply(list).tolist()
-        with warnings.catch_warnings():
-            # suppress the "p-value capped" warning
-            warnings.simplefilter('ignore')
-
-            # run the test
-            ad = stats.anderson_ksamp(groups)
-            res[dec] = ad.statistic
-    return res
+    return {d['var']: sensitivity.sensitivity_ad(df, d['var'], d['options'],
+         col)[0] for d in app.decisions}
 
 
 def cal_sensitivity():
