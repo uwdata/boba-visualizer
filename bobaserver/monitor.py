@@ -7,6 +7,10 @@ from boba.bobarun import BobaRun
 from bobaserver import app
 from .util import read_json, read_key_safe, print_fail, print_warn
 
+# global
+from concurrent.futures import ThreadPoolExecutor
+executor = ThreadPoolExecutor(2)
+
 
 def check_path(p, more=''):
   """Check if the path exists"""
@@ -41,6 +45,7 @@ def start_monitor ():
     'decisions': read_key_safe(res, ['decisions'], {}),
     'graph': read_key_safe(res, ['graph'], {})
   }
+  app.bobarun = BobaRun(app.data_folder)
 
 # entry (already defined in routes)
 # @app.route('/')
@@ -49,11 +54,9 @@ def start_monitor ():
 
 @app.route('/api/monitor/start_runtime', methods=['POST'])
 def start_runtime():
-  app.bobarun = BobaRun(app.data_folder)
-
   # TODO: compute universe order
-  # TODO: put on background process
-  app.bobarun.run_multiverse()
+  order = []
+  executor.submit(app.bobarun.run_multiverse, order)
   return jsonify({'status': 'success'}), 200
 
 
