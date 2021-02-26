@@ -193,12 +193,19 @@ def cal_sensitivity():
               help='The port to bind the server to')
 @click.option('--host', default='0.0.0.0', show_default=True,
               help='The interface to bind the server to')
+@click.option('--monitor', is_flag=True, help='Allow boba monitor')
 @click.version_option()
-def main(input, port, host):
+def main(input, port, host, monitor):
     check_path(input)
     app.data_folder = os.path.realpath(input)
-    read_meta()
-    cal_sensitivity()
+
+    # future fixme: separate the monitor server?
+    if not monitor:
+        read_meta()
+        cal_sensitivity()
+    else:
+        from .monitor import start_monitor
+        start_monitor()
 
     s_host = '127.0.0.1' if host == '0.0.0.0' else host
     msg = """\033[92m

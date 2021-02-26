@@ -9,7 +9,8 @@ with open("README.rst", "r") as fh:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = ['flask>=1.1.1', 'Click>=7.0', 'pandas>=1.0.1', 'scipy>=1.4.1']
+requirements = ['flask>=1.1.1', 'Click>=7.0', 'pandas>=1.0.1', 'scipy>=1.4.1',
+    'boba>=1.0.0']
 
 setup_requirements = []
 
