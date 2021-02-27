@@ -43,7 +43,8 @@ def get_pred():
     res = remove_na(res, 'point_estimate', dtype=float)
 
     res = [res[n].values.tolist() for n in header]
-    reply = {'status': 'success', 'data': res, 'header': header}
+    reply = {'status': 'success', 'data': res, 'header': header,
+        'sensitivity': app.sensitivity}
     return jsonify(reply), 200
 
 # read uncertainty
@@ -77,7 +78,7 @@ def get_overview():
     res = {'schema': [app.schema[d]['name'] for d in app.schema],
         'decisions': app.decisions}
     res.update(app.visualizer)
-    reply = {'status': 'success', 'data': res, 'sensitivity': app.sensitivity}
+    reply = {'status': 'success', 'data': res}
     return jsonify(reply), 200
 
 # read the actual and predicted data of all data points in a universe

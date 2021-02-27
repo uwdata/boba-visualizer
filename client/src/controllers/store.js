@@ -179,9 +179,6 @@ class Store {
             cfg.schema = _.zipObject(msg.data.schema, msg.data.schema)
             this.configs = _.assign(default_config, cfg)
 
-            // sensitivity
-            this.sensitivity = msg.sensitivity
-
             resolve()
           } else {
             reject(msg.message || 'Internal server error.')
@@ -248,10 +245,8 @@ class Store {
               }
             }
 
-            // // compute sensitivity
-            // _.each(this.decisions, (x, dec) => {
-            //   this.sensitivity[dec] = this._computeSensitivity(dec)
-            // })
+            // sensitivity
+            this.sensitivity = msg.sensitivity
 
             resolve()
           } else {

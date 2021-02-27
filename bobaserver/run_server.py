@@ -43,7 +43,7 @@ def read_meta():
     fn = os.path.join(app.data_folder, 'summary.csv')
     check_path(fn)
 
-    # check if files exist in visualizer
+    # check file definition
     vis = read_key_safe(res, ['visualizer'], {})
     fs = read_key_safe(vis, ['files'], [])
     lookup = {}
@@ -52,8 +52,6 @@ def read_meta():
         check_required_field(f, 'id', prefix)
         check_required_field(f, 'path', prefix)
         f['multi'] = read_key_safe(f, ['multi'], False)
-        if not f['multi']:
-            check_path(os.path.join(app.data_folder, f['path']))
         lookup[f['id']] = f
 
     # read schema and join file
@@ -86,12 +84,27 @@ def read_meta():
 
     # store meta data
     app.schema = schema
+    app.summary = read_summary()
     app.decisions = read_key_safe(res, ['decisions'], {})
     app.visualizer = {
         "sensitivity": sen,
         "labels": read_key_safe(vis, ['labels'], {}),
         "graph": read_key_safe(res, ['graph'], {})
     }
+
+
+def check_result_files ():
+    """ check if result files exists """
+    fn = os.path.join(app.data_folder, 'overview.json')
+    err, res = read_json(fn)
+    vis = read_key_safe(res, ['visualizer'], {})
+    fs = read_key_safe(vis, ['files'], [])
+
+    prefix = 'In parsing visualizer.files in overview.json:\n'
+    for f in fs:
+        multi = read_key_safe(f, ['multi'], False)
+        if not multi:
+            check_path(os.path.join(app.data_folder, f['path']))
 
 
 def read_summary ():
@@ -199,13 +212,10 @@ def main(input, port, host, monitor):
     check_path(input)
     app.data_folder = os.path.realpath(input)
 
-    # future fixme: separate the monitor server?
+    read_meta()
     if not monitor:
-        read_meta()
+        check_result_files()
         cal_sensitivity()
-    else:
-        from .monitor import start_monitor
-        start_monitor()
 
     s_host = '127.0.0.1' if host == '0.0.0.0' else host
     msg = """\033[92m
