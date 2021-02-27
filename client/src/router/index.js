@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 
 import MainPage from '../pages/MainPage.vue'
+import MonitorPage from '../pages/MonitorPage.vue'
 import SpecCurvePage from '../archetype_vis/SpecCurvePage.vue'
 import GridPage from '../archetype_vis/GridPage.vue'
 import ChartsPage from '../archetype_vis/ChartsPage.vue'
@@ -22,6 +23,11 @@ export default new Router({
       path: '/',
       name: 'home',
       component: MainPage
+    },
+    {
+      path: '/monitor',
+      name: 'monitor',
+      component: MonitorPage
     },
     {
       path: '/charts',
