@@ -39,7 +39,7 @@ def read_csv(fn, row_start=1):
         return err, None
 
     res = []
-    with open(fn, newline='') as f:
+    with open(fn, 'r', newline='') as f:
         reader = csv.reader(f, delimiter=',')
         for row in reader:
             res.append(row)
