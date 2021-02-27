@@ -1,6 +1,7 @@
 'use strict'
 
 import http from 'axios'
+import {io} from 'socket.io-client'
 import _ from 'lodash'
 import {default_config} from './config'
 import {SCHEMA, DTYPE} from './constants'
@@ -75,6 +76,18 @@ class Store {
     this.color_by = null
     this.uncertainty_vis = null
     this.small_multiple_uids = []
+  }
+
+  initSocket () {
+    this.socket = io()
+
+    this.socket.on('connect', () => {
+      console.log('web socket connected')
+    })
+
+    this.socket.on('update', (msg) => {
+      console.log('update', msg)
+    })
   }
 
   /**

@@ -33,6 +33,9 @@
       return {
       }
     },
+    created () {
+      store.initSocket()
+    },
     mounted () {
       store.fetchUniverses()
         .then(() => {
@@ -42,7 +45,6 @@
           // notify other components that data is ready
           bus.$emit('data-ready')
         }, (e) => {
-          this.loading = false
           console.error(e)
         })
     }

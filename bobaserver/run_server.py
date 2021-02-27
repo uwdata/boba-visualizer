@@ -5,7 +5,8 @@ import os
 import pandas as pd
 import numpy as np
 from .bobastats import sensitivity
-from bobaserver import app
+from boba.bobarun import BobaRun
+from bobaserver import app, socketio, scheduler
 from .util import read_json, read_key_safe, print_fail, print_warn, remove_na
 
 
@@ -213,6 +214,7 @@ def main(input, port, host, monitor):
     app.data_folder = os.path.realpath(input)
 
     read_meta()
+    app.bobarun = BobaRun(app.data_folder)
     if not monitor:
         check_result_files()
         cal_sensitivity()
@@ -224,7 +226,8 @@ def main(input, port, host, monitor):
     Press CTRL+C to stop\033[0m""".format(s_host, port)
     print(msg)
 
-    app.run(host= host, port=f'{port}')
+    scheduler.start()
+    socketio.run(app, host= host, port=f'{port}')
 
 
 if __name__ == '__main__':
