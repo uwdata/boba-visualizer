@@ -1,6 +1,7 @@
 # routes related to the boba run monitor
 
 import os
+import time
 import pandas as pd
 from flask import jsonify, request
 from bobaserver import app, socketio, scheduler
@@ -9,23 +10,24 @@ from .util import read_csv, read_key_safe
 
 class BobaWatcher:
   def __init__(self):
-    pass
+    self.start_time = time.time()
 
   def check_progress(self):
     # remove self from scheduled jobs if boba run has finished
     if not app.bobarun.is_running():
       scheduler.remove_job('watcher')
-
     print('check progress')
-    # TODO: estimate remaining time
-    res = {'status': 'success',
-      'logs': [],
-      'is_running': app.bobarun.is_running()}
 
-    if os.path.exists(app.bobarun.file_log):
-      # TODO: check modified time before reading
-      err, t = read_csv(app.bobarun.file_log)
-      res['logs'] = t
+    # estimate remaining time
+    done = max(1, len(app.bobarun.exit_code)) # avoid division by 0
+    elapsed = time.time() - self.start_time
+    remain = app.bobarun.size - done
+    remain = int(elapsed * remain / done)
+
+    res = {'status': 'success',
+      'logs': app.bobarun.exit_code,
+      'time_left': remain,
+      'is_running': app.bobarun.is_running()}
 
     socketio.emit('update', res)
 
@@ -60,6 +62,9 @@ def start_runtime():
     app.bobawatcher = BobaWatcher()
     scheduler.add_job(app.bobawatcher.check_progress, 'interval', seconds=5,
       id='watcher', replace_existing=True)
+
+  # set batch size to 1 so the log would be updated more frequently
+  app.bobarun.batch_size = 1
 
   # the scheduler will ensure that we have only 1 running instance
   scheduler.add_job(app.bobarun.run_multiverse, args=[order], id='bobarun')

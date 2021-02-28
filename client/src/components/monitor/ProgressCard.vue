@@ -4,8 +4,8 @@
       <div class="d-flex justify-content-between">
         <div>
           <span class="font-weight-bold text-large">Status: {{status}}</span>
-          <span class="ml-3 text-muted text-small" v-if="time_left">
-          {{getTimeLeft()}} left ...</span>
+          <span v-if="time_left && status === STATUS.RUNNING" class="ml-3 text-muted text-small">
+            {{getTimeLeft()}} left ...</span>
         </div>
         <!--color legend-->
         <div><small v-if="failed" class="text-danger">{{failed}} errors</small></div>
@@ -13,7 +13,7 @@
 
       <!--progress bar-->
       <div class="w-100 d-flex mt-3 mn-progress-bar">
-        <div v-for="p in progress" :style="barStyle(p)"></div>
+        <div v-for="p in progress" class="mn-bar-segment" :style="barStyle(p)"></div>
       </div>
 
       <!--buttons-->
@@ -62,6 +62,7 @@
       })
       bus.$on('/monitor/update', () => {
         this.status = store.running_status
+        this.time_left = store.time_left
         this.calProgress(store.exit_code)
       })
     },
@@ -124,6 +125,7 @@
         store.startRuntime()
           .then(() => {
             this.calProgress([])
+            this.time_left = null
             this.status = store.running_status
             this.sending_request = false
           }, (err) => {
@@ -153,12 +155,8 @@
   border 1px solid #777
   border-radius 0.3rem
 
-.mn-bar-left
-  border-radius 0.3rem 0 0 0.3rem
-.mn-bar-right
-  border-radius 0 0.3rem 0.3rem 0
-.mn-bar-lone
-  border-radius 0.3rem
+.mn-bar-segment
+  transition width 0.3s
 
 .mn-button-primary
   min-width 200px

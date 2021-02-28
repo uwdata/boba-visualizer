@@ -71,6 +71,7 @@ class Store {
 
     // data for the monitor page
     this.running_status = ''
+    this.time_left = null
     this.exit_code = {} // key is UID, value is exit code
 
     // derived data but accessed by multiple views
@@ -345,8 +346,8 @@ class Store {
   _wrangleMonitorUpdate (msg) {
     this.exit_code = _.fromPairs(_.map(msg['logs'], (d) => [d[0], Number(d[1])]))
     let done = _.size(this.exit_code)
-
     this.running_status = this._deriveRunStatus(msg['is_running'], done, msg['size'])
+    this.time_left = msg['time_left']
   }
 
   _deriveRunStatus (is_running, done, total=-1) {
