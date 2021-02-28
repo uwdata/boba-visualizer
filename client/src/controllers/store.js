@@ -90,13 +90,13 @@ class Store {
     })
 
     this.socket.on('update', (msg) => {
-      this._wrangleMonitorStatus(msg)
+      this._wrangleMonitorUpdate(msg)
       console.log(msg)
       bus.$emit('/monitor/update')
     })
 
     this.socket.on('stopped', () => {
-      this.running_status = RUN_STATUS.STOPPED
+      this.running_status = this._deriveRunStatus(false, _.size(this.exit_code))
       bus.$emit('/monitor/update')
     })
   }
@@ -342,13 +342,18 @@ class Store {
     })
   }
 
-  _wrangleMonitorStatus (msg) {
+  _wrangleMonitorUpdate (msg) {
     this.exit_code = _.fromPairs(_.map(msg['logs'], (d) => [d[0], Number(d[1])]))
     let done = _.size(this.exit_code)
 
-    this.running_status = msg['is_running'] ? RUN_STATUS.RUNNING : (
+    this.running_status = this._deriveRunStatus(msg['is_running'], done, msg['size'])
+  }
+
+  _deriveRunStatus (is_running, done, total=-1) {
+    total = total < 0 ? this.universes.length : Number(total)
+    return is_running ? RUN_STATUS.RUNNING : (
       done < 1 ? RUN_STATUS.EMPTY : (
-        done < Number(msg['size']) ? RUN_STATUS.STOPPED : RUN_STATUS.DONE))
+        done < total ? RUN_STATUS.STOPPED : RUN_STATUS.DONE))
   }
 
   fetchMonitorStatus () {
@@ -357,7 +362,7 @@ class Store {
         .then((response) => {
           let msg = response.data
           if (msg && msg.status === 'success') {
-            this._wrangleMonitorStatus(msg)
+            this._wrangleMonitorUpdate(msg)
             resolve()
           } else { reject(msg.message || 'Internal server error.') }
         }, () => { reject('Network error.')})

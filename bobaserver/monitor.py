@@ -20,7 +20,6 @@ class BobaWatcher:
     # TODO: estimate remaining time
     res = {'status': 'success',
       'logs': [],
-      'size': app.bobarun.size,
       'is_running': app.bobarun.is_running()}
 
     if os.path.exists(app.bobarun.file_log):
@@ -60,7 +59,7 @@ def start_runtime():
     # periodic check for progress
     app.bobawatcher = BobaWatcher()
     scheduler.add_job(app.bobawatcher.check_progress, 'interval', seconds=5,
-      id='watcher')
+      id='watcher', replace_existing=True)
 
   # the scheduler will ensure that we have only 1 running instance
   scheduler.add_job(app.bobarun.run_multiverse, args=[order], id='bobarun')

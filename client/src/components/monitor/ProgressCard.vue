@@ -17,7 +17,7 @@
       </div>
 
       <!--buttons-->
-      <div class="mt-4 d-flex justify-content-end">
+      <div class="mt-4 d-flex justify-content-end" v-if="!sending_request">
         <b-button class="ml-3 mn-button-primary" variant="outline-secondary" size="sm" squared
                   v-if="status === STATUS.RUNNING" @click="onStopClick">STOP</b-button>
         <b-button class="ml-3 mn-button-primary" variant="outline-secondary" size="sm" squared
@@ -28,6 +28,8 @@
                   v-if="status === STATUS.STOPPED || status === STATUS.DONE"
                   @click="onStartClick">Rerun</b-button>
       </div>
+      <div v-if="sending_request" class="mt-4"><small class="text-muted">
+        sending command ...</small></div>
     </div>
   </div>
 </template>
@@ -47,6 +49,7 @@
       return {
         status: null,
         time_left: null,
+        sending_request: false,
         progress: [],
         failed: 0,
         STATUS: RUN_STATUS
@@ -117,20 +120,28 @@
       },
 
       onStartClick () {
-        this.status = RUN_STATUS.RUNNING
-        this.calProgress([])
+        this.sending_request = true
         store.startRuntime()
           .then(() => {
+            this.calProgress([])
             this.status = store.running_status
-          }, (err) => { alert(err)})
+            this.sending_request = false
+          }, (err) => {
+            this.sending_request = false
+            alert(err)
+          })
       },
 
       onStopClick () {
-        this.status = RUN_STATUS.STOPPING
+        this.sending_request = true
         store.stopRuntime()
           .then(() => {
             this.status = store.running_status
-          }, (err) => { alert(err)})
+            this.sending_request = false
+          }, (err) => {
+            alert(err)
+            this.sending_request = false
+          })
       }
     }
   }
