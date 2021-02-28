@@ -23,6 +23,14 @@ const SCHEMA = {
   RAW: 'prediction'
 }
 
+const RUN_STATUS = {
+  EMPTY: 'Not Started',
+  RUNNING: 'Running',
+  STOPPING: 'Stopping',
+  STOPPED: 'Stopped',
+  DONE: 'Done'
+}
+
 const DTYPE = {
   POINT: 'float',
   FIT: 'float',
@@ -36,4 +44,4 @@ const DTYPE = {
 
 const sign = 0
 
-export {UNC_TYPE, COLOR_TYPE, SCHEMA, DTYPE, sign}
+export {UNC_TYPE, COLOR_TYPE, SCHEMA, DTYPE, RUN_STATUS, sign}

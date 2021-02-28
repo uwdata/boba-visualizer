@@ -2,6 +2,14 @@
     font-size: 0.8rem;
 }
 
+.text-large {
+    font-size: 1.2rem;
+}
+
+.font-semi-bold {
+    font-weight: 500;
+}
+
 .bb-border-top {
     border-top: 1px solid rgba(0,0,0,0.1);
 }
@@ -20,6 +28,7 @@
     background-color: #fff;
     border: 1px solid rgba(0,0,0,0.1);
     border-radius: 2px;
+    padding: 1rem;
 }
 
 .mouse-pointer {

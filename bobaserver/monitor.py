@@ -64,6 +64,7 @@ def stop_runtime():
 def inquire_progress():
   res = {'status': 'success',
     'logs': [],
+    'size': app.bobarun.size,
     'is_running': app.bobarun.is_running()}
 
   if os.path.exists(app.bobarun.file_log):

@@ -4,7 +4,7 @@ import http from 'axios'
 import {io} from 'socket.io-client'
 import _ from 'lodash'
 import {default_config} from './config'
-import {SCHEMA, DTYPE} from './constants'
+import {SCHEMA, DTYPE, RUN_STATUS} from './constants'
 
 /**
  * Shared data store across pages.
@@ -68,6 +68,10 @@ class Store {
      * Dimensions to facet aggregate view.
      */
     this.facet = []
+
+    // data for the monitor page
+    this.running_status = ''
+    this.exit_code = {} // key is UID, value is exit code
 
     // derived data but accessed by multiple views
     this.x_range = []
@@ -320,6 +324,29 @@ class Store {
             _.each(_.groupBy(msg.data, i_uid), (rows, k) => {
               this.null_dist[k] = _.map(rows, (row) => Number(row[i_point]))
             })
+
+            resolve()
+          } else {
+            reject(msg.message || 'Internal server error.')
+          }
+        }, () => {
+          reject('Network error.')
+        })
+    })
+  }
+
+  fetchMonitorStatus () {
+    return new Promise((resolve, reject) => {
+      http.post('/api/monitor/inquire_progress', {})
+        .then((response) => {
+          let msg = response.data
+          if (msg && msg.status === 'success') {
+            this.exit_code = _.fromPairs(_.map(msg['logs'], (d) => [d[0], Number(d[1])]))
+            let done = _.size(this.exit_code)
+
+            this.running_status = msg['is_running'] ? RUN_STATUS.RUNNING : (
+              done < 1 ? RUN_STATUS.EMPTY : (
+                done < Number(msg['size']) ? RUN_STATUS.STOPPED : RUN_STATUS.DONE))
 
             resolve()
           } else {

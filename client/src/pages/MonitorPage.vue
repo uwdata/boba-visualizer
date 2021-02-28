@@ -3,7 +3,7 @@
 
     <!--Header-->
     <header class="navbar mn-navbar mt-1 row text-muted">
-      <div style="width:200px"><span class="mn-app-title">Boba Monitor</span></div>
+      <div style="width:200px"><span class="font-semi-bold">Boba Monitor</span></div>
       <title-menu></title-menu>
       <div style="width:200px"><help-button class="float-right"></help-button></div>
     </header>
@@ -42,6 +42,9 @@
           return store.fetchOverview()
         })
         .then(() => {
+          return store.fetchMonitorStatus()
+        })
+        .then(() => {
           // notify other components that data is ready
           bus.$emit('data-ready')
         }, (e) => {
@@ -56,9 +59,6 @@
   width 100vw
   height 100vh
   background-color #eee
-
-.mn-app-title
-  font-size 1.2rem
 
 .mn-navbar
   min-height 3.5rem
