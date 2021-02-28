@@ -10,7 +10,8 @@ with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
 requirements = ['flask>=1.1.1', 'Click>=7.0', 'pandas>=1.0.1', 'scipy>=1.4.1',
-    'boba>=1.0.0', 'flask-socketio>=5.0.0', 'apscheduler>=3.7.0']
+    'boba>=1.0.0', 'flask-socketio>=5.0.0', 'apscheduler>=3.7.0',
+    'scikit-learn>=0.24.1']
 
 setup_requirements = []
 

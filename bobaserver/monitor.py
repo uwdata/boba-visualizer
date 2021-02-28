@@ -6,11 +6,17 @@ import pandas as pd
 from flask import jsonify, request
 from bobaserver import app, socketio, scheduler
 from .util import read_csv, read_key_safe
+from .bobastats import sampling
 
 
 class BobaWatcher:
-  def __init__(self):
+  def __init__(self, order=[], weights=[]):
     self.start_time = time.time()
+
+    # sampling order and weights
+    self.order = order
+    self.weights = weights
+
 
   def check_progress(self):
     # remove self from scheduled jobs if boba run has finished
@@ -39,6 +45,12 @@ def check_stopped():
     socketio.emit('stopped')
 
 
+def get_decision_df():
+  # get the summary.csv without any non-decision columns
+  dec = [d['var'] for d in app.decisions]
+  return app.summary[dec]
+
+
 # entry (already defined in routes)
 # @app.route('/')
 # def index():
@@ -47,8 +59,13 @@ def check_stopped():
 
 @app.route('/api/monitor/start_runtime', methods=['POST'])
 def start_runtime():
-  # TODO: compute universe order
-  order = []
+  # compute sampling order and weights
+  # TODO: allow users to specify the sampling method
+  df = get_decision_df()
+  order, weights = sampling.round_robin(df, df.shape[0])
+  order = order.tolist()
+  if weights is not None:
+    weights = 1 / (weights * df.shape[0])
 
   fresh = not app.bobarun.is_running()
 
@@ -59,7 +76,7 @@ def start_runtime():
 
   if fresh:
     # periodic check for progress
-    app.bobawatcher = BobaWatcher()
+    app.bobawatcher = BobaWatcher(order, weights)
     scheduler.add_job(app.bobawatcher.check_progress, 'interval', seconds=5,
       id='watcher', replace_existing=True)
 
