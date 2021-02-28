@@ -17,8 +17,25 @@ class BobaWatcher:
       scheduler.remove_job('watcher')
 
     print('check progress')
-    data = {}
-    socketio.emit('update', data)
+    # TODO: estimate remaining time
+    res = {'status': 'success',
+      'logs': [],
+      'size': app.bobarun.size,
+      'is_running': app.bobarun.is_running()}
+
+    if os.path.exists(app.bobarun.file_log):
+      # TODO: check modified time before reading
+      err, t = read_csv(app.bobarun.file_log)
+      res['logs'] = t
+
+    socketio.emit('update', res)
+
+
+def check_stopped():
+  # after client issued stop command, check if boba has indeed stopped
+  if not app.bobarun.is_running():
+    scheduler.remove_job('check_stopped')
+    socketio.emit('stopped')
 
 
 # entry (already defined in routes)
@@ -53,10 +70,12 @@ def start_runtime():
 
 @app.route('/api/monitor/stop_runtime', methods=['POST'])
 def stop_runtime():
-  # fixme: post_exe.sh will still run after stop is called
-  # when it is running, user will not be able to re-start
-  # so we want to have two status: "stopping" and "stopped"
+  # ask boba run to stop, but post_exe.sh will still run
   app.bobarun.stop()
+
+  # periodically check if boba run has indeed stopped
+  scheduler.add_job(check_stopped, 'interval', seconds=1, id='check_stopped')
+
   return jsonify({'status': 'success'}), 200
 
 

@@ -19,13 +19,14 @@
       <!--buttons-->
       <div class="mt-4 d-flex justify-content-end">
         <b-button class="ml-3 mn-button-primary" variant="outline-secondary" size="sm" squared
-                  v-if="status === STATUS.RUNNING">STOP</b-button>
+                  v-if="status === STATUS.RUNNING" @click="onStopClick">STOP</b-button>
         <b-button class="ml-3 mn-button-primary" variant="outline-secondary" size="sm" squared
-                  v-if="status === STATUS.EMPTY">START</b-button>
+                  v-if="status === STATUS.EMPTY" @click="onStartClick">START</b-button>
         <b-button class="ml-3 mn-button-primary" variant="outline-info" size="sm" squared
                   v-if="status === STATUS.STOPPED || status === STATUS.DONE">Open Visualizer</b-button>
         <b-button class="ml-3" variant="outline-secondary" size="sm" squared
-                  v-if="status === STATUS.STOPPED || status === STATUS.DONE">Rerun</b-button>
+                  v-if="status === STATUS.STOPPED || status === STATUS.DONE"
+                  @click="onStartClick">Rerun</b-button>
       </div>
     </div>
   </div>
@@ -54,16 +55,20 @@
     mounted () {
       bus.$on('data-ready', () => {
         this.status = store.running_status
-        this.calProgress()
+        this.calProgress(store.exit_code)
+      })
+      bus.$on('/monitor/update', () => {
+        this.status = store.running_status
+        this.calProgress(store.exit_code)
       })
     },
     methods: {
-      calProgress () {
+      calProgress (logs) {
         let total = store.universes.length
         let success = 0
         let fail = 0
 
-        _.each(store.exit_code, (c) => {
+        _.each(logs, (c) => {
           if (c === 0) {
             success += 1
           } else {
@@ -98,6 +103,7 @@
         return `width: ${p.width}%; background-color: ${p.color};`
           + `border-radius: ${p.border}`
       },
+
       getTimeLeft () {
         if (this.time_left < 60) {
           return 'less than a minute'
@@ -108,6 +114,23 @@
         let hs = h > 0 ? `${h} hour${h > 1 ? 's' : ''} and ` : ''
         let ms = `${m} minute${m > 1 ? 's' : ''}`
         return hs + ms
+      },
+
+      onStartClick () {
+        this.status = RUN_STATUS.RUNNING
+        this.calProgress([])
+        store.startRuntime()
+          .then(() => {
+            this.status = store.running_status
+          }, (err) => { alert(err)})
+      },
+
+      onStopClick () {
+        this.status = RUN_STATUS.STOPPING
+        store.stopRuntime()
+          .then(() => {
+            this.status = store.running_status
+          }, (err) => { alert(err)})
       }
     }
   }

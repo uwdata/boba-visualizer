@@ -24,7 +24,7 @@ const SCHEMA = {
 }
 
 const RUN_STATUS = {
-  EMPTY: 'Not Started',
+  EMPTY: 'New',
   RUNNING: 'Running',
   STOPPING: 'Stopping',
   STOPPED: 'Stopped',

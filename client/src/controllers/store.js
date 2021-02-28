@@ -3,7 +3,7 @@
 import http from 'axios'
 import {io} from 'socket.io-client'
 import _ from 'lodash'
-import {default_config} from './config'
+import {default_config, bus} from './config'
 import {SCHEMA, DTYPE, RUN_STATUS} from './constants'
 
 /**
@@ -90,7 +90,14 @@ class Store {
     })
 
     this.socket.on('update', (msg) => {
-      console.log('update', msg)
+      this._wrangleMonitorStatus(msg)
+      console.log(msg)
+      bus.$emit('/monitor/update')
+    })
+
+    this.socket.on('stopped', () => {
+      this.running_status = RUN_STATUS.STOPPED
+      bus.$emit('/monitor/update')
     })
   }
 
@@ -335,26 +342,49 @@ class Store {
     })
   }
 
+  _wrangleMonitorStatus (msg) {
+    this.exit_code = _.fromPairs(_.map(msg['logs'], (d) => [d[0], Number(d[1])]))
+    let done = _.size(this.exit_code)
+
+    this.running_status = msg['is_running'] ? RUN_STATUS.RUNNING : (
+      done < 1 ? RUN_STATUS.EMPTY : (
+        done < Number(msg['size']) ? RUN_STATUS.STOPPED : RUN_STATUS.DONE))
+  }
+
   fetchMonitorStatus () {
     return new Promise((resolve, reject) => {
       http.post('/api/monitor/inquire_progress', {})
         .then((response) => {
           let msg = response.data
           if (msg && msg.status === 'success') {
-            this.exit_code = _.fromPairs(_.map(msg['logs'], (d) => [d[0], Number(d[1])]))
-            let done = _.size(this.exit_code)
-
-            this.running_status = msg['is_running'] ? RUN_STATUS.RUNNING : (
-              done < 1 ? RUN_STATUS.EMPTY : (
-                done < Number(msg['size']) ? RUN_STATUS.STOPPED : RUN_STATUS.DONE))
-
+            this._wrangleMonitorStatus(msg)
             resolve()
-          } else {
-            reject(msg.message || 'Internal server error.')
-          }
-        }, () => {
-          reject('Network error.')
-        })
+          } else { reject(msg.message || 'Internal server error.') }
+        }, () => { reject('Network error.')})
+    })
+  }
+
+  startRuntime () {
+    return new Promise((resolve, reject) => {
+      http.post('/api/monitor/start_runtime', {})
+        .then((rsp) => {
+          if (rsp.data && rsp.data.status === 'success') {
+            this.running_status = RUN_STATUS.RUNNING
+            resolve()
+          } else { reject('Internal server error.') }
+        }, () => { reject('Network error.') })
+    })
+  }
+
+  stopRuntime () {
+    return new Promise((resolve, reject) => {
+      http.post('/api/monitor/stop_runtime', {})
+        .then((rsp) => {
+          if (rsp.data && rsp.data.status === 'success') {
+            this.running_status = RUN_STATUS.STOPPING
+            resolve()
+          } else { reject('Internal server error.') }
+        }, () => { reject('Network error.') })
     })
   }
 
