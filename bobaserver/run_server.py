@@ -7,7 +7,8 @@ import numpy as np
 from .bobastats import sensitivity
 from boba.bobarun import BobaRun
 from bobaserver import app, socketio, scheduler
-from .util import read_json, read_key_safe, print_fail, print_warn, remove_na
+from .util import read_json, read_key_safe, print_fail
+import bobaserver.common as common
 
 
 def check_path(p, more=''):
@@ -85,7 +86,7 @@ def read_meta():
 
     # store meta data
     app.schema = schema
-    app.summary = read_summary()
+    app.summary = common.read_summary()
     app.decisions = read_key_safe(res, ['decisions'], {})
     app.visualizer = {
         "sensitivity": sen,
@@ -106,49 +107,6 @@ def check_result_files ():
         multi = read_key_safe(f, ['multi'], False)
         if not multi:
             check_path(os.path.join(app.data_folder, f['path']))
-
-
-def read_summary ():
-    """ read summary.csv """
-    fn = os.path.join(app.data_folder, 'summary.csv')
-    smr = pd.read_csv(fn, na_filter=False)
-    smr['uid'] = smr.apply(lambda r: r.name + 1, axis=1).astype(int)
-    return smr
-
-
-def read_results (field, dtype=str, diagnostics=True):
-    """ read a result field and join with summary """
-    # read summary.csv
-    smr = read_summary()
-
-    # read the result file
-    info = app.schema[field]
-    fn = os.path.join(app.data_folder, info['file'])
-    df = pd.read_csv(fn, na_filter=False)
-    col = info['field']
-
-    # join
-    df = pd.merge(smr, df[['uid', col]], on='uid')
-
-    # convert data type, remove Inf and NA
-    n_df = df.shape[0]
-    df = remove_na(df, col, dtype)
-
-    # print warning messages
-    if diagnostics:
-        total = smr.shape[0]
-        n_failed = total - n_df
-        n_na = n_df - df.shape[0]
-        if n_failed > 0 or n_na > 0:
-            print_warn(f'Data quality warning: out of {total} universes, ')
-            if n_failed > 0:
-                percent = round(n_failed / total * 100, 1)
-                print_warn(f' * {n_failed} universes ({percent}%) failed to run')
-            if n_na > 0:
-                percent = round(n_na / total * 100, 1)
-                print_warn(f' * {n_na} {field} ({percent}%) contains Inf or NaN value')
-
-    return df
 
 
 def sensitivity_f_test (df, col):
@@ -182,7 +140,7 @@ def sensitivity_ad (df, col):
 def cal_sensitivity():
     """ Compute sensitivity """
     # read the prediction and join with summary
-    df = read_results('point_estimate', dtype=float)
+    df = common.read_results_with_summary('point_estimate', dtype=float)
     col = app.schema['point_estimate']['field']
     method = app.visualizer['sensitivity']
 

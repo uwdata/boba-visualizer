@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import itertools
 from sklearn.linear_model import LinearRegression
+from .bootstrap import bootstrap
 
 
 def round_robin (df, n=50):
@@ -108,6 +109,30 @@ def get_outcome_mean (y, indices, weights=None):
 
   arr = weights[indices] * y[indices]
   return np.mean(arr)
+
+
+def bootstrap_outcome (df, COL, indices, weights=None):
+  """
+  Given a sample, compute the bootstrapped CI around outcome mean.
+
+  Parameters:
+   - df: multiverse dataframe
+   - COL: the column in df
+   - indices: sample index into the multiverse df
+   - weights: importance sampling weights, if applicable
+  """
+  y = df[COL].to_numpy()
+  mean = get_outcome_mean(y, indices, weights)
+
+  # we will pass the index array to bootstrap, so here we adjust the func API
+  stat = lambda idx, w: get_outcome_mean(y, idx, w)
+
+  # bootstrap
+  bs = bootstrap(stat, ci_type='percentile', n=200)
+  bs.fit(indices, weights)  # sample uniformly, weighted mean
+  lower, upper = bs.get_ci()
+
+  return [mean, lower, upper]
 
 
 def one_hot_encode (df, interact=False):
