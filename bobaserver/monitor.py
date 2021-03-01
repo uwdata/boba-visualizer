@@ -11,6 +11,9 @@ import bobaserver.common as common
 
 
 class BobaWatcher:
+  # static attributes
+  header_outcome = ['n_samples', 'mean', 'lower', 'upper']
+
   def __init__(self, order, weights=None):
     self.start_time = time.time()
 
@@ -21,6 +24,11 @@ class BobaWatcher:
     # results
     self.last_merge_index = 0
     self.outcomes = []
+
+
+  @staticmethod
+  def get_fn_outcome ():
+    return os.path.join(app.bobarun.dir_log, 'outcomes.csv')
 
 
   def update_outcome(self, done):
@@ -40,11 +48,24 @@ class BobaWatcher:
     res = []
     for i in range(start, len(done), step):
       indices = self.order[:i+1]
-      res.append([i] + sampling.bootstrap_outcome(df, col, indices, self.weights))
+      res.append([i] + sampling.bootstrap_outcome(df, col, indices,
+        self.weights))
     self.outcomes += res
 
-    # TODO: write results to file
-    # TODO: send to client
+    # write results to disk
+    fn = BobaWatcher.get_fn_outcome()
+    if os.path.exists(fn):
+      f = open(fn, 'a')
+    else:
+      f = open(fn, 'w')
+      f.write(','.join(self.header_outcome) + '\n')
+    for r in res:
+      f.write(','.join([str(i) for i in r]) + '\n')
+    f.close()
+
+    # send to client
+    socketio.emit('update-outcome', {'data': self.outcomes, 
+      'header': self.header_outcome})
 
 
   def check_progress(self):
@@ -132,11 +153,25 @@ def stop_runtime():
 def inquire_progress():
   res = {'status': 'success',
     'logs': [],
+    'outcome': {'data': [], 'header': BobaWatcher.header_outcome},
     'size': app.bobarun.size,
     'is_running': app.bobarun.is_running()}
 
+  # exit code
   if os.path.exists(app.bobarun.file_log):
     err, t = read_csv(app.bobarun.file_log)
     res['logs'] = t
+
+  # outcome CI time series
+  fn = BobaWatcher.get_fn_outcome()
+  if hasattr(app, 'bobawatcher'):
+    res['outcome']['data'] = app.bobawatcher.outcomes
+  elif os.path.exists(fn):
+    df = pd.read_csv(fn)
+    res['outcome']['data'] = df.values.tolist()
+
+  # it's possible to recover outcome CI if there are no weights (ie. uniform)
+  # logs = [int(r[0]) for r in res['logs']]
+  # BobaWatcher(logs).update_outcome(logs)
 
   return jsonify(res), 200

@@ -73,6 +73,7 @@ class Store {
     this.running_status = ''
     this.time_left = null
     this.exit_code = {} // key is UID, value is exit code
+    this.running_outcome = []  // attributes: n_samples, mean, lower, upper
 
     // derived data but accessed by multiple views
     this.x_range = []
@@ -83,6 +84,9 @@ class Store {
     this.small_multiple_uids = []
   }
 
+  /**
+   * Establish a web socket connection and register callbacks.
+   */
   initSocket () {
     this.socket = io()
 
@@ -92,8 +96,12 @@ class Store {
 
     this.socket.on('update', (msg) => {
       this._wrangleMonitorUpdate(msg)
-      console.log(msg)
       bus.$emit('/monitor/update')
+    })
+
+    this.socket.on('update-outcome', (msg) => {
+      bus.$emit('/monitor/update-outcome')
+      this.running_outcome = _.map(msg.data, (d) => _.zipObject(msg.header, d))
     })
 
     this.socket.on('stopped', () => {
@@ -348,6 +356,12 @@ class Store {
     let done = _.size(this.exit_code)
     this.running_status = this._deriveRunStatus(msg['is_running'], done, msg['size'])
     this.time_left = msg['time_left']
+
+    // these fields will only be in the client-initiated update
+    if ('outcome' in msg) {
+      let ro = msg['outcome']
+      this.running_outcome = _.map(ro.data, (d) => _.zipObject(ro.header, d))
+    }
   }
 
   _deriveRunStatus (is_running, done, total=-1) {
