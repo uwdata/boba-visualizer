@@ -100,8 +100,8 @@ class Store {
     })
 
     this.socket.on('update-outcome', (msg) => {
-      bus.$emit('/monitor/update-outcome')
       this.running_outcome = _.map(msg.data, (d) => _.zipObject(msg.header, d))
+      bus.$emit('/monitor/update-outcome')
     })
 
     this.socket.on('stopped', () => {
@@ -390,6 +390,9 @@ class Store {
         .then((rsp) => {
           if (rsp.data && rsp.data.status === 'success') {
             this.running_status = RUN_STATUS.RUNNING
+            // reset progress
+            this.running_outcome = []
+            bus.$emit('/monitor/update-outcome')
             resolve()
           } else { reject('Internal server error.') }
         }, () => { reject('Network error.') })
