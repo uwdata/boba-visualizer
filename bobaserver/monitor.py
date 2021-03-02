@@ -96,7 +96,10 @@ class BobaWatcher:
     res = [r for r in res if not np.isnan(r[1])]
     self.outcomes += res
 
-    # TODO: deal with NaN
+    # convert NaN in decision sensitivity to string 'nan'
+    for i in range(len(sen)):
+      sen[i] = ['nan' if isinstance(r, float) and np.isnan(r) else r \
+        for r in sen[i]]
     self.decision_scores += sen
 
     # write results to disk
@@ -107,6 +110,8 @@ class BobaWatcher:
     # send to client
     socketio.emit('update-outcome', {'data': self.outcomes, 
       'header': self.header_outcome})
+    socketio.emit('update-sensitivity', {'data': self.decision_scores,
+      'header': BobaWatcher.get_header_sensitivity()})
 
 
   def check_progress(self):
@@ -195,6 +200,7 @@ def inquire_progress():
   res = {'status': 'success',
     'logs': [],
     'outcome': {'data': [], 'header': BobaWatcher.header_outcome},
+    'decision_scores': {'data': [], 'header': []},
     'size': app.bobarun.size,
     'is_running': app.bobarun.is_running()}
 
@@ -204,12 +210,21 @@ def inquire_progress():
     res['logs'] = t
 
   # outcome CI time series
-  fn = BobaWatcher.get_fn_outcome()
   if hasattr(app, 'bobawatcher'):
     res['outcome']['data'] = app.bobawatcher.outcomes
-  elif os.path.exists(fn):
-    df = pd.read_csv(fn)
-    res['outcome']['data'] = df.values.tolist()
+    res['decision_scores']['data'] = app.bobawatcher.decision_scores
+    res['decision_scores']['header'] = app.bobawatcher.get_header_sensitivity()
+  else:
+    fn = BobaWatcher.get_fn_outcome()
+    if os.path.exists(fn):
+      df = pd.read_csv(fn)
+      res['outcome']['data'] = df.values.tolist()
+    fn = BobaWatcher.get_fn_sensitivity()
+    if os.path.exists(fn):
+      # convert NaN to string 'nan'; client needs to convert it back to js NaN
+      df = pd.read_csv(fn).fillna('nan')
+      res['decision_scores']['data'] = df.values.tolist()
+      res['decision_scores']['header'] = df.columns.tolist()
 
   # it's possible to recover outcome CI if there are no weights (ie. uniform)
   # logs = [int(r[0]) for r in res['logs']]

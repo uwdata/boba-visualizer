@@ -74,6 +74,7 @@ class Store {
     this.time_left = null
     this.exit_code = {} // key is UID, value is exit code
     this.running_outcome = []  // attributes: n_samples, mean, lower, upper
+    this.running_sensitivity = []  // n_samples, type, ... (every decision)
 
     // derived data but accessed by multiple views
     this.x_range = []
@@ -102,6 +103,12 @@ class Store {
     this.socket.on('update-outcome', (msg) => {
       this.running_outcome = _.map(msg.data, (d) => _.zipObject(msg.header, d))
       bus.$emit('/monitor/update-outcome')
+    })
+
+    this.socket.on('update-sensitivity', (msg) => {
+      this.running_sensitivity = _.map(msg.data, (d) => _.zipObject(msg.header, d))
+      console.log(this.running_sensitivity)
+      bus.$emit('/monitor/update-sensitivity')
     })
 
     this.socket.on('stopped', () => {
@@ -362,6 +369,17 @@ class Store {
       let ro = msg['outcome']
       this.running_outcome = _.map(ro.data, (d) => _.zipObject(ro.header, d))
     }
+    if ('decision_scores' in msg) {
+      let ro = msg['decision_scores']
+      this.running_sensitivity = _.map(ro.data, (d) => _.zipObject(ro.header, d))
+      console.log(this.running_sensitivity)
+    }
+  }
+
+  _wrangleMonitorSensitivity (msg) {
+    // fixme: maybe remove this
+    this.running_sensitivity = _.map(msg.data, (d) => _.zipObject(msg.header,
+      _.map(d, (dd) => dd === 'nan' ? NaN : dd)))
   }
 
   _deriveRunStatus (is_running, done, total=-1) {
