@@ -25,11 +25,18 @@ class BobaWatcher:
     # results
     self.last_merge_index = 0
     self.outcomes = []
+    self.decision_scores = []
 
 
   @staticmethod
-  def get_fn_outcome ():
+  def get_fn_outcome():
     return os.path.join(app.bobarun.dir_log, 'outcomes.csv')
+  @staticmethod
+  def get_fn_sensitivity():
+    return os.path.join(app.bobarun.dir_log, 'sensitivity.csv')
+  @staticmethod
+  def get_header_sensitivity():
+    return ['n_samples', 'type'] + common.get_decision_list()
 
 
   def _append_csv(self, fn, header, data):
@@ -64,23 +71,38 @@ class BobaWatcher:
     df = common.read_results('point_estimate', float)
     df = pd.merge(app.summary, df, on='uid', how='left')
     col = common.get_field_name('point_estimate')
+    dec_list = common.get_decision_list()
 
     # compute results since the last index
     start = (int(self.last_merge_index / step) + 1) * step
     self.last_merge_index = len(done) - 1
     res = []
+    sen = []
     for i in range(start, len(done), step):
       indices = self.order[:i+1]
+
+      # outcome mean
       out = sampling.bootstrap_outcome(df, col, indices, self.weights)
       res.append([i] + out)
+
+      # decision sensitivity, without CI
+      # FIXME: hard coded for AD test
+      ad = [common.ad_wrapper(df.iloc[indices], dec, col) for dec in dec_list]
+      sen.append([i, 'score'] + [s[0] for s in ad])
+      sen.append([i, 'p'] + [s[1] for s in ad])
 
     # impute null in CI and remove null in mean
     self._impute_null_CI(res, self.outcomes, 1)
     res = [r for r in res if not np.isnan(r[1])]
     self.outcomes += res
 
+    # TODO: deal with NaN
+    self.decision_scores += sen
+
     # write results to disk
     self._append_csv(BobaWatcher.get_fn_outcome(), self.header_outcome, res)
+    self._append_csv(BobaWatcher.get_fn_sensitivity(),
+      BobaWatcher.get_header_sensitivity(), sen)
 
     # send to client
     socketio.emit('update-outcome', {'data': self.outcomes, 

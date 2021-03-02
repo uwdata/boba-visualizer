@@ -4,7 +4,6 @@ import click
 import os
 import pandas as pd
 import numpy as np
-from .bobastats import sensitivity
 from boba.bobarun import BobaRun
 from bobaserver import app, socketio, scheduler
 from .util import read_json, read_key_safe, print_fail
@@ -109,55 +108,6 @@ def check_result_files ():
             check_path(os.path.join(app.data_folder, f['path']))
 
 
-def sensitivity_f_test (df, col):
-    """ Compute one-way F-test to estimate decision sensitivity """
-    # compute one-way F-test
-    res = {d['var']: sensitivity.sensitivity_f(df, d['var'], d['options'],
-        col) for d in app.decisions}
-
-    # check NaN
-    for d in res:
-        if np.isnan(res[d]):
-            print_fail('ERROR: cannot compute sensitivity')
-            print(f'F-test returns NaN value for decision "{d}"')
-            exit(1)
-
-    return res
-
-
-def sensitivity_ks (df, col):
-    """ compute Kolmogorov-Smirnov statistic """
-    return {d['var']: sensitivity.sensitivity_ks(df, d['var'], d['options'],
-        col) for d in app.decisions}
-
-
-def sensitivity_ad (df, col):
-    """ use k-samples Anderson-Darling test to compute sensitivity """
-    return {d['var']: sensitivity.sensitivity_ad(df, d['var'], d['options'],
-         col)[0] for d in app.decisions}
-
-
-def cal_sensitivity():
-    """ Compute sensitivity """
-    # read the prediction and join with summary
-    df = common.read_results_with_summary('point_estimate', dtype=float)
-    col = app.schema['point_estimate']['field']
-    method = app.visualizer['sensitivity']
-
-    if method == 'f':
-        # one-way F-test
-        score = sensitivity_f_test(df, col)
-    if method == 'ks':
-        # Kolmogorov-Smirnov statistic
-        score = sensitivity_ks(df, col)
-    if method == 'ad':
-        # k-samples Anderson-Darling test
-        score = sensitivity_ad(df, col)
-
-    # save
-    app.sensitivity = score
-
-
 @click.command()
 @click.option('--in', '-i', 'input', default='.', show_default=True,
               help='Path to the input directory')
@@ -175,7 +125,7 @@ def main(input, port, host, monitor):
     app.bobarun = BobaRun(app.data_folder)
     if not monitor:
         check_result_files()
-        cal_sensitivity()
+        app.sensitivity = common.cal_sensitivity()
 
     s_host = '127.0.0.1' if host == '0.0.0.0' else host
     msg = """\033[92m
