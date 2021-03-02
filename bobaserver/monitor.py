@@ -32,6 +32,28 @@ class BobaWatcher:
     return os.path.join(app.bobarun.dir_log, 'outcomes.csv')
 
 
+  def _append_csv(self, fn, header, data):
+    # append to the csv if it exists, or create one
+    if os.path.exists(fn):
+      f = open(fn, 'a')
+    else:
+      f = open(fn, 'w')
+      f.write(','.join(header) + '\n')
+    for r in data:
+      f.write(','.join([str(i) for i in r]) + '\n')
+    f.close()
+
+
+  def _impute_null_CI(self, data, previous, col=0):
+    # impute NaN in CIs, assuming data is a 2D list [..., mean, lower, upper]
+    # where col is the column index of mean. Modify data in place.
+    for i, d in enumerate(data):
+      for j in [col + 1, col + 2]:
+        if np.isnan(d[j]):
+          d[j] = data[i - 1][j] if i > 0 else (previous[-1][j] \
+            if len(previous) else d[col])
+
+
   def update_outcome(self, done):
     step = min(5, max(1, int(app.bobarun.size / 50)))
     if len(done) - self.last_merge_index < step:
@@ -50,29 +72,15 @@ class BobaWatcher:
     for i in range(start, len(done), step):
       indices = self.order[:i+1]
       out = sampling.bootstrap_outcome(df, col, indices, self.weights)
-
-      # if mean is NaN, skip
-      if np.isnan(out[0]):
-        continue
-      # impute NaN in CIs
-      for j in [1, 2]:
-        if np.isnan(out[j]):
-          out[j] = res[-1][j] if len(res) else (self.outcomes[-1][j] \
-            if self.outcomes else out[0])
-
       res.append([i] + out)
+
+    # impute null in CI and remove null in mean
+    self._impute_null_CI(res, self.outcomes, 1)
+    res = [r for r in res if not np.isnan(r[1])]
     self.outcomes += res
 
     # write results to disk
-    fn = BobaWatcher.get_fn_outcome()
-    if os.path.exists(fn):
-      f = open(fn, 'a')
-    else:
-      f = open(fn, 'w')
-      f.write(','.join(self.header_outcome) + '\n')
-    for r in res:
-      f.write(','.join([str(i) for i in r]) + '\n')
-    f.close()
+    self._append_csv(BobaWatcher.get_fn_outcome(), self.header_outcome, res)
 
     # send to client
     socketio.emit('update-outcome', {'data': self.outcomes, 
