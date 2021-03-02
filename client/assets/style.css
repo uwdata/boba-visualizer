@@ -31,6 +31,22 @@
     padding: 1rem;
 }
 
+.mn-card-title {
+    font-size: 0.8em;
+    font-weight: 500;
+    color: #6c757d;
+}
+
 .mouse-pointer {
     cursor: pointer
+}
+
+.axis.muted .domain{
+    stroke: #6c757d
+}
+.axis.muted .tick text {
+    fill: #6c757d
+}
+text.axis-label.muted {
+    fill: #6c757d
 }

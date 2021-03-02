@@ -1,5 +1,6 @@
 <template>
   <div class="mn-card h-100">
+    <div class="mn-card-title mb-1">Outcome Mean</div>
     <div id="outcome-progress-vis" ref="chart" class="w-100 h-100"></div>
   </div>
 </template>
@@ -27,6 +28,8 @@
 
         let data = store.running_outcome
         this.chart.update(data)
+
+        // this.genFakeData(data)
       })
 
       bus.$on('/monitor/update-outcome', () => {

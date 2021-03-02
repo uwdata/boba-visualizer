@@ -8,15 +8,15 @@ class OutcomeProgressPlot {
     this.margin = {
       top: 0,
       right: 0,
-      bottom: 15,
-      left: 30
+      bottom: 6,
+      left: 20
     }
     this.parent = parent
 
     // style
-    this.y_label = 'Frequency'
-    this.x_label = ''
-    this.label_font_size = 12
+    this.x_label = 'Time'
+    this.label_font_size = 10
+    this.show_x_label = true
 
     // axis range
     this.x_range = null
@@ -45,19 +45,63 @@ class OutcomeProgressPlot {
       .duration(1000)
       .ease(d3.easeLinear)
 
-    // draw axis
-    let height = this.ys.range()[0]
-    this.x_axis = this.svg.append('g')
-      .attr('transform', 'translate(0,' + height + ')')
-      .classed('x axis muted', true)
-      .call(d3.axisBottom(this.xs))
+    // draw y axis
     this.y_axis = this.svg.append('g')
       .attr('transform', 'translate(0, 0)')
       .classed('y axis muted', true)
     this._drawYAxis()
 
+    // x axis label
+    if (this.show_x_label) {
+      let height = this.ys.range()[0]
+      let width = this.xs.range()[1]
+      this.svg.append('text')
+        .classed('axis-label muted', true)
+        .attr('transform', `translate(${width / 2}, ${height + 3})`)
+        .style('text-anchor', 'middle')
+        .style('font-size', this.label_font_size)
+        .text(this.x_label)
+    }
+
     // draw mean line and CI band
+    this.svg.append('g').classed('actual-plot', true)
     this._drawLineAndCI(data)
+
+    // legend
+    let width = this.xs.range()[1]
+    let legend_width = 70
+    let symbol_width = 20
+    let box = this.svg.append('g')
+      .classed('legend-container', true)
+      .attr('transform', `translate(${width - legend_width}, 0)`)
+    box.append('rect')
+      .attr('x', 0)
+      .attr('y', 0)
+      .attr('height', this.label_font_size * 4)
+      .attr('width', legend_width)
+      .attr('fill', '#fff')
+    box.append('rect')
+      .classed('outcome-CI', true)
+      .attr('x', 5)
+      .attr('y', 5)
+      .attr('height', this.label_font_size)
+      .attr('width', symbol_width)
+    box.append('text')
+      .classed('axis-label muted', true)
+      .attr('x', symbol_width + 10)
+      .attr('y', 13)
+      .style('font-size', this.label_font_size)
+      .text('95% CI')
+    let y_start = 5 * 2 + this.label_font_size * 1.5 - 1
+    box.append('path')
+      .classed('outcome-mean', true)
+      .attr('d', `M5,${y_start}h${symbol_width}`)
+    box.append('text')
+      .classed('axis-label muted', true)
+      .attr('x', symbol_width + 10)
+      .attr('y', 27)
+      .style('font-size', this.label_font_size)
+      .text('Mean')
   }
 
   clear () {
@@ -77,7 +121,7 @@ class OutcomeProgressPlot {
     } else {
       // update the current chart
       this._setScale(data)
-      this._drawYAxis(true)
+      this._drawYAxis()
       this._drawLineAndCI(data, true)
     }
   }
@@ -94,29 +138,37 @@ class OutcomeProgressPlot {
       .range([height, 0])
   }
 
-  _drawYAxis (redraw=false) {
-    let height = this.ys.range()[0]
-    let y_axis = redraw ? this.y_axis.transition(this.trans) : this.y_axis
+  _drawYAxis () {
+    let width = this.xs.range()[1]
+    let func = d3.axisLeft(this.ys).ticks(6)
+      .tickSize(-width)
 
-    y_axis
-      .call(d3.axisLeft(this.ys).ticks(6))
-      .call(g => g.selectAll('.domain')
-        .attr('d', `M0,0V${height}`))
+    // animation will have a weird flashing bug, probably because we remove the domain ...
+    // let y_axis = redraw ? this.y_axis.transition(this.trans) : this.y_axis
+
+    this.y_axis
+      .call(func)
+      .call(g => g.selectAll('.domain').remove())
+      .call(g => g.selectAll('.tick line')
+        .attr('stroke-opacity', 0.1)
+        .attr('stroke-dasharray', '2, 2'))
   }
 
   _drawLineAndCI (data, redraw=false) {
+    let svg = this.svg.select('.actual-plot')
+
     // draw CIs
     let area = d3.area()
       .x((d) => this.xs(d['n_samples']))
       .y0((d) => this.ys(d.lower))
       .y1((d) => this.ys(d.upper))
     if (redraw) {
-      this.svg.select('.outcome-CI')
+      svg.select('.outcome-CI')
         .datum(data)
         .transition(this.trans)
         .attr('d', area)
     } else {
-      this.svg.append('path')
+      svg.append('path')
         .datum(data)
         .classed('outcome-CI', true)
         .attr('d', area)
@@ -134,12 +186,12 @@ class OutcomeProgressPlot {
       .x((d) => 0.5 * this.xs(d.x0) + 0.5 * this.xs(d.x1))
       .y((d) => this.ys(d.y))
     if (redraw) {
-      this.svg.select('.outcome-mean')
+      svg.select('.outcome-mean')
         .datum(line_data)
         .transition(this.trans)
         .attr('d', line)
     } else {
-      this.svg.append('path')
+      svg.append('path')
         .datum(line_data)
         .attr('d', line)
         .attr('fill', 'none')
