@@ -11,8 +11,8 @@
     <!--Progress-->
     <b-form-row class="mn-progress-row mt-1">
       <div class="col-6"><progress-card></progress-card></div>
-      <div class="col-3"><decision-progress-view></decision-progress-view></div>
       <div class="col-3"><outcome-progress-view></outcome-progress-view></div>
+      <div class="col-3"><decision-progress-view></decision-progress-view></div>
     </b-form-row>
   </div>
 </template>
@@ -64,6 +64,6 @@
   min-height 3.5rem
 
 .mn-progress-row
-  height 10rem
-  min-height 10rem
+  height 11rem
+  min-height 11rem
 </style>

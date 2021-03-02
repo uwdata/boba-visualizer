@@ -1,7 +1,7 @@
 <template>
-  <div class="mn-card h-100">
+  <div class="mn-card h-100 d-flex flex-column">
     <div class="mn-card-title">Outcome Mean</div>
-    <div id="outcome-progress-vis" ref="chart" class="w-100 h-100"></div>
+    <div id="outcome-progress-vis" ref="chart" class="w-100 flex-grow-1"></div>
   </div>
 </template>
 
