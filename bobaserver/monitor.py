@@ -3,6 +3,7 @@
 import os
 import time
 import pandas as pd
+import numpy as np
 from flask import jsonify, request
 from .util import read_csv, read_key_safe
 from bobaserver import app, socketio, scheduler
@@ -48,8 +49,18 @@ class BobaWatcher:
     res = []
     for i in range(start, len(done), step):
       indices = self.order[:i+1]
-      res.append([i] + sampling.bootstrap_outcome(df, col, indices,
-        self.weights))
+      out = sampling.bootstrap_outcome(df, col, indices, self.weights)
+
+      # if mean is NaN, skip
+      if np.isnan(out[0]):
+        continue
+      # impute NaN in CIs
+      for j in [1, 2]:
+        if np.isnan(out[j]):
+          out[j] = res[-1][j] if len(res) else (self.outcomes[-1][j] \
+            if self.outcomes else out[0])
+
+      res.append([i] + out)
     self.outcomes += res
 
     # write results to disk
