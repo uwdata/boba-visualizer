@@ -1,6 +1,6 @@
 <template>
   <div class="mn-card h-100">
-    <div class="mn-card-title mb-1">Outcome Mean</div>
+    <div class="mn-card-title">Outcome Mean</div>
     <div id="outcome-progress-vis" ref="chart" class="w-100 h-100"></div>
   </div>
 </template>

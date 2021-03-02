@@ -6,7 +6,7 @@ class OutcomeProgressPlot {
     this.outerWidth = 0   // will be set by caller
     this.outerHeight = 0  // will be set by caller
     this.margin = {
-      top: 0,
+      top: 5,
       right: 0,
       bottom: 6,
       left: 20
@@ -71,9 +71,10 @@ class OutcomeProgressPlot {
     let width = this.xs.range()[1]
     let legend_width = 70
     let symbol_width = 20
+    let legend_padding = 5
     let box = this.svg.append('g')
       .classed('legend-container', true)
-      .attr('transform', `translate(${width - legend_width}, 0)`)
+      .attr('transform', `translate(${width - legend_width},${-this.margin.top})`)
     box.append('rect')
       .attr('x', 0)
       .attr('y', 0)
@@ -82,24 +83,24 @@ class OutcomeProgressPlot {
       .attr('fill', '#fff')
     box.append('rect')
       .classed('outcome-CI', true)
-      .attr('x', 5)
-      .attr('y', 5)
+      .attr('x', legend_padding)
+      .attr('y', legend_padding)
       .attr('height', this.label_font_size)
       .attr('width', symbol_width)
     box.append('text')
       .classed('axis-label muted', true)
-      .attr('x', symbol_width + 10)
-      .attr('y', 13)
+      .attr('x', symbol_width + legend_padding + 5)
+      .attr('y', legend_padding + 8)
       .style('font-size', this.label_font_size)
       .text('95% CI')
-    let y_start = 5 * 2 + this.label_font_size * 1.5 - 1
+    let y_start = legend_padding + 5 + this.label_font_size * 1.5 - 1
     box.append('path')
       .classed('outcome-mean', true)
-      .attr('d', `M5,${y_start}h${symbol_width}`)
+      .attr('d', `M${legend_padding},${y_start}h${symbol_width}`)
     box.append('text')
       .classed('axis-label muted', true)
-      .attr('x', symbol_width + 10)
-      .attr('y', 27)
+      .attr('x', symbol_width + legend_padding + 5)
+      .attr('y', legend_padding + 22)
       .style('font-size', this.label_font_size)
       .text('Mean')
   }
