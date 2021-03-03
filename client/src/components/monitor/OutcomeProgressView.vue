@@ -1,6 +1,6 @@
 <template>
   <div class="mn-card h-100 d-flex flex-column">
-    <div class="mn-card-title">Outcome Mean</div>
+    <div class="mn-card-title">Main Effect Mean</div>
     <div id="outcome-progress-vis" ref="chart" class="w-100 flex-grow-1"></div>
   </div>
 </template>
@@ -24,12 +24,13 @@
         let h = this.$refs.chart.clientHeight
         this.chart.outerWidth = w
         this.chart.outerHeight = h
-        this.chart.x_range = [0, store.universes.length]
+        this.chart.x_max = store.universes.length
 
         let data = store.running_outcome
         this.chart.update(data)
 
         // this.genFakeData(data)
+        // this.simulateUpdates()
       })
 
       bus.$on('/monitor/update-outcome', () => {
@@ -47,6 +48,21 @@
           data.push({n_samples: i, mean: num, lower: num-0.5, upper: num+0.5})
           this.chart.update(data)
         }, 2000)
+      },
+      // for debugging
+      simulateUpdates () {
+        const step = 1
+        const speed = 1000
+
+        let i = 20
+        let iid = setInterval(() => {
+          if (i >= store.running_outcome.length - 1) {
+            clearInterval(iid)
+            return
+          }
+          this.chart.update(_.slice(store.running_outcome, 0, i))
+          i += step
+        }, speed)
       }
     }
   }

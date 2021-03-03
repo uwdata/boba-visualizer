@@ -21,12 +21,12 @@ class DecisionProgressPlot {
     this.decisions = decisions
 
     // style
-    this.x_label = 'Time'
+    this.x_label = 'Progress'
     this.label_font_size = 10
     this.show_x_label = true
 
     // axis range
-    this.x_range = null
+    this.x_max = null     // must be set by caller
 
     // internal
     this.svg = null
@@ -46,7 +46,7 @@ class DecisionProgressPlot {
       .attr('transform', `translate(${this.margin.left},${this.margin.top})`)
 
     // scale
-    this._setScale(data)
+    // x and y scale will be set prior to calling the draw function
     this.color_scale = d3.scaleOrdinal().domain(this.decisions)
       .range(tableau10.match(/.{1,6}/g))
 
@@ -72,6 +72,7 @@ class DecisionProgressPlot {
         .style('font-size', this.label_font_size)
         .text(this.x_label)
     }
+    this._drawXAxis()
 
     // draw time series
     this.svg.append('g').classed('actual-plot', true)
@@ -91,11 +92,15 @@ class DecisionProgressPlot {
       this.clear()
     } else if (!this.svg) {
       // the chart has been removed
-      this.draw(data)
+      let non_empty = this._setScale(data)
+      if (non_empty) {
+        this.draw(data)
+      }
     } else {
       // update the current chart
       this._setScale(data)
       this._drawYAxis()
+      this._drawXAxis(true)
       this._drawLineAndCI(data, true)
     }
   }
@@ -104,8 +109,10 @@ class DecisionProgressPlot {
     let height = this.outerHeight - this.margin.top - this.margin.bottom
     let width = this.outerWidth - this.margin.left - this.margin.right
 
+    let xmax = d3.max(data, (d) => d['n_samples']) / this.x_max
+    xmax = xmax > 0.6 ? 1 : (xmax > 0.4 ? 0.75 : (xmax > 0.2 ? 0.5 : 0.25))
     this.xs = d3.scaleLinear()
-      .domain(this.x_range || [0, d3.max(data, (d) => d['n_samples'])])
+      .domain([0, xmax])
       .range([0, width])
 
     // look for min and max in all decision columns, ignoring NaN
@@ -113,11 +120,15 @@ class DecisionProgressPlot {
       (_.isNumber(d[dec]) && !_.isNaN(d[dec])) ? d[dec] : Infinity)))
     let y_max = _.max(_.map(this.decisions, (dec) => d3.max(data, (d) =>
       (_.isNumber(d[dec]) && !_.isNaN(d[dec])) ? d[dec] : -Infinity)))
+    let non_empty = _.isFinite(y_min) && _.isFinite(y_max)
     y_max = Math.max(SENSITIVE, y_max) // fixme
 
+    let y_pad = Math.max(Math.abs(y_min * 0.1), Math.abs(y_max * 0.1))
     this.ys = d3.scaleLinear()
-      .domain([y_min * 1.1, y_max * 1.1])
+      .domain([y_min - y_pad, y_max + y_pad])
       .range([height, 0])
+
+    return non_empty
   }
 
   _drawYAxis () {
@@ -133,11 +144,37 @@ class DecisionProgressPlot {
         .attr('stroke-dasharray', '2, 2'))
   }
 
+  _drawXAxis (redraw=false) {
+    let x_max = this.xs.domain()[1]
+    let height = this.ys.range()[0]
+    let labels = [x_max] // only one label at the end
+
+    // draw every 'milestone' label
+    // let labels = _.range(0.25, x_max + 0.01, 0.25)
+
+    let sel = this.svg.selectAll('.axis-label.muted.x-axis')
+      .data(labels)
+    if (redraw) {
+      sel = sel.transition(this.trans)
+    } else {
+      sel = sel.enter()
+        .append('text')
+        .classed('axis-label muted x-axis', true)
+    }
+    sel
+      .attr('transform', `translate(0, ${height + 3})`)
+      .attr('x', (d) => this.xs(d))
+      .style('text-anchor', 'end')
+      .style('font-size', this.label_font_size)
+      .text((d) => d * 100 + '%')
+  }
+
   _drawLineAndCI (data, redraw=false) {
     let svg = this.svg.select('.actual-plot')
 
     let line = d3.line()
-      .x((d) =>this.xs(d.x))
+      .curve(d3.curveMonotoneX) // not sure if smoothing is right
+      .x((d) =>this.xs(d.x / this.x_max))
       .y((d) => this.ys(d.y))
 
     let line_data = _.map(this.decisions, (dec) => {
@@ -166,7 +203,7 @@ class DecisionProgressPlot {
       .attr('fill', 'none')
       .attr('stroke-linejoin', 'round')
       .attr('stroke-width', 1.5)
-      .attr('opacity', 0.8)
+      .attr('opacity', 0.7)
   }
 }
 

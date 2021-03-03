@@ -25,10 +25,11 @@
         let h = this.$refs.chart.clientHeight
         this.chart.outerWidth = w
         this.chart.outerHeight = h
-        this.chart.x_range = [0, store.universes.length]
+        this.chart.x_max = store.universes.length
 
         //draw
         this.chart.update(store.running_sensitivity)
+        // this.simulateUpdates()
       })
 
       bus.$on('/monitor/update-sensitivity', () => {
@@ -37,7 +38,21 @@
       })
     },
     methods: {
+      // for debugging
+      simulateUpdates () {
+        const step = 1
+        const speed = 1000
 
+        let i = 0
+        let iid = setInterval(() => {
+          if (i >= store.running_sensitivity.length - 1) {
+            clearInterval(iid)
+            return
+          }
+          this.chart.update(_.slice(store.running_sensitivity, 0, i))
+          i += step * 2
+        }, speed)
+      }
     }
   }
 </script>

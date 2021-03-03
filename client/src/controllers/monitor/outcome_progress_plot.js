@@ -14,12 +14,12 @@ class OutcomeProgressPlot {
     this.parent = parent
 
     // style
-    this.x_label = 'Time'
+    this.x_label = 'Progress'
     this.label_font_size = 10
     this.show_x_label = true
 
     // axis range
-    this.x_range = null
+    this.x_max = null     // must be set by the caller
 
     // internal
     this.svg = null
@@ -62,6 +62,7 @@ class OutcomeProgressPlot {
         .style('font-size', this.label_font_size)
         .text(this.x_label)
     }
+    this._drawXAxis()
 
     // draw mean line and CI band
     this.svg.append('g').classed('actual-plot', true)
@@ -123,6 +124,7 @@ class OutcomeProgressPlot {
       // update the current chart
       this._setScale(data)
       this._drawYAxis()
+      this._drawXAxis(true)
       this._drawLineAndCI(data, true)
     }
   }
@@ -131,8 +133,10 @@ class OutcomeProgressPlot {
     let height = this.outerHeight - this.margin.top - this.margin.bottom
     let width = this.outerWidth - this.margin.left - this.margin.right
 
+    let xmax = d3.max(data, (d) => d['n_samples']) / this.x_max
+    xmax = xmax > 0.6 ? 1 : (xmax > 0.4 ? 0.75 : (xmax > 0.2 ? 0.5 : 0.25))
     this.xs = d3.scaleLinear()
-      .domain(this.x_range || [0, d3.max(data, (d) => d['n_samples'])])
+      .domain([0, xmax])
       .range([0, width])
     this.ys = d3.scaleLinear()
       .domain([d3.min(data, (d) => d.lower), d3.max(data, (d) => d.upper)])
@@ -155,12 +159,29 @@ class OutcomeProgressPlot {
         .attr('stroke-dasharray', '2, 2'))
   }
 
+  _drawXAxis (redraw=false) {
+    let x_max = this.xs.domain()[1]
+    let height = this.ys.range()[0]
+    let sel = this.svg.selectAll('.axis-label.muted.x-axis')
+      .data([x_max])
+    if (!redraw) {
+      sel = sel.enter().append('text')
+        .classed('axis-label muted x-axis', true)
+    }
+    sel
+      .attr('transform', `translate(0, ${height + 3})`)
+      .attr('x', (d) => this.xs(d))
+      .style('text-anchor', 'end')
+      .style('font-size', this.label_font_size)
+      .text((d) => d * 100 + '%')
+  }
+
   _drawLineAndCI (data, redraw=false) {
     let svg = this.svg.select('.actual-plot')
 
     // draw CIs
     let area = d3.area()
-      .x((d) => this.xs(d['n_samples']))
+      .x((d) => this.xs(d['n_samples'] / this.x_max))
       .y0((d) => this.ys(d.lower))
       .y1((d) => this.ys(d.upper))
     if (redraw) {
@@ -176,15 +197,14 @@ class OutcomeProgressPlot {
     }
 
     // draw the mean line
-    let line_data = _.map(data, (d, i) => {
+    let line_data = _.map(data, (d) => {
       return {
-        x0: i < 1 ? d['n_samples'] : data[i - 1]['n_samples'],
-        x1: d['n_samples'],
+        x: d['n_samples'],
         y: d['mean']
       }
     })
     let line = d3.line()
-      .x((d) => 0.5 * this.xs(d.x0) + 0.5 * this.xs(d.x1))
+      .x((d) => this.xs(d.x) / this.x_max)
       .y((d) => this.ys(d.y))
     if (redraw) {
       svg.select('.outcome-mean')
