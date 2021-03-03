@@ -158,7 +158,11 @@ def start_runtime():
   # TODO: allow users to specify the sampling method
   df = common.get_decision_df()
   order, weights = sampling.round_robin(df, df.shape[0])
-  order = order.tolist()
+
+  # order is not a list of uid, but indices into the summary table
+  # lookup again to get the actual uid
+  order = common.read_summary().iloc[order]['uid'].tolist()
+  # compute likelihood ratio
   if weights is not None:
     weights = 1 / (weights * df.shape[0])
 
