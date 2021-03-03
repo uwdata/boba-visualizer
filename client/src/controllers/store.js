@@ -107,7 +107,6 @@ class Store {
 
     this.socket.on('update-sensitivity', (msg) => {
       this.running_sensitivity = _.map(msg.data, (d) => _.zipObject(msg.header, d))
-      console.log(this.running_sensitivity)
       bus.$emit('/monitor/update-sensitivity')
     })
 
@@ -372,14 +371,7 @@ class Store {
     if ('decision_scores' in msg) {
       let ro = msg['decision_scores']
       this.running_sensitivity = _.map(ro.data, (d) => _.zipObject(ro.header, d))
-      console.log(this.running_sensitivity)
     }
-  }
-
-  _wrangleMonitorSensitivity (msg) {
-    // fixme: maybe remove this
-    this.running_sensitivity = _.map(msg.data, (d) => _.zipObject(msg.header,
-      _.map(d, (dd) => dd === 'nan' ? NaN : dd)))
   }
 
   _deriveRunStatus (is_running, done, total=-1) {
@@ -410,7 +402,9 @@ class Store {
             this.running_status = RUN_STATUS.RUNNING
             // reset progress
             this.running_outcome = []
+            this.running_sensitivity = []
             bus.$emit('/monitor/update-outcome')
+            bus.$emit('/monitor/update-sensitivity')
             resolve()
           } else { reject('Internal server error.') }
         }, () => { reject('Network error.') })
