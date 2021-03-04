@@ -7,7 +7,7 @@ import numpy as np
 from flask import jsonify, request
 from .util import read_csv, read_key_safe
 from bobaserver import app, socketio, scheduler
-import bobaserver.bobastats.sampling as sampling
+from bobaserver.bobastats import sampling, sensitivity
 import bobaserver.common as common
 
 
@@ -61,6 +61,31 @@ class BobaWatcher:
             if len(previous) else d[col])
 
 
+  def _NaN_to_string(self, arr):
+    # convert NaN to string 'nan'. It will happen in place in the input arr.
+    for i in range(len(arr)):
+      arr[i] = ['nan' if isinstance(r, float) and np.isnan(r) else r \
+        for r in arr[i]]
+
+
+  def _compute_dec_CI(self, df, col, indices, dec_list, i):
+    """ Compute bootstrap CI of decision sensitivity """
+    res = sampling.bootstrap_sensitivity(df, col, indices, dec_list)
+    out = [[i, c] + res[f'score_{c}'].tolist() for c in ['lower', 'upper']]
+
+    # convert NaN to string
+    self._NaN_to_string(out)
+    self.decision_scores += out
+
+    # write results to disk
+    self._append_csv(BobaWatcher.get_fn_sensitivity(),
+      BobaWatcher.get_header_sensitivity(), out)
+
+    # send to client
+    socketio.emit('update-sensitivity', {'data': self.decision_scores,
+      'header': BobaWatcher.get_header_sensitivity()})
+
+
   def update_outcome(self, done):
     step = min(5, max(1, int(app.bobarun.size / 50)))
     if len(done) - self.last_merge_index < step:
@@ -87,9 +112,15 @@ class BobaWatcher:
 
       # decision sensitivity, without CI
       # FIXME: hard coded for AD test
-      ad = [common.ad_wrapper(df.iloc[indices], dec, col) for dec in dec_list]
+      ad = [sensitivity.ad_wrapper(df.iloc[indices], dec, col) \
+        for dec in dec_list]
       sen.append([i, 'score'] + [s[0] for s in ad])
       sen.append([i, 'p'] + [s[1] for s in ad])
+
+    # schedule a job to compute the decision CI, for the last index
+    if not scheduler.get_job('compute_CI'):
+      scheduler.add_job(self._compute_dec_CI, id='compute_CI', 
+        args=[df, col, indices, dec_list, i])
 
     # impute null in CI and remove null in mean
     self._impute_null_CI(res, self.outcomes, 1)
@@ -97,9 +128,7 @@ class BobaWatcher:
     self.outcomes += res
 
     # convert NaN in decision sensitivity to string 'nan'
-    for i in range(len(sen)):
-      sen[i] = ['nan' if isinstance(r, float) and np.isnan(r) else r \
-        for r in sen[i]]
+    self._NaN_to_string(sen)
     self.decision_scores += sen
 
     # write results to disk

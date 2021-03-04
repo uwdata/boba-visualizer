@@ -100,31 +100,6 @@ def sensitivity_ad (df, col):
          col)[0] for d in app.decisions}
 
 
-def ad_wrapper (df, dec, col):
-  """
-  Compute sensitvity for a given decision, while checking for minimum sample
-  size requirements. Returns NaN if the check or the AD test fails.
-
-  Returns: (test statistics, p-value)
-  """
-  # each option should have some samples for the k-samples AD test to work
-  min_group_size = 3
-
-  # ensure that each level has at least n samples
-  groups = df.groupby(dec).count()
-  n_pass = groups[groups[col] >= min_group_size].shape[0]
-  if n_pass < groups.shape[0]:
-    return np.nan, np.nan
-
-  # we are using the options in the current df, ignoring missing levels
-  options = df.groupby(dec).groups.keys()
-  try:
-    s, p = sensitivity.sensitivity_ad(df, dec, options, col)
-    return s, p
-  except (ValueError, IndexError):
-    return np.nan, np.nan
-
-
 def cal_sensitivity(df=None):
     """ Compute sensitivity """
     # read the prediction and join with summary

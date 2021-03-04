@@ -3,6 +3,7 @@ import pandas as pd
 import itertools
 from sklearn.linear_model import LinearRegression
 from .bootstrap import bootstrap
+from .sensitivity import ad_wrapper
 
 
 def round_robin (df, n=50):
@@ -133,6 +134,39 @@ def bootstrap_outcome (df, COL, indices, weights=None):
   lower, upper = bs.get_ci()
 
   return [mean, lower, upper]
+
+
+def bootstrap_sensitivity (df, COL, indices, decs=None):
+  """ Sensitivity and bootstrapped CI for all decisions. """
+  if decs is None:
+    # assuming all columns except "outcome" is a decision
+    decs = list(df.columns)
+    decs.remove(COL)
+
+  # prep work
+  out = []
+  header = ['decision', 'score', 'p', 'score_lower', 'score_upper']
+  # our bootstrap statisitc is the AD score of a decision
+  stat = lambda idx, d: ad_wrapper(df.iloc[idx], d, COL)[0]
+
+  # loop over all decisions
+  for d in decs:
+    # sample stats
+    score, pval = ad_wrapper(df.iloc[indices], d, COL)
+    row = [d, score, pval]
+
+    # bootstrap
+    if not np.isnan(score):
+      bs = bootstrap(stat, ci_type='bc', n=200)
+      bs.fit(indices, d)
+      lower, upper = bs.get_ci()
+      row += [lower, upper]
+
+    # pad with NaN if we did not bootstrap
+    row += [np.nan] * (len(header) - len(row))
+    out.append(row)
+
+  return pd.DataFrame(out, columns = header)
 
 
 def one_hot_encode (df, interact=False):
