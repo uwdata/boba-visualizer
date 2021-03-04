@@ -172,24 +172,61 @@ class DecisionProgressPlot {
   _drawLineAndCI (data, redraw=false) {
     let svg = this.svg.select('.actual-plot')
 
+    // these are the column names for AD score, lower CI, upper CI
+    const cols = ['score', 'lower', 'upper']
+
     let line = d3.line()
       .curve(d3.curveMonotoneX) // not sure if smoothing is right
       .x((d) =>this.xs(d.x / this.x_max))
-      .y((d) => this.ys(d.y))
+      .y((d) => this.ys(d['score']))
 
-    let line_data = _.map(this.decisions, (dec) => {
-      let values = []
-      for (let i = 0; i < data.length; i++) {
-        let val = data[i][dec]
-        if (data[i].type === 'score' && _.isNumber(val) && !_.isNaN(val)) {
-          values.push({x: data[i]['n_samples'], y: val})
+    let area = d3.area()
+      .curve(d3.curveMonotoneX)
+      .x((d) => this.xs(d.x / this.x_max))
+      .y0((d) => this.ys(d.lower))
+      .y1((d) => this.ys(d.upper))
+
+    // wrangle data
+    let gp = _.groupBy(data, 'n_samples')
+    let formatted_data = _.map(this.decisions, (dec) => {
+      let lines = []
+      let areas = []
+      _.each(gp, (arr, n_samples) => {
+        let item = {x: Number(n_samples)}
+        _.each(arr, (row) => {
+          let val = row[dec]
+          let col = row.type
+          if (_.includes(cols, col) && _.isNumber(val) && !_.isNaN(val)) {
+            item[col] = val
+          }
+        })
+        if ('score' in item) {
+          lines.push(item)
         }
-      }
-      return {decision: dec, values: values}
+        if ('lower' in item && 'upper' in item) {
+          areas.push(item)
+        }
+      })
+      return {decision: dec, line_data: lines, area_data: areas}
     })
 
-    let sel = svg.selectAll('.sens-progress-line')
-      .data(line_data)
+    // draw the area
+    let sel = svg.selectAll('.sens-progress-area')
+      .data(formatted_data)
+    if (redraw) {
+      sel = sel.transition(this.trans)
+    } else {
+      sel = sel.enter()
+        .append('path')
+        .classed('sens-progress-area', true)
+    }
+    sel.attr('d', (d) => area(d.area_data))
+      .attr('fill',(d) => '#' + this.color_scale(d.decision))
+      .attr('opacity', 0.1)
+
+    // draw the lines
+    sel = svg.selectAll('.sens-progress-line')
+      .data(formatted_data)
     if (redraw) {
       sel = sel.transition(this.trans)
     } else {
@@ -199,7 +236,7 @@ class DecisionProgressPlot {
     }
     sel
       .attr('stroke', (d) => '#' + this.color_scale(d.decision))
-      .attr('d', (d) => line(d.values))
+      .attr('d', (d) => line(d.line_data))
       .attr('fill', 'none')
       .attr('stroke-linejoin', 'round')
       .attr('stroke-width', 1.5)
