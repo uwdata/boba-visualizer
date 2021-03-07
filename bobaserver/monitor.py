@@ -88,7 +88,7 @@ class BobaWatcher:
 
   def update_outcome(self, done):
     step = min(5, max(1, int(app.bobarun.size / 50)))
-    if len(done) - self.last_merge_index < step:
+    if len(done) - self.last_merge_index <= step:
       return
 
     # merge result file
@@ -103,6 +103,7 @@ class BobaWatcher:
     self.last_merge_index = len(done) - 1
     res = []
     sen = []
+    indices = None
     for i in range(start, len(done), step):
       indices = self.order[:i+1]
 
@@ -118,7 +119,7 @@ class BobaWatcher:
       sen.append([i, 'p'] + [s[1] for s in ad])
 
     # schedule a job to compute the decision CI, for the last index
-    if not scheduler.get_job('compute_CI'):
+    if (not scheduler.get_job('compute_CI')) and (indices is not None):
       scheduler.add_job(self._compute_dec_CI, id='compute_CI', 
         args=[df, col, indices, dec_list, i])
 
