@@ -100,19 +100,21 @@ def round_robin_weights (df):
   return weights
 
 
-def get_outcome_mean (y, indices, weights=None):
+def get_outcome_mean (y, indices, weights=None, ignore_na=True):
   """
   Estimate outcome mean from sample.
     - weights: likelihood ratio f(x)/g(x) for importance sampling
   """
-  if weights is None:
-    return np.mean(y[indices])
+  arr = y[indices]
+  if weights is not None:
+    arr = weights[indices] * arr
+  if ignore_na:
+    arr = arr[~np.isnan(arr)]
 
-  arr = weights[indices] * y[indices]
   return np.mean(arr)
 
 
-def bootstrap_outcome (df, COL, indices, weights=None):
+def bootstrap_outcome (df, COL, indices, weights=None, ignore_na=True):
   """
   Given a sample, compute the bootstrapped CI around outcome mean.
 
