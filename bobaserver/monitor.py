@@ -205,12 +205,14 @@ def merge_error ():
           code = status.loc[uid]['exit_code']
           res.append([uid, code, data])
 
+  # cluster errors into groups
   res = pd.DataFrame(res, columns=['uid', 'exit_code', 'message'])
-  if df is not None:
-    df = pd.concat([df, res], ignore_index=True)
-  else:
-    df = res
+  res = common.cluster_error(res)
+
+  # save file and return
+  df = res if df is None else pd.concat([df, res], ignore_index=True)
   df.to_csv(fn, index=False)
+  return df, status
 
 
 # entry (already defined in routes)

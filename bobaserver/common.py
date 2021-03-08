@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import os
+import re
 from bobaserver import app
 from .bobastats import sensitivity
 from .util import print_warn, remove_na
@@ -69,6 +70,33 @@ def read_results_with_summary (field, dtype=str, diagnostics=True):
         percent = round(n_na / total * 100, 1)
         print_warn(f' * {n_na} {field} ({percent}%) contains Inf or NaN value')
 
+  return df
+
+
+def cluster_error (df):
+  """ Cluster the error messages based on heuristics """
+  if df.shape[0] < 1:
+    df['group'] = pd.Series(dtype=str)
+    return df
+
+  # regex
+  pt_skip = r'^(there were|warning message)'
+
+  # row-wise function
+  def process_row (row):
+    sentences = row['message'].split('\n')
+    first = ''
+    i = 0
+    while i < len(sentences):
+      # skip the rows with uninformative message, and group by the first row
+      if re.search(pt_skip, sentences[i], flags=re.IGNORECASE) is None:
+        first = sentences[i]
+        break
+      i += 1
+    
+    return first
+
+  df['group'] = df.apply(process_row, axis=1)
   return df
 
 
