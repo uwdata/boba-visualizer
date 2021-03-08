@@ -2,33 +2,39 @@
   <div class="mn-container pl-3 pr-3">
 
     <!--Header-->
-    <header class="navbar mn-navbar mt-1 row text-muted">
+    <header class="navbar mn-navbar row text-muted">
       <div style="width:200px"><span class="font-semi-bold">Boba Monitor</span></div>
       <title-menu></title-menu>
       <div style="width:200px"><help-button class="float-right"></help-button></div>
     </header>
 
     <!--Progress-->
-    <b-form-row class="mn-progress-row mt-1">
+    <b-form-row class="mn-progress-row">
       <div class="col-6"><progress-card></progress-card></div>
       <div class="col-3"><outcome-progress-view></outcome-progress-view></div>
       <div class="col-3"><decision-progress-view></decision-progress-view></div>
+    </b-form-row>
+
+    <!--Bottom row-->
+    <b-form-row class="mn-bottom-row">
+      <div class="col-3"><error-message-view></error-message-view></div>
     </b-form-row>
   </div>
 </template>
 
 <script>
   import {store, bus} from '../controllers/config'
-  import {SCHEMA} from '../controllers/constants'
   import TitleMenu from '../components/TitleMenu.vue'
   import HelpButton from '../components/HelpButton.vue'
   import ProgressCard from '../components/monitor/ProgressCard.vue'
   import DecisionProgressView from '../components/monitor/DecisionProgressView.vue'
   import OutcomeProgressView from '../components/monitor/OutcomeProgressView.vue'
+  import ErrorMessageView from '../components/monitor/ErrorMessageView.vue'
 
   export default {
     name: 'MonitorPage',
-    components: {OutcomeProgressView, DecisionProgressView, ProgressCard, HelpButton, TitleMenu},
+    components: {ErrorMessageView, OutcomeProgressView, DecisionProgressView,
+      ProgressCard, HelpButton, TitleMenu},
     data () {
       return {
       }
@@ -66,4 +72,8 @@
 .mn-progress-row
   height 11rem
   min-height 11rem
+
+.mn-bottom-row
+  height calc(100vh - 15.5rem - 10px)
+  margin-top 10px
 </style>

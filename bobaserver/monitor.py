@@ -190,7 +190,7 @@ def merge_error ():
 
   # previous merged error
   if os.path.exists(fn):
-    df = pd.read_csv(fn)
+    df = pd.read_csv(fn, na_filter=False)
     merged = df['uid'].tolist()
 
   # these are the new logs
@@ -285,7 +285,7 @@ def get_snapshot():
   # read results and keep NA
   fields = ['point_estimate', 'p_value', 'fit']
   df = common.read_results_batch(fields)
-  df = pd.merge(exit_code, df, on='uid', how='left')
+  df = pd.merge(exit_code, df, on='uid', how='left').fillna('nan')
   res['results']['data'] = df.values.tolist()
   res['results']['header'] = df.columns.tolist()
 

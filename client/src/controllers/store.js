@@ -75,6 +75,8 @@ class Store {
     this.exit_code = {} // key is UID, value is exit code
     this.running_outcome = []  // attributes: n_samples, mean, lower, upper
     this.running_sensitivity = []  // n_samples, type, ... (every decision)
+    this.error_messages = []  // uid, exit_code, message, group
+    this.outcomes = [] // uid, exit_code, ... (field in SCHEMA)
 
     // derived data but accessed by multiple views
     this.x_range = []
@@ -379,6 +381,20 @@ class Store {
     return is_running ? RUN_STATUS.RUNNING : (
       done < 1 ? RUN_STATUS.EMPTY : (
         done < total ? RUN_STATUS.STOPPED : RUN_STATUS.DONE))
+  }
+
+  fetchMonitorSnapshot () {
+    return new Promise((resolve, reject) => {
+      http.post('/api/monitor/get_snapshot', {})
+        .then((response) => {
+          let msg = response.data
+          if (msg && msg.status === 'success') {
+            this.error_messages = _.map(msg.errors.data, (d) => _.zipObject(msg.errors.header, d))
+            this.outcomes = _.map(msg.results.data, (d) => _.zipObject(msg.results.header, d))
+            resolve()
+          } else { reject(msg.message || 'Internal server error.') }
+        }, () => { reject('Network error.')})
+    })
   }
 
   fetchMonitorStatus () {
