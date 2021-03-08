@@ -176,6 +176,43 @@ def check_stopped():
     socketio.emit('stopped')
 
 
+def merge_error ():
+  """ Merge the error logs into errors.csv """
+  fn = os.path.join(app.bobarun.dir_log, 'errors.csv')
+  logs = []
+  merged = []
+  df = None
+
+  # exit code
+  if os.path.exists(app.bobarun.file_log):
+    status = pd.read_csv(app.bobarun.file_log, index_col='uid')
+    logs = status.index.tolist()
+
+  # previous merged error
+  if os.path.exists(fn):
+    df = pd.read_csv(fn)
+    merged = df['uid'].tolist()
+
+  # these are the new logs
+  remain = set(logs).difference(set(merged))
+  res = []
+  for f in os.listdir(app.bobarun.dir_log):
+    if f.startswith('error') and f.endswith('txt'):
+      uid = int(os.path.splitext(f)[0].split('_')[1])
+      if uid in remain:
+        with open(os.path.join(app.bobarun.dir_log, f), 'r') as fo:
+          data = fo.read()
+          code = status.loc[uid]['exit_code']
+          res.append([uid, code, data])
+
+  res = pd.DataFrame(res, columns=['uid', 'exit_code', 'message'])
+  if df is not None:
+    df = pd.concat([df, res], ignore_index=True)
+  else:
+    df = res
+  df.to_csv(fn, index=False)
+
+
 # entry (already defined in routes)
 # @app.route('/')
 # def index():
