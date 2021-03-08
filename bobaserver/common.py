@@ -4,7 +4,7 @@ import os
 import re
 from bobaserver import app
 from .bobastats import sensitivity
-from .util import print_warn, remove_na
+from .util import print_warn, remove_na, group_by
 
 
 def get_decision_list ():
@@ -42,6 +42,22 @@ def read_results (field, dtype=str):
   df = pd.read_csv(fn, na_filter=False)
   col = info['field']
   return df[['uid', col]]
+
+
+def read_results_batch (field_list):
+  """ read multiple fields at once, minimizing file IO """
+  fields = [app.schema[f] for f in field_list if f in app.schema]
+  groups = group_by(fields, lambda x: x['file'])
+
+  res = None
+  for fn in groups:
+    df = pd.read_csv(os.path.join(app.data_folder, fn), na_filter=False)
+    names = ['uid'] + [d['name'] for d in groups[fn]]
+    cols = ['uid'] + [d['field'] for d in groups[fn]]
+    df = df[cols].rename(columns=dict(zip(cols, names)))
+    res = df if res is None else pd.merge(res, df, on='uid')
+
+  return res
 
 
 def read_results_with_summary (field, dtype=str, diagnostics=True):

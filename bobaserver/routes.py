@@ -1,10 +1,11 @@
 import os
-from flask import jsonify, request
-from bobaserver import app
-from .util import read_csv, read_json, read_key_safe, group_by, remove_na
 import numpy as np
 import pandas as pd
 import math
+from flask import jsonify, request
+from bobaserver import app
+from .util import read_csv, read_json, read_key_safe, group_by, remove_na
+import bobaserver.common as common
 
 
 # entry
@@ -26,18 +27,8 @@ def get_universes():
 def get_pred():
     fields = ['point_estimate', 'p_value', 'fit', 'stacking_weight',
         'annotation', 'standard_error']
-    fields = [app.schema[f] for f in fields if f in app.schema]
-    groups = group_by(fields, lambda x: x['file'])
-
-    header = []
-    res = None
-    for fn in groups:
-        df = pd.read_csv(os.path.join(app.data_folder, fn), na_filter=False)
-        names = ['uid'] + [d['name'] for d in groups[fn]]
-        cols = ['uid'] + [d['field'] for d in groups[fn]]
-        df = df[cols].rename(columns=dict(zip(cols, names)))
-        header.extend(names)
-        res = df if res is None else pd.merge(res, df, on='uid')
+    res = common.read_results_batch(fields)
+    header = res.columns.tolist()
 
     # remove Inf and NA in point estimates
     res = remove_na(res, 'point_estimate', dtype=float)

@@ -268,6 +268,30 @@ def stop_runtime():
   return jsonify({'status': 'success'}), 200
 
 
+@app.route('/api/monitor/get_snapshot', methods=['POST'])
+def get_snapshot():
+  res = {'status': 'success',
+    'results': {'data': [], 'header': []},
+    'errors': {'data': [], 'header': []}}
+
+  # error messages
+  err_msg, exit_code = merge_error()
+  res['errors']['data'] = err_msg.values.tolist()
+  res['errors']['header'] = err_msg.columns.tolist()
+
+  # perform merge because the last merge may be stale
+  app.bobarun.run_after_execute()
+
+  # read results and keep NA
+  fields = ['point_estimate', 'p_value', 'fit']
+  df = common.read_results_batch(fields)
+  df = pd.merge(exit_code, df, on='uid', how='left')
+  res['results']['data'] = df.values.tolist()
+  res['results']['header'] = df.columns.tolist()
+
+  return jsonify(res), 200
+
+
 @app.route('/api/monitor/inquire_progress', methods=['POST'])
 def inquire_progress():
   res = {'status': 'success',
