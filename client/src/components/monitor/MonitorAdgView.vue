@@ -37,6 +37,12 @@
         // update color
         this.adg.updateColor(this.prepData())
       })
+
+      bus.$on('adg-node-click', (label, ev) => {
+        this.createFacet(label, ev)
+        this.adg.updateFacet(store.facet)
+        bus.$emit('facet')
+      })
     },
     methods: {
       prepData () {
@@ -49,6 +55,33 @@
           return _.assign(nd, {'sensitivity': sen})
         })
         return data
+      },
+
+      createFacet (label, ev) {
+        let i = -1
+        _.each(store.facet, (f, j) => {
+          i = f === label ? j : i
+        })
+        if (i >= 0) {
+          // remove existing facet
+          store.facet.splice(i, 1)
+        } else {
+          // facet is full, remove the first element
+          if (store.facet.length > 1) {
+            store.facet.splice(1, 1)
+          }
+          if (!ev.shiftKey || !store.facet.length) {
+            // replace
+            store.facet = [label]
+          } else {
+            // add a second facet
+            let ds = [store.facet[0], label]
+            ds = _.map(ds, (name) => store.getDecisionByName(name))
+            ds = _.sortBy(ds, (dec) => dec.options.length)
+            ds = ds[1].options.length <= 3 ? _.reverse(ds) : ds
+            store.facet = _.map(ds, (dec) => dec.name)
+          }
+        }
       }
     }
   }

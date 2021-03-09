@@ -80,6 +80,13 @@
 
         // also use a separate field to indicate if there is NA
         this._has_na = i !== 0
+
+        // join with warning data
+        let lookup = {}
+        _.each(store.error_messages, (d) => lookup[d.uid] = true)
+        _.each(store.outcomes, (d) => {
+          d.color = d.uid in lookup ? (d.exit_code > 0 ? 2 : 1) : 0
+        })
       },
 
       setChartSize (s, nx, ny, x, y, wrap) {

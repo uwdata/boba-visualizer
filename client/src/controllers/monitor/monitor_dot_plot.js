@@ -1,7 +1,7 @@
 import * as d3 from 'd3'
 import _ from 'lodash'
 import DotPlotScale from '../vis/dot_plot_scale'
-import {store, util} from '../config'
+import {store, tableau10, util} from '../config'
 import {SCHEMA, sign} from '../constants'
 import BrushX from '../vis/brushX'
 
@@ -34,6 +34,9 @@ class MonitorDotPlot {
     this.y_range = []
     this.has_na = false
 
+    // interaction
+    this.color_by = 'color'
+
     // assigned when calling draw
     this.parent = ''
     this.data = []
@@ -42,9 +45,8 @@ class MonitorDotPlot {
     // components
     this.scale = null
     this.brush = null
-
-    // intermediate objects
     this.x_axis = null
+    this.colormap = null
     this.svg = null
   }
 
@@ -75,6 +77,9 @@ class MonitorDotPlot {
     // using a shared x range
     let scale = new DotPlotScale(store.x_range, scale_params)
     this.scale = scale
+
+    // color scale
+    this.setColor('color')
 
     // prepare the canvas
     this.svg = d3.select(parent)
@@ -128,6 +133,16 @@ class MonitorDotPlot {
     this.y_range = y_range
   }
 
+  setColor (color_by) {
+    this.color_by = color_by
+
+    // color scale
+    if (this.color_by === 'color') {
+      this.colormap = d3.scaleOrdinal().domain([0, 1, 2])
+        .range(['#37c2e8', '#ffc107', '#e45756'])
+    }
+  }
+
   /**
    * Density dot algorithm, assuming data is sorted.
    * @param start
@@ -167,26 +182,23 @@ class MonitorDotPlot {
     let scale = this.scale
     let maxy = this.y_range[1]
 
-    //todo
-    // sort by model fit
-    // if (SCHEMA.FIT in store.configs.schema) {
-    //   data = _.reduce(_.groupBy(data, '_x'), (res, ds) => {
-    //     ds = _.map(_.sortBy(ds, SCHEMA.FIT), (d, i) => {
-    //       d._y = i
-    //       return d
-    //     })
-    //     return res.concat(ds)
-    //   }, [])
-    // }
-
     // compute x and y for NA points
     let na = _.each(this.nulls, (d, i) => {
       d._x = this.scale.x.range()[1] + this.na_width / 2
       d._y = i
     })
+    let data = this.data.concat(na)
+
+    // sort by the color field
+    data = _.reduce(_.groupBy(data, '_x'), (res, ds) => {
+      ds = _.map(_.sortBy(ds, this.color_by), (d, i) => {
+        d._y = i
+        return d
+      })
+      return res.concat(ds)
+    }, [])
 
     // compute y based on counts
-    let data = this.data.concat(na)
     let step = Math.min(scale.height() / (maxy + 1), this.dot_radius * 2)
     _.each(data, (d) => {
       d._y = scale.height() - d._y * step - step * 0.5
@@ -201,14 +213,14 @@ class MonitorDotPlot {
       .attr('r', () => this.dot_radius)
       .attr('cx', (d) => d._x)
       .attr('cy', (d) => d._y)
+      .attr('fill', (d) => this.colormap(d.color))
       .attr('fill-opacity', opacity)
   }
 
   _drawXAxis (redraw = false) {
     let scale = this.scale
     let xAxis = d3.axisBottom(scale.x).tickSize(-scale.height())
-      .ticks(Math.round(scale.width() / 30))
-    console.log(scale.x.range(), scale.width())
+      .ticks(Math.round(scale.width() / 40))
 
     let tmp = redraw ? this.x_axis.transition().duration(1000) : this.x_axis
     tmp.call(xAxis)
@@ -220,7 +232,7 @@ class MonitorDotPlot {
 
     // NA label
     if (this.has_na) {
-      let th = scale.height() + this.label_font_size * 2 + 3
+      let th = scale.height() + this.label_font_size - 1
       this.svg.append('text')
         .classed('axis-label muted', true)
         .attr('transform', `translate(${scale.width() - this.na_width / 2}, ${th})`)
