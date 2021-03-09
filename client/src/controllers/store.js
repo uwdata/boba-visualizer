@@ -399,6 +399,7 @@ class Store {
           if (msg && msg.status === 'success') {
             this.error_messages = _.map(msg.errors.data, (d) => _.zipObject(msg.errors.header, d))
             this.outcomes = _.map(msg.results.data, (d) => _.zipObject(msg.results.header, d))
+            bus.$emit('/monitor/snapshot')
             resolve()
           } else { reject(msg.message || 'Internal server error.') }
         }, () => { reject('Network error.')})
