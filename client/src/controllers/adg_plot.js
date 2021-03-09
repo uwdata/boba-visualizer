@@ -2,6 +2,7 @@ import * as d3 from 'd3'
 import * as dagre from 'dagre'
 import _ from 'lodash'
 import {bus, store, util} from './config'
+import {SENSITIVITY} from './constants'
 
 /**
  * A plot for ADG.
@@ -47,6 +48,15 @@ class ADGPlot {
 
     this.graph = this._layoutGraph()
     this._renderGraph()
+  }
+
+  updateColor (data) {
+    this.nodes = data.nodes
+    let colormap = this._getColorScale()
+
+    d3.select(this.parent).selectAll('.adg_node')
+      .data(this.nodes, (d) => d.label)
+      .attr('fill', (d) => colormap(d.sensitivity))
   }
 
   /**
@@ -124,16 +134,11 @@ class ADGPlot {
     })
 
     if (this.show_options < 2) {
-      // color scale
-      let s_max = d3.max(this.nodes, (nd) => Math.sqrt(nd.sensitivity))
-      // let colormap = d3.scaleSequential(d3.interpolateBlues)
-      //   .domain([0, Math.max(5, s_max) * 1.2])
-      let colormap = d3.scaleSequential(d3.interpolateBlues)
-         .domain([0.1, Math.max(0.4, s_max)])
+      let colormap = this._getColorScale()
 
       // nodes
       objects.selectAll('.adg_node')
-        .data(nodes)
+        .data(nodes, (d) => d.label)
         .enter()
         .append('circle')
         .classed('adg_node', true)
@@ -287,6 +292,25 @@ class ADGPlot {
 
     // center the graph
     this._fitGraph()
+  }
+
+  _getColorScale () {
+    // color scale
+    let s_max = d3.max(this.nodes, (nd) => Math.sqrt(nd.sensitivity))
+    let domain = [0, 1]
+    switch (store.configs.sensitivity_test) {
+      case SENSITIVITY.KS:
+        domain = [0.1, Math.max(0.4, s_max)]
+        break
+      case SENSITIVITY.AD:
+        domain = [0,  Math.max(10, s_max) * 1.2]
+        break
+      case SENSITIVITY.F:
+      default:
+        domain = [0,  Math.max(5, s_max) * 1.2]
+    }
+    return d3.scaleSequential(d3.interpolateBlues)
+      .domain(domain)
   }
 
   /**

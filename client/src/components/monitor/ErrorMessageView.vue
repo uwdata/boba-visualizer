@@ -62,7 +62,7 @@
     methods: {
       updateData () {
         let data = []
-        const colors = ['#f58518', '#e45756']
+        const colors = ['#ffc107', '#e45756'] //#eeca38
         const preview_lines = 2
 
         // first, group by if the exit code is non-zero

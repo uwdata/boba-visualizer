@@ -108,7 +108,7 @@ class Store {
     })
 
     this.socket.on('update-sensitivity', (msg) => {
-      this.running_sensitivity = _.map(msg.data, (d) => _.zipObject(msg.header, d))
+      this._wrangleMonitorSensitivity(msg)
       bus.$emit('/monitor/update-sensitivity')
     })
 
@@ -218,6 +218,7 @@ class Store {
             // config
             let cfg = msg.data.labels
             cfg.schema = _.zipObject(msg.data.schema, msg.data.schema)
+            cfg.sensitivity_test = msg.data.sensitivity
             this.configs = _.assign(default_config, cfg)
 
             resolve()
@@ -371,8 +372,15 @@ class Store {
       this.running_outcome = _.map(ro.data, (d) => _.zipObject(ro.header, d))
     }
     if ('decision_scores' in msg) {
-      let ro = msg['decision_scores']
-      this.running_sensitivity = _.map(ro.data, (d) => _.zipObject(ro.header, d))
+      this._wrangleMonitorSensitivity(msg['decision_scores'])
+    }
+  }
+
+  _wrangleMonitorSensitivity (msg) {
+    this.running_sensitivity = _.map(msg.data, (d) => _.zipObject(msg.header, d))
+    let i = _.findLastIndex(this.running_sensitivity, (d) => d.type === 'score')
+    if (i != null && i >= 0) {
+      this.sensitivity = this.running_sensitivity[i]
     }
   }
 
@@ -419,6 +427,7 @@ class Store {
             // reset progress
             this.running_outcome = []
             this.running_sensitivity = []
+            this.sensitivity = {}
             bus.$emit('/monitor/update-outcome')
             bus.$emit('/monitor/update-sensitivity')
             resolve()

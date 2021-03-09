@@ -274,6 +274,9 @@ def get_snapshot():
     'results': {'data': [], 'header': []},
     'errors': {'data': [], 'header': []}}
 
+  if not os.path.exists(app.bobarun.dir_log):
+    return jsonify(res), 200
+
   # error messages
   err_msg, exit_code = merge_error()
   res['errors']['data'] = err_msg.values.tolist()

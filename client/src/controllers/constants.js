@@ -42,6 +42,12 @@ const DTYPE = {
   WEIGHT: 'float'
 }
 
+const SENSITIVITY = {
+  F: 'f',
+  KS: 'ks',
+  AD: 'ad'
+}
+
 const sign = 0
 
-export {UNC_TYPE, COLOR_TYPE, SCHEMA, DTYPE, RUN_STATUS, sign}
+export {UNC_TYPE, COLOR_TYPE, SCHEMA, DTYPE, RUN_STATUS, SENSITIVITY, sign}

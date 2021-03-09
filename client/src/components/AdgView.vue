@@ -90,10 +90,8 @@
     stroke-width 2
     cursor pointer
     transition fill 0.2s
-    &.hovered
-      fill #f58518 !important
-    &.facet
-      fill #f58518 !important
+    &.hovered, &.facet
+      fill #f58518
 
   .adg_node_facet_label
     text-anchor middle
