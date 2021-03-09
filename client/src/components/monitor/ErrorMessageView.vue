@@ -63,7 +63,7 @@
       updateData () {
         let data = []
         const colors = ['#f58518', '#e45756']
-        const preview_lines = 4
+        const preview_lines = 2
 
         // first, group by if the exit code is non-zero
         let gp = _.groupBy(store.error_messages, (d) => d.exit_code > 0 ? 1 : 0)
@@ -75,8 +75,11 @@
             // here we throw away individual messages, but only keep a list of uids
             let uids = _.map(arr, (d) => d.uid)
             let msg = arr[0].message
+
+            // preview is a few lines starting from the cluster line
             let lines = msg.split('\n')
-            let preview = _.trim(_.slice(lines, 0, 4).join('\n'))
+            let idx = _.findIndex(lines, (l) => l.startsWith(cluster.substring(0, 6))) || 0
+            let preview = _.trim(_.slice(lines, idx, idx + preview_lines).join('\n'))
 
             data.push({code: Number(code), color: colors[code], summary: cluster,
               full_message: msg, uids: uids, count: uids.length,

@@ -97,6 +97,7 @@ def cluster_error (df):
 
   # regex
   pt_skip = r'^(there were|warning message)'
+  pt_err = r'^error'
 
   # row-wise function
   def process_row (row):
@@ -110,6 +111,14 @@ def cluster_error (df):
         break
       i += 1
     
+    # look for 'error' if the exit code is non-zero
+    if row['exit_code'] > 0:
+      while i < len(sentences): # start from where we left off
+        if re.search(pt_err, sentences[i], flags=re.IGNORECASE) is not None:
+          first = sentences[i]
+          break
+        i += 1
+
     return first
 
   df['group'] = df.apply(process_row, axis=1)
