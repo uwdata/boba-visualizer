@@ -37,6 +37,17 @@
     color: #6c757d;
 }
 
+.mn-card-title-lg {
+    font-size: 0.9em;
+    font-weight: 500;
+    color: #6c757d;
+}
+
+.mn-card-body {
+    font-size: 0.8em;
+    color: #6c757d;
+}
+
 .mouse-pointer {
     cursor: pointer
 }

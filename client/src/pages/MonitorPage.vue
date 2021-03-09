@@ -76,4 +76,6 @@
 .mn-bottom-row
   height calc(100vh - 15.5rem - 10px)
   margin-top 10px
+  & .mn-card
+    height calc(100vh - 15.5rem - 10px)
 </style>
