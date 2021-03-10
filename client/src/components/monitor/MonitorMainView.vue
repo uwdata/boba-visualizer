@@ -17,7 +17,7 @@
       <div v-else class="mt-3"></div>
 
       <!--Facet plot-->
-      <div class="h-100 d-flex mt-1">
+      <div class="h-100 d-flex mt-1 mb-3 overflow-auto">
         <!--vis container-->
         <div id="mn-facet-container" ref="chart" class="ml-2 flex-grow-1"></div>
 
@@ -90,8 +90,8 @@
       },
 
       setChartSize (s, nx, ny, x, y, wrap) {
-        let h_max = 350 // max chart height
-        let h_min = 160 // min chart height
+        let h_max = 160 // max chart height
+        let h_min = 100 // min chart height
         let padding = 20  // space for option title
         let title = 3  // space for decision title
         let dim_y = ny > 1 && !wrap  // whether there will be titles on the y dimension
@@ -153,14 +153,12 @@
             }))
           })
 
-          // now optimize for better aspect ratio
-          if (sub.length < 2 && sub[0].length > 3) {
+          // we want to facet along the y-axis first... so transpose everything
+          // comment out to have boba 1 behavior (except for auto-wrapping)
+          if (store.facet[1] == null) {
+            sub = _.unzip(sub)
+            titles = _.unzip(titles)
             wrap = true
-            let i = Math.ceil(sub[0].length / 2)
-            sub.push(sub[0].slice(i, sub[0].length))
-            sub[0] = sub[0].slice(0, i)
-            titles.push(titles[0].slice(i, titles[0].length))
-            titles[0] = titles[0].slice(0, i)
           }
         }
 

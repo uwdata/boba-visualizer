@@ -8,7 +8,7 @@
             {{getTimeLeft()}} left ...</span>
         </div>
         <!--color legend-->
-        <div><small v-if="failed" class="text-danger">{{failed}} errors</small></div>
+        <!--<div><small v-if="failed" class="text-danger">{{failed}} errors</small></div>-->
       </div>
 
       <!--progress bar-->

@@ -1,7 +1,7 @@
 import * as d3 from 'd3'
 import _ from 'lodash'
 import DotPlotScale from '../vis/dot_plot_scale'
-import {store, tableau10, util} from '../config'
+import {store, util} from '../config'
 import {SCHEMA, sign} from '../constants'
 import BrushX from '../vis/brushX'
 
@@ -124,7 +124,7 @@ class MonitorDotPlot {
     this._computeDensityDots(i - 1, -1, false)
 
     // find max count as the y domain
-    let max_y = d3.max(this.data, (d) => d._y)
+    let max_y = this.data.length ? d3.max(this.data, (d) => d._y) : 0
     max_y = Math.max(max_y, this.nulls.length)  // count of NA
     return [0, max_y]
   }
