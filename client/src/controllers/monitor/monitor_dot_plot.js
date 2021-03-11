@@ -145,6 +145,22 @@ class MonitorDotPlot {
   }
 
   /**
+   * Highlight dots with matching UIDs by coloring all other dots in grey
+   * If UIDs are empty, reset (i.e. highlight all dots)
+   */
+  updateHighlightedDots (uids) {
+    let dots = this.svg.selectAll('.mn-dot')
+    if (uids.length < 1) {
+      dots.classed('muted', false)
+    } else {
+      uids = new Set(uids)
+      dots.classed('muted', true)
+        .filter((d) => uids.has(d.uid))
+        .classed('muted', false)
+    }
+  }
+
+  /**
    * Density dot algorithm, assuming data is sorted.
    * @param start
    * @param end

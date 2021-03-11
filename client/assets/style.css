@@ -10,6 +10,10 @@
     font-weight: 500;
 }
 
+.mouse-pointer {
+    cursor: pointer
+}
+
 .bb-border-top {
     border-top: 1px solid rgba(0,0,0,0.1);
 }
@@ -48,8 +52,8 @@
     color: #6c757d;
 }
 
-.mouse-pointer {
-    cursor: pointer
+.mn-dot.muted {
+    fill: #9ca5ad;
 }
 
 .axis.muted .domain{

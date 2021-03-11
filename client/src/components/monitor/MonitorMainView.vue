@@ -39,6 +39,9 @@
   import DotPlot from '../../controllers/monitor/monitor_dot_plot'
   import _ from 'lodash'
 
+  // persist through view changes
+  let highlighted_dots = []
+
   export default {
     name: 'MonitorMainView',
     data () {
@@ -57,12 +60,17 @@
         this.draw()
       })
 
+      // events from other views
       bus.$on('facet', () => {
         this.draw()
       })
+      bus.$on('highlight-dots', (uids) => {
+        highlighted_dots = uids
+        _.each(this.charts, (chart) => chart.updateHighlightedDots(uids))
+      })
 
-      // event from the chart
-      // make sure only one brush is active across all subplots
+      // events from within the chart
+      // brush: make sure only one brush is active across all subplots
       bus.$on('brush-remove', (s) => {
         _.each(this.charts, (chart) => {
           if (s !== chart.brush.selector) chart.brush.clear()
@@ -237,6 +245,9 @@
         this.updateRange()
         _.each(this.charts, (chart) => {
           chart.draw()
+
+          // persist through facet
+          chart.updateHighlightedDots(highlighted_dots)
         })
       }
     }

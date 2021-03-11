@@ -9,9 +9,10 @@
     </div>
 
     <!--Message list-->
-    <div v-else class="mn-card-body mt-3 h-100 overflow-auto">
+    <div v-else class="mn-card-body mt-2 h-100 overflow-auto">
       <vuescroll :ops="scroll_config">
-        <div v-for="d in messages" class="mb-3">
+        <div v-for="d in messages" class="mn-message"
+             :class="{clicked: d.clicked}" @click="clickMessage(d)">
           <!--Title-->
           <div class="d-flex">
             <div class="mn-error-left">
@@ -22,7 +23,7 @@
           </div>
           <!--Message body-->
           <div class="mt-1 mn-error-log">{{d.less ? d.preview : d.full_message}}</div>
-          <div v-if="!d.complete" class="mn-btn-more" @click="clickShowMore(d)">
+          <div v-if="!d.complete" class="mn-btn-more" @click.stop="clickShowMore(d)">
             {{d.less ? 'show more' : 'show less'}}</div>
         </div>
       </vuescroll>
@@ -99,7 +100,7 @@
             let preview = _.trim(_.slice(lines, idx, idx + preview_lines).join('\n'))
 
             data.push({code: Number(code), color: colors[code], summary: cluster,
-              full_message: msg, uids: uids, count: uids.length,
+              full_message: msg, uids: uids, count: uids.length, clicked: false,
               complete: lines.length <= preview_lines, less: true, preview: preview})
           })
         })
@@ -111,6 +112,17 @@
 
       clickShowMore (d) {
         d.less = !d.less
+      },
+
+      clickMessage (d) {
+        // send event to update dots
+        bus.$emit('highlight-dots', d.clicked ? [] : d.uids)
+
+        // only one message can be active
+        let prev = d.clicked
+        _.each(this.messages, (m) => { m.clicked = false })
+        _.each(all_messages, (m) => { m.clicked = false })
+        d.clicked = !prev
       }
     }
   }
@@ -132,4 +144,9 @@
   font-size 11px
   font-weight 500
 
+.mn-message
+  padding 0.5rem 0.25rem
+  cursor pointer
+  &.clicked
+    background-color #eee
 </style>
