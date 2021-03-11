@@ -2,7 +2,7 @@
   <div class="mn-card d-flex flex-column">
     <!--Title-->
     <div>
-      <div class="mn-card-title-lg">Main</div>
+      <div class="mn-card-title-lg">Main Effect</div>
     </div>
 
     <!--Body-->

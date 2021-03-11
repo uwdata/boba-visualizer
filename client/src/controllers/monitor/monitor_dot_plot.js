@@ -28,7 +28,7 @@ class MonitorDotPlot {
     this.facet_label_width = 20
     this.label_font_size = 11
     this.title_font_size = 11
-    this.na_width = 30
+    this.na_width = 40
 
     // multi view consistency
     this.y_range = []
@@ -114,7 +114,7 @@ class MonitorDotPlot {
     this.scale.x.domain(store.x_range)
     if (this.has_na) {
       let rg = this.scale.x.range()
-      this.scale.x.range([rg[0], rg[1] - this.na_width])
+      this.scale.x.range([rg[0] + this.na_width, rg[1]])
     }
 
     // compute layout
@@ -184,7 +184,7 @@ class MonitorDotPlot {
 
     // compute x and y for NA points
     let na = _.each(this.nulls, (d, i) => {
-      d._x = this.scale.x.range()[1] + this.na_width / 2
+      d._x = this.na_width / 2
       d._y = i
     })
     let data = this.data.concat(na)
@@ -228,17 +228,17 @@ class MonitorDotPlot {
         .attr('stroke-opacity', 0.1)
         .attr('stroke-dasharray', '2, 2'))
       .call(g => g.selectAll('.domain')
-        .attr('d', `M0.5,0H${scale.x.range()[1]}`))
+        .attr('d', `M${scale.x.range()[0] + 0.5},0H${scale.x.range()[1]}`))
 
     // NA label
     if (this.has_na) {
-      let th = scale.height() + this.label_font_size - 1
-      this.svg.append('text')
+      let th = this.label_font_size - 1  // relative to x-axis
+      this.x_axis.append('text')
         .classed('axis-label muted', true)
-        .attr('transform', `translate(${scale.width() - this.na_width / 2}, ${th})`)
+        .attr('transform', `translate(${this.na_width / 2}, ${th})`)
         .style('text-anchor', 'middle')
         .style('font-size', this.label_font_size)
-        .text('null')
+        .text('failed')
     }
   }
 
@@ -255,8 +255,8 @@ class MonitorDotPlot {
 
       // x-axis label
       if (this.x_axis_label) {
-        let th = scale.height() + this.label_font_size * 2 + 3
-        svg.append('text')
+        let th = this.label_font_size * 2 + 3  // relative to x-axis
+        this.x_axis.append('text')
           .classed('axis-label muted', true)
           .attr('transform', `translate(${scale.width() / 2}, ${th})`)
           .style('text-anchor', 'middle')
