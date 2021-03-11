@@ -35,6 +35,9 @@
   import _ from 'lodash'
   import vuescroll from 'vuescroll'
 
+  // keep track of all messages so we can recover from a filter
+  let all_messages = []
+
   export default {
     name: 'ErrorMessageView',
     components: {vuescroll},
@@ -51,12 +54,26 @@
       bus.$on('data-ready', () => {
         //todo: move this call to a button
         store.fetchMonitorSnapshot()
-          .then(() => {
-            this.ready = true
-            this.updateData()
-          }, (e) => {
+          .then(() => {}, (e) => {
             alert(e)
           })
+      })
+
+      bus.$on('/monitor/snapshot', () => {
+        this.ready = true
+        this.updateData()
+      })
+
+      bus.$on('brush', (pts) => {
+        if (!pts || pts.length < 1) {
+          // by default, show all messages
+          this.messages = all_messages
+        } else {
+          // filter messages to those with matching uid
+          let uids = new Set(_.map(pts, (d) => d.uid))
+          this.messages = _.filter(all_messages, (d) =>
+            _.findIndex(d.uids, (uid) => uids.has(uid)) >= 0)
+        }
       })
     },
     methods: {
@@ -89,6 +106,7 @@
 
         // sort by exit code (error > warning), then by the number of uids
         this.messages = _.orderBy(data, ['code', 'count'], ['desc', 'desc'])
+        all_messages = this.messages
       },
 
       clickShowMore (d) {
@@ -111,5 +129,7 @@
 .mn-btn-more
   text-decoration underline
   cursor pointer
+  font-size 11px
+  font-weight 500
 
 </style>

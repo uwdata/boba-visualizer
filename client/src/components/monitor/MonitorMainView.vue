@@ -60,6 +60,14 @@
       bus.$on('facet', () => {
         this.draw()
       })
+
+      // event from the chart
+      // make sure only one brush is active across all subplots
+      bus.$on('brush-remove', (s) => {
+        _.each(this.charts, (chart) => {
+          if (s !== chart.brush.selector) chart.brush.clear()
+        })
+      })
     },
     methods: {
       wrangleData () {
@@ -89,6 +97,9 @@
         })
       },
 
+      /**
+       * Set the chart size for a small multiple subplot
+       */
       setChartSize (s, nx, ny, x, y, wrap) {
         let h_max = 160 // max chart height
         let h_min = 100 // min chart height
@@ -113,6 +124,9 @@
         s.title_font_size = h < 250 ? 11 : 12
       },
 
+      /**
+       * Unify axis range for multi-view consistency
+       */
       updateRange () {
         // get range from each subplot
         let ranges = _.map(this.charts, (chart) => chart.getRange())
@@ -126,6 +140,11 @@
         _.each(this.charts, (chart) => { chart.setRange(ranges) })
       },
 
+      /**
+       * Compute the layout of the small multiples
+       * @param data
+       * @returns {{data: Array, labels: Array, wrap: boolean}}
+       */
       applyFacet (data) {
         this.title_x = store.facet[0]
         this.title_y = store.facet[1]
@@ -171,6 +190,8 @@
         while (nd.firstChild) {
           nd.removeChild(nd.firstChild)
         }
+        // since we also removed the brush, send an event with empty brush
+        bus.$emit('brush', [])
       },
 
       draw () {

@@ -96,6 +96,7 @@ class MonitorDotPlot {
 
     // brush
     this.brush = new BrushX(data, scale)
+    this._attachBrush()
 
     // title and labels
     this._drawTitles()
@@ -206,15 +207,25 @@ class MonitorDotPlot {
 
     let opacity = Math.max(0.3, Math.min(1, step / this.dot_radius * 0.75))
     let svg = this.svg.select('.objects')
-    svg.selectAll('.dot')
+    svg.selectAll('.mn-dot')
       .data(data).enter()
       .append('circle')
-      .classed('dot', true)
+      .classed('mn-dot', true)
       .attr('r', () => this.dot_radius)
       .attr('cx', (d) => d._x)
       .attr('cy', (d) => d._y)
       .attr('fill', (d) => this.colormap(d.color))
       .attr('fill-opacity', opacity)
+  }
+
+  _attachBrush () {
+    let scale = this.scale
+    let brush = this.brush
+    brush.brush.extent([[0, 0], [scale.width(), scale.height()]])
+    brush.attach(this.svg.select('.objects'))
+    brush.selector = `${this.parent} .mn-dot`
+    brush.brushstart_callback = null
+    brush.brushing_callback = null
   }
 
   _drawXAxis (redraw = false) {
