@@ -441,6 +441,18 @@ class Store {
     })
   }
 
+  resumeRuntime () {
+    return new Promise((resolve, reject) => {
+      http.post('/api/monitor/resume_runtime', {})
+        .then((rsp) => {
+          if (rsp.data && rsp.data.status === 'success') {
+            this.running_status = RUN_STATUS.RUNNING
+            resolve()
+          } else { reject(rsp.data.message || 'Internal server error.') }
+        }, () => { reject('Network error.') })
+    })
+  }
+
   stopRuntime () {
     return new Promise((resolve, reject) => {
       http.post('/api/monitor/stop_runtime', {})

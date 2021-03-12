@@ -22,12 +22,14 @@
         <b-button class="ml-3 mn-button-primary" variant="outline-secondary" size="sm" squared
                   v-if="status === STATUS.RUNNING" @click="onStopClick">STOP</b-button>
         <b-button class="ml-3 mn-button-primary" variant="outline-secondary" size="sm" squared
-                  v-if="status === STATUS.EMPTY" @click="onStartClick">START</b-button>
+                  v-if="status === STATUS.EMPTY" @click="startRun">START</b-button>
         <b-button class="ml-3 mn-button-primary" variant="outline-info" size="sm" squared
                   v-if="status === STATUS.STOPPED || status === STATUS.DONE">Open Visualizer</b-button>
         <b-button class="ml-3" variant="outline-secondary" size="sm" squared
                   v-if="status === STATUS.STOPPED || status === STATUS.DONE"
-                  @click="onStartClick">Rerun</b-button>
+                  @click="onStartClick">Start Over</b-button>
+        <b-button class="ml-3" variant="outline-secondary" size="sm" squared
+                  v-if="status === STATUS.STOPPED" @click="onResumeClick">Resume</b-button>
       </div>
       <div v-if="sending_request" class="mt-4"><small class="text-muted">
         sending command ...</small></div>
@@ -129,7 +131,7 @@
         return hs + ms
       },
 
-      onStartClick () {
+      startRun () {
         this.sending_request = true
         store.startRuntime()
           .then(() => {
@@ -140,6 +142,30 @@
           }, (err) => {
             this.sending_request = false
             alert(err)
+          })
+      },
+
+      onStartClick () {
+        // confirm box
+        let msg = 'Are you sure? All progress will be erased.'
+        this.$bvModal.msgBoxConfirm(msg)
+          .then((yes) => {
+            if (yes) {
+              this.startRun()
+            }
+          })
+          .catch(() => {})
+      },
+
+      onResumeClick () {
+        this.sending_request = true
+        store.resumeRuntime()
+          .then(() => {
+            this.status = store.running_status
+            this.sending_request = false
+          }, (err) => {
+            alert(err)
+            this.sending_request = false
           })
       },
 

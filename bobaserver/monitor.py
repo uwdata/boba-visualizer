@@ -297,7 +297,6 @@ def start_runtime():
   if fresh:
     # periodic check for progress
     app.bobawatcher = BobaWatcher(order, weights)
-    app.bobawatcher.save_to_file()
     app.bobawatcher.start()
 
   # set batch size to 1 so the log would be updated more frequently
