@@ -13,7 +13,8 @@
 
       <!--progress bar-->
       <div class="w-100 d-flex mt-3 mn-progress-bar">
-        <div v-for="p in progress" class="mn-bar-segment" :style="barStyle(p)"></div>
+        <div v-for="p in progress" class="mn-bar-segment" :style="barStyle(p)"
+             v-b-tooltip.hover :title="getHint(p)"></div>
       </div>
 
       <!--buttons-->
@@ -83,18 +84,20 @@
         this.failed = fail
         this.progress = [
           {'id': 'success', 'count': success},
-          {'id': 'fail', 'count': fail},
-          {'id': 'todo', 'count': total - success - fail}
+          {'id': 'fail', 'count': fail}
         ]
 
-        let pg = _.dropRight(this.progress)
         this.progress = _.map(this.progress, (p, i) => {
           let left = i < 1 || i === _.findIndex(this.progress, (d) => d.count > 0)
 
-          let right = i >= pg.length - 1 ||
-            i === _.findLastIndex(pg, (d) => d.count > 0)
+          let right = i >= this.progress.length - 1 ||
+            i === _.findLastIndex(this.progress, (d) => d.count > 0)
 
-          p['width'] = Math.round(p.count / total * 100)
+          // bump up the width to a minimum value if the count is non-zero
+          let w = Math.round(p.count / total * 100)
+          w = p.count > 0 ? Math.max(w, 1.5) : 0
+
+          p['width'] = w
           p['color'] =  p.id in palette ? palette[p.id] : '#f2f2f2'
           p['border'] = (left && right) ? '0.3rem' : (left ?
             '0.3rem 0 0 0.3rem' : (right ? '0 0.3rem 0.3rem 0' : '0'))
@@ -106,6 +109,12 @@
       barStyle (p) {
         return `width: ${p.width}%; background-color: ${p.color};`
           + `border-radius: ${p.border}`
+      },
+
+      getHint (p) {
+        let s = p.count > 1 ? 's' : ''
+        let suffix = p.id === 'success' ? 'completed successfully' : 'completed with error'
+        return `${p.count} universe${s} ${suffix}`
       },
 
       getTimeLeft () {
@@ -154,6 +163,7 @@
   height 1.1rem
   border 1px solid #777
   border-radius 0.3rem
+  background-color #f2f2f2
 
 .mn-bar-segment
   transition width 0.3s
