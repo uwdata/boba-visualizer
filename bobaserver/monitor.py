@@ -5,7 +5,7 @@ import time
 import pandas as pd
 import numpy as np
 from flask import jsonify, request
-from .util import read_csv, read_key_safe
+from .util import read_csv, read_json, write_json
 from bobaserver import app, socketio, scheduler
 from bobaserver.bobastats import sampling, sensitivity
 import bobaserver.common as common
@@ -16,7 +16,8 @@ class BobaWatcher:
   header_outcome = ['n_samples', 'mean', 'lower', 'upper']
 
   def __init__(self, order, weights=None):
-    self.start_time = time.time()
+    self.start_time = None
+    self.prev_time = 0  # for resume
 
     # sampling order and weights
     self.order = [uid - 1 for uid in order]  # convert to 0-indexed
@@ -31,6 +32,9 @@ class BobaWatcher:
   @staticmethod
   def get_fn_outcome():
     return os.path.join(app.bobarun.dir_log, 'outcomes.csv')
+  @staticmethod
+  def get_fn_save():
+    return os.path.join(app.bobarun.dir_log, 'execution_plan.json')
   @staticmethod
   def get_fn_sensitivity():
     return os.path.join(app.bobarun.dir_log, 'sensitivity.csv')
@@ -153,7 +157,7 @@ class BobaWatcher:
     # estimate remaining time
     logs = app.bobarun.exit_code
     done = max(1, len(logs)) # avoid division by 0
-    elapsed = time.time() - self.start_time
+    elapsed = self.get_elapsed()
     remain = app.bobarun.size - done
     remain = int(elapsed * remain / done)
 
@@ -167,6 +171,54 @@ class BobaWatcher:
       'is_running': app.bobarun.is_running()}
 
     socketio.emit('update', res)
+
+
+  def stop(self):
+    # stop timer
+    t = 0 if self.start_time is None else time.time() - self.start_time
+    self.prev_time += t
+    self.start_time = None
+
+
+  def start(self):
+    # start timer and add job
+    self.start_time = time.time()
+    scheduler.add_job(self.check_progress, 'interval', seconds=5,
+      id='watcher', replace_existing=True)
+
+
+  def get_elapsed(self):
+    t = 0 if self.start_time is None else time.time() - self.start_time
+    return t + self.prev_time
+
+
+  def save_to_file(self):
+    # save data to file, so it is possible to resume later
+    data = {'order': list(self.order), 'elapsed': self.get_elapsed()}
+    if self.weights is not None:
+      data['weights'] = list(self.weights)
+    write_json(data, self.get_fn_save())
+
+
+  def init_from_file(self):
+    # resume from the previous save
+    err, data = read_json(self.get_fn_save())
+    if not err:
+      self.order = data['order']
+      self.weights = np.asarray(data['weights']) if 'weights' in data else None
+      self.prev_time = data['elapsed']
+
+    # read outcome and sensitivity progress
+    fn = BobaWatcher.get_fn_outcome()
+    if os.path.exists(fn):
+      df = pd.read_csv(fn)
+      self.last_merge_index = df['n_samples'].max()
+      self.outcomes = df.values.tolist()
+    fn = BobaWatcher.get_fn_sensitivity()
+    if os.path.exists(fn):
+      # convert NaN to string 'nan'; client needs to convert it back to js NaN
+      df = pd.read_csv(fn).fillna('nan')
+      self.decision_scores = df.values.tolist()
 
 
 def check_stopped():
@@ -245,8 +297,8 @@ def start_runtime():
   if fresh:
     # periodic check for progress
     app.bobawatcher = BobaWatcher(order, weights)
-    scheduler.add_job(app.bobawatcher.check_progress, 'interval', seconds=5,
-      id='watcher', replace_existing=True)
+    app.bobawatcher.save_to_file()
+    app.bobawatcher.start()
 
   # set batch size to 1 so the log would be updated more frequently
   app.bobarun.batch_size = 1
@@ -257,10 +309,42 @@ def start_runtime():
   return jsonify({'status': 'success'}), 200
 
 
+@app.route('/api/monitor/resume_runtime', methods=['POST'])
+def resume_runtime():
+  # return error if bobarun is still running
+  if app.bobarun.is_running():
+    return jsonify({'status': 'fail', 'message': 'Boba is still running'}), 200
+
+  # initialize boba watcher if this is a new instance
+  if not hasattr(app, 'bobawatcher'):
+    app.bobawatcher = BobaWatcher([])
+    app.bobawatcher.init_from_file()
+
+  # check if boba watcher is valid
+  if len(app.bobawatcher.order) < 1:
+    return jsonify({'status': 'fail',
+      'message': 'Cannot find the previous execution plan'}), 200
+
+  # convert order to 1-indexed
+  order = [uid + 1 for uid in app.bobawatcher.order]
+
+  # start runtime, as we do in start_runtime
+  app.bobawatcher.start()
+  app.bobarun.batch_size = 1
+  scheduler.add_job(app.bobarun.resume_multiverse, args=[order], id='bobarun')
+
+  return jsonify({'status': 'success'}), 200
+
+
 @app.route('/api/monitor/stop_runtime', methods=['POST'])
 def stop_runtime():
   # ask boba run to stop, but post_exe.sh will still run
   app.bobarun.stop()
+
+  # save the plan, so we can resume later
+  if hasattr(app, 'bobawatcher'):
+    app.bobawatcher.stop()
+    app.bobawatcher.save_to_file()
 
   # periodically check if boba run has indeed stopped
   scheduler.add_job(check_stopped, 'interval', seconds=1, id='check_stopped')
@@ -310,23 +394,14 @@ def inquire_progress():
     res['logs'] = t
 
   # outcome CI time series
-  if hasattr(app, 'bobawatcher'):
-    res['outcome']['data'] = app.bobawatcher.outcomes
-    res['decision_scores']['data'] = app.bobawatcher.decision_scores
-    res['decision_scores']['header'] = app.bobawatcher.get_header_sensitivity()
-  else:
-    fn = BobaWatcher.get_fn_outcome()
-    if os.path.exists(fn):
-      df = pd.read_csv(fn)
-      res['outcome']['data'] = df.values.tolist()
-    fn = BobaWatcher.get_fn_sensitivity()
-    if os.path.exists(fn):
-      # convert NaN to string 'nan'; client needs to convert it back to js NaN
-      df = pd.read_csv(fn).fillna('nan')
-      res['decision_scores']['data'] = df.values.tolist()
-      res['decision_scores']['header'] = df.columns.tolist()
+  if not hasattr(app, 'bobawatcher'):
+    app.bobawatcher = BobaWatcher([])
+    app.bobawatcher.init_from_file()
+  res['outcome']['data'] = app.bobawatcher.outcomes
+  res['decision_scores']['data'] = app.bobawatcher.decision_scores
+  res['decision_scores']['header'] = app.bobawatcher.get_header_sensitivity()
 
-  # it's possible to recover outcome CI if there are no weights (ie. uniform)
+  # for debugging
   # logs = [int(r[0]) for r in res['logs']]
   # BobaWatcher(logs).update_outcome(logs)
 

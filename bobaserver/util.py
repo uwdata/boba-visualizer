@@ -61,6 +61,11 @@ def read_json(fn):
             err = {'status': 'fail', 'message': msg}
             return err, None
 
+def write_json(data, fn):
+    with open(fn, 'w', encoding='utf-8') as f:
+        json.dump(data, f)
+
+
 def read_key_safe(obj, keys, default):
     """ Recursively check if key is in obj and return the value.
     Otherwise, return default. """
