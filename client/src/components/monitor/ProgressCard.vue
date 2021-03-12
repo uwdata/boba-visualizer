@@ -40,7 +40,7 @@
   import {RUN_STATUS} from '../../controllers/constants'
 
   const palette = {
-    'success': '#17a2b8', //'#54a24b',
+    'success': '#37c2e8', //'#54a24b',
     'fail': '#e45756'
   }
   export default {

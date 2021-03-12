@@ -426,9 +426,13 @@ class Store {
           if (rsp.data && rsp.data.status === 'success') {
             this.running_status = RUN_STATUS.RUNNING
             // reset progress
+            this.exit_code = {}
             this.running_outcome = []
             this.running_sensitivity = []
             this.sensitivity = {}
+            this.outcomes = []
+            this.error_messages = []
+            bus.$emit('/monitor/snapshot')
             bus.$emit('/monitor/update-outcome')
             bus.$emit('/monitor/update-sensitivity')
             resolve()

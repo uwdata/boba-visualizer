@@ -52,14 +52,6 @@
       }
     },
     mounted () {
-      bus.$on('data-ready', () => {
-        //todo: move this call to a button
-        store.fetchMonitorSnapshot()
-          .then(() => {}, (e) => {
-            alert(e)
-          })
-      })
-
       bus.$on('/monitor/snapshot', () => {
         this.ready = true
         this.updateData()

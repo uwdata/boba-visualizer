@@ -1,8 +1,11 @@
 <template>
   <div class="mn-card d-flex flex-column">
     <!--Title-->
-    <div>
+    <div class="d-flex justify-content-between mn-toolbar">
       <div class="mn-card-title-lg">Main Effect</div>
+      <div>
+        <snapshot-button></snapshot-button>
+      </div>
     </div>
 
     <!--Body-->
@@ -34,16 +37,18 @@
 </template>
 
 <script>
+  import _ from 'lodash'
   import {bus, store} from '../../controllers/config'
   import {SCHEMA} from '../../controllers/constants'
   import DotPlot from '../../controllers/monitor/monitor_dot_plot'
-  import _ from 'lodash'
+  import SnapshotButton from './SnapshotButton.vue'
 
   // persist through view changes
   let highlighted_dots = []
 
   export default {
     name: 'MonitorMainView',
+    components: {SnapshotButton},
     data () {
       return {
         label: '',
@@ -55,6 +60,10 @@
     },
     mounted () {
       bus.$on('/monitor/snapshot', () => {
+        if (!store.outcomes.length) {
+          this.clear()
+          return
+        }
         this.label = store.configs.x_axis
         this.wrangleData()
         this.draw()
@@ -255,5 +264,6 @@
 </script>
 
 <style scoped lang="stylus">
-
+.mn-toolbar
+  min-height 28px
 </style>
