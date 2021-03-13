@@ -3,7 +3,7 @@
     <!--controls-->
     <div class="d-flex">
       <!--color by-->
-      <div class="ml-4 mr-3 mt-2">
+      <div class="ml-4 mr-3 mt-2 bb-dropdown-container">
         <div class="bb-menu-item text-muted mb-1">Color By</div>
         <b-dropdown size="sm" variant="light" :text="color" block split
                     menu-class="bb-drop-menu">
@@ -13,7 +13,7 @@
       </div>
 
       <!--uncertainty-->
-      <div v-if="has_uncertainty" class="ml-3 mr-3 mt-2">
+      <div v-if="has_uncertainty" class="ml-3 mr-3 mt-2 bb-dropdown-container">
         <div class="bb-menu-item text-muted mb-1">Uncertainty</div>
         <b-dropdown size="sm" variant="light" :text="uncertainty" block
                     split menu-class="bb-drop-menu">
@@ -222,25 +222,25 @@
 </script>
 
 <style lang="stylus">
-  .b-dropdown
+  .bb-dropdown-container .b-dropdown
     width: 100px
 
-  .b-dropdown .btn-block
+  .bb-dropdown-container .btn-block
     text-align: left
 
-  .b-dropdown .btn
+  .bb-dropdown-container .btn
     font-size: 0.7rem
     line-height: 1.2
     padding-top: 0.1rem
     padding-bottom: 0.1rem
 
-  .b-dropdown .bb-drop-menu
+  .bb-dropdown-container .bb-drop-menu
     font-size: 0.7rem
     line-height: 1.5
     min-width: 100px
     padding: 0.2rem 0
 
-  .b-dropdown .dropdown-item
+  .bb-dropdown-container .dropdown-item
     padding: 0.25rem 0.5rem
 
   .bb-menu-item

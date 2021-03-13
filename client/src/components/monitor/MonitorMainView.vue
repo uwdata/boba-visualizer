@@ -3,7 +3,17 @@
     <!--Title-->
     <div class="d-flex justify-content-between mn-toolbar">
       <div class="mn-card-title-lg">Main Effect</div>
-      <div>
+      <div class="d-flex">
+        <!--drop down menu-->
+        <div v-if="show_dropdown" class="mr-3 mn-drop-container">
+          <b-dropdown size="sm" variant="light" :text="'View: ' + view"
+                      menu-class="mn-drop-menu">
+            <b-dropdown-item v-for="v in view_options" v-bind:key="v"
+                             @click="onViewChange(v)">{{v}}</b-dropdown-item>
+          </b-dropdown>
+        </div>
+
+        <!--update button-->
         <snapshot-button></snapshot-button>
       </div>
     </div>
@@ -39,7 +49,7 @@
 <script>
   import _ from 'lodash'
   import {bus, store} from '../../controllers/config'
-  import {SCHEMA} from '../../controllers/constants'
+  import {SCHEMA, VIEW_TYPE} from '../../controllers/constants'
   import DotPlot from '../../controllers/monitor/monitor_dot_plot'
   import SnapshotButton from './SnapshotButton.vue'
 
@@ -51,14 +61,24 @@
     components: {SnapshotButton},
     data () {
       return {
+        // chart
         label: '',
         data: [],
         charts: [],
         title_x: null,
-        title_y: null
+        title_y: null,
+
+        // drop down
+        show_dropdown: false,
+        view_options: [VIEW_TYPE.ERROR, VIEW_TYPE.FIT],
+        view: VIEW_TYPE.ERROR
       }
     },
     mounted () {
+      bus.$on('data-ready', () => {
+        this.show_dropdown = SCHEMA.FIT in store.configs.schema
+      })
+
       bus.$on('/monitor/snapshot', () => {
         if (!store.outcomes.length) {
           this.clear()
@@ -258,6 +278,10 @@
           // persist through facet
           chart.updateHighlightedDots(highlighted_dots)
         })
+      },
+
+      onViewChange (v) {
+        this.view = v
       }
     }
   }

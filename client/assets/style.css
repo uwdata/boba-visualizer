@@ -52,6 +52,17 @@
     color: #6c757d;
 }
 
+.mn-drop-container .mn-drop-menu {
+    font-size: 12px;
+    line-height: 1.5;
+    min-width: 100px;
+    padding: 0.2rem 0;
+}
+
+.mn-drop-container .btn {
+    font-size: 12px;
+}
+
 .mn-dot.muted {
     fill: #9ca5ad;
 }

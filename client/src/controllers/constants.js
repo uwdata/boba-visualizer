@@ -11,6 +11,11 @@ const COLOR_TYPE = {
   CUSTOM: 'Custom'
 }
 
+const VIEW_TYPE = {
+  FIT: 'Model Fit',
+  ERROR: 'Error Messages'
+}
+
 const SCHEMA = {
   POINT: 'point_estimate',
   FIT: 'fit',
@@ -50,4 +55,5 @@ const SENSITIVITY = {
 
 const sign = 0
 
-export {UNC_TYPE, COLOR_TYPE, SCHEMA, DTYPE, RUN_STATUS, SENSITIVITY, sign}
+export {UNC_TYPE, COLOR_TYPE, VIEW_TYPE, SCHEMA, DTYPE, RUN_STATUS,
+  SENSITIVITY, sign}
