@@ -1,11 +1,11 @@
 <template>
-  <div class="mn-card d-flex flex-column">
+  <div v-if="show" class="mn-card d-flex flex-column">
     <div class="mn-card-title-lg">Error Messages</div>
 
     <!--No data or no error messages -->
     <div v-if="!ready"></div>
     <div v-else-if="messages.length < 1" class="text-muted text-center" style="margin-top:50%">
-      <small>no errors yet :)</small>
+      <small>{{empty_hint}}</small>
     </div>
 
     <!--Message list-->
@@ -33,8 +33,12 @@
 
 <script>
   import {bus, store} from '../../controllers/config'
+  import {VIEW_TYPE} from '../../controllers/constants'
   import _ from 'lodash'
   import vuescroll from 'vuescroll'
+
+  const NO_MSG = 'no errors yet :)'
+  const EMPTY_FILTER = 'no matching messages'
 
   // keep track of all messages so we can recover from a filter
   let all_messages = []
@@ -44,8 +48,10 @@
     components: {vuescroll},
     data () {
       return {
+        show: true,
         ready: false,
         messages: [],
+        empty_hint: NO_MSG,
         scroll_config: {
           bar: {background: '#aaa', opacity: 0.5}
         }
@@ -58,15 +64,25 @@
       })
 
       bus.$on('brush', (pts) => {
+        // skip if this is not the active view
+        if (!this.show) return
+
         if (!pts || pts.length < 1) {
           // by default, show all messages
           this.messages = all_messages
+          this.empty_hint = NO_MSG
         } else {
           // filter messages to those with matching uid
           let uids = new Set(_.map(pts, (d) => d.uid))
           this.messages = _.filter(all_messages, (d) =>
             _.findIndex(d.uids, (uid) => uids.has(uid)) >= 0)
+          this.empty_hint = EMPTY_FILTER
         }
+      })
+
+      bus.$on('/monitor/change-view', (v) => {
+        this.show = v === VIEW_TYPE.ERROR
+        this.clearFilter()
       })
     },
     methods: {
@@ -100,6 +116,13 @@
         // sort by exit code (error > warning), then by the number of uids
         this.messages = _.orderBy(data, ['code', 'count'], ['desc', 'desc'])
         all_messages = this.messages
+      },
+
+      clearFilter () {
+        this.messages = all_messages
+        this.empty_hint = NO_MSG
+        _.each(this.messages, (m) => { m.clicked = false })
+        _.each(all_messages, (m) => { m.clicked = false })
       },
 
       clickShowMore (d) {

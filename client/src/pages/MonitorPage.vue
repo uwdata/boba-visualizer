@@ -19,7 +19,10 @@
     <b-form-row class="mn-bottom-row">
       <div class="col-3"><monitor-adg-view></monitor-adg-view></div>
       <div class="col-6"><monitor-main-view></monitor-main-view></div>
-      <div class="col-3"><error-message-view></error-message-view></div>
+      <div class="col-3">
+        <error-message-view></error-message-view>
+        <monitor-model-fit-view></monitor-model-fit-view>
+      </div>
     </b-form-row>
   </div>
 </template>
@@ -34,10 +37,12 @@
   import ErrorMessageView from '../components/monitor/ErrorMessageView.vue'
   import MonitorAdgView from '../components/monitor/MonitorAdgView.vue'
   import MonitorMainView from '../components/monitor/MonitorMainView.vue'
+  import MonitorModelFitView from '../components/monitor/MonitorModelFitView.vue'
 
   export default {
     name: 'MonitorPage',
     components: {
+      MonitorModelFitView,
       ErrorMessageView, OutcomeProgressView, DecisionProgressView,
       ProgressCard, HelpButton, TitleMenu, MonitorMainView, MonitorAdgView},
     data () {

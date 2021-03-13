@@ -297,7 +297,15 @@
         _.each(this.charts, (chart) => {
           chart.setColor(color_by)
           chart.redraw()
+
+          // reset brush and highlight
+          chart.brush.clear()
+          highlighted_dots = []
+          chart.updateHighlightedDots([])
         })
+
+        // notify other views
+        bus.$emit('/monitor/change-view', v)
       }
     }
   }
