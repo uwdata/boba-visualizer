@@ -55,6 +55,7 @@
 
   // persist through view changes
   let highlighted_dots = []
+  let color_by = 'color'
 
   export default {
     name: 'MonitorMainView',
@@ -115,12 +116,18 @@
         // the first non NA
         let i = _.findIndex(store.outcomes, (d) => _.isNumber(d[SCHEMA.POINT]))
 
-        // set the x range, shared by small multiples
+        // set the data range, shared by small multiples
         if (i >= 0) {
           store.x_range = [store.outcomes[i][SCHEMA.POINT] * 1.1,
             store.outcomes[store.outcomes.length - 1][SCHEMA.POINT] * 1.1]
+          if (SCHEMA.FIT in store.configs.schema) {
+            let fits = _.map(_.slice(store.outcomes, i), (d) => d[SCHEMA.FIT])
+            fits = _.sortBy(fits)
+            store.fit_range = [fits[0], fits[fits.length - 1]]
+          }
         } else {
           store.x_range = [0, 0]
+          store.fit_range = [0, 1]
         }
 
         // also use a separate field to indicate if there is NA
@@ -264,6 +271,7 @@
             // chart.y_axis_label = ip === 0
             chart.x_axis_label = ir === data.length - 1 ? this.label : ' '
             chart.has_na = this._has_na
+            chart.color_by = color_by
             chart.init(`#${div_id}`, data[ir][ip])
 
             this.charts.push(chart)
@@ -281,7 +289,15 @@
       },
 
       onViewChange (v) {
+        if (v === this.view) return
         this.view = v
+
+        // update color
+        color_by = v === VIEW_TYPE.FIT ? SCHEMA.FIT : 'color'
+        _.each(this.charts, (chart) => {
+          chart.setColor(color_by)
+          chart.redraw()
+        })
       }
     }
   }

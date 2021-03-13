@@ -79,7 +79,7 @@ class MonitorDotPlot {
     this.scale = scale
 
     // color scale
-    this.setColor('color')
+    this.setColor(this.color_by)
 
     // prepare the canvas
     this.svg = d3.select(parent)
@@ -108,6 +108,10 @@ class MonitorDotPlot {
 
     // axis
     this._drawAxis()
+  }
+
+  redraw () {
+    this._drawDensityDots(true)
   }
 
   getRange () {
@@ -141,6 +145,15 @@ class MonitorDotPlot {
     if (this.color_by === 'color') {
       this.colormap = d3.scaleOrdinal().domain([0, 1, 2])
         .range(['#37c2e8', '#ffc107', '#e45756'])
+    } else if (this.color_by === SCHEMA.FIT) {
+      // use the actual min/max fit values to show more variations
+      // but the color only means *relative* fit quality
+      // users can override by setting fit_range in config
+      let fr = store.configs.fit_range || store.fit_range
+
+      // we do not use the lightest colors in the scheme
+      this.colormap = d3.scaleSequential(d3.interpolateBlues)
+        .domain([1.2 * fr[1] - 0.2 * fr[0], fr[0]])
     }
   }
 
@@ -195,7 +208,7 @@ class MonitorDotPlot {
     }
   }
 
-  _drawDensityDots () {
+  _drawDensityDots (redraw = false) {
     let scale = this.scale
     let maxy = this.y_range[1]
 
@@ -222,15 +235,30 @@ class MonitorDotPlot {
     })
 
     let opacity = Math.max(0.3, Math.min(1, step / this.dot_radius * 0.75))
-    let svg = this.svg.select('.objects')
-    svg.selectAll('.mn-dot')
-      .data(data).enter()
-      .append('circle')
-      .classed('mn-dot', true)
+    let dots = this.svg.select('.objects').selectAll('.mn-dot')
+    if (!redraw) {
+      dots = dots.data(data).enter()
+        .append('circle')
+        .classed('mn-dot', true)
+    } else {
+      dots = dots.transition().duration(500)
+    }
+
+    dots
       .attr('r', () => this.dot_radius)
       .attr('cx', (d) => d._x)
       .attr('cy', (d) => d._y)
-      .attr('fill', (d) => this.colormap(d.color))
+      .attr('fill', (d) => {
+        let val = d[this.color_by]
+
+        // handle NA and clamp, assuming color_by fields are numeric
+        if (val === 'nan') return '#6c757d'
+        let upper = _.max(this.colormap.domain())
+        let lower = _.min(this.colormap.domain())
+        val = _.clamp(val, lower, upper)
+
+        return this.colormap(val)
+      })
       .attr('fill-opacity', opacity)
   }
 
