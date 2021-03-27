@@ -7,8 +7,16 @@
       <small>brush the dots to view</small>
     </div>
 
+    <!--legend-->
+    <div v-else class="mt-2 mr-4 text-right" style="font-size: 11px">
+      <span class="raw-legend"><i class="fas fa-circle"></i></span>
+      <span class="ml-1 text-muted">Observed</span>
+      <span class="pred-legend ml-2"><i class="fas fa-circle"></i></span>
+      <span class="ml-1 text-muted">Predicted</span>
+    </div>
+
     <!--charts-->
-    <div v-else class="mt-3 flex-grow-1 overflow-auto">
+    <div v-if="uids.length > 0" class="mt-3 flex-grow-1 overflow-auto">
       <vuescroll :ops="scroll_config">
         <div id="mn-fit-container" ref="container" class="ml-1 mr-3">
           <div v-for="uid in uids" class="mt-2"

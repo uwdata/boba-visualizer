@@ -1,6 +1,15 @@
 <template>
   <div class="mn-card h-100 d-flex flex-column">
-    <div class="mn-card-title">Decision Sensitivity</div>
+    <!--title-->
+    <div class="d-flex justify-content-between">
+      <div class="mn-card-title">Decision Sensitivity</div>
+      <div class="text-small mouse-pointer" style="color: #bbb">
+        <!--<i class="far fa-fw fa-question-circle"></i>-->
+        <i class="fas fa-info-circle"></i>
+      </div>
+    </div>
+
+    <!--chart-->
     <div id="decision-progress-vis" ref="chart" class="w-100 flex-grow-1"></div>
   </div>
 </template>

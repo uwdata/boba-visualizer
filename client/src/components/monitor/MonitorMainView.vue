@@ -4,6 +4,16 @@
     <div class="d-flex justify-content-between mn-toolbar">
       <div class="mn-card-title-lg">Main Effect</div>
       <div class="d-flex">
+        <!--legend-->
+        <div v-if="show_dropdown && view === VIEW_TYPE.FIT" class="mr-4 mt-1">
+          <div style="font-size: 9px; width: 80px;">
+            <img src="blues.png" class="w-100"/>
+            <div class="w-100 d-flex justify-content-between text-muted">
+              <div>{{colormap.light}}</div><div>{{colormap.dark}}</div>
+            </div>
+          </div>
+        </div>
+
         <!--drop down menu-->
         <div v-if="show_dropdown" class="mr-3 mn-drop-container">
           <b-dropdown size="sm" variant="light" :text="'View: ' + view"
@@ -17,7 +27,7 @@
         <snapshot-button></snapshot-button>
       </div>
     </div>
-
+    
     <!--Body-->
     <div class="h-100 d-flex flex-column">
 
@@ -72,12 +82,17 @@
         // drop down
         show_dropdown: false,
         view_options: [VIEW_TYPE.ERROR, VIEW_TYPE.FIT],
-        view: VIEW_TYPE.ERROR
+        view: VIEW_TYPE.ERROR,
+        VIEW_TYPE: VIEW_TYPE
       }
     },
     mounted () {
       bus.$on('data-ready', () => {
         this.show_dropdown = SCHEMA.FIT in store.configs.schema
+
+        this.colormap = {
+          light: store.configs.fit_range ? 'poor' : 'worse',
+          dark: store.configs.fit_range ? 'good' : 'better'}
       })
 
       bus.$on('/monitor/snapshot', () => {
