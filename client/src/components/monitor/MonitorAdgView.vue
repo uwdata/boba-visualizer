@@ -28,6 +28,9 @@
       this.adg.outerWidth = this.$refs.adg.clientWidth
       this.adg.outerHeight = this.$refs.adg.clientHeight
 
+      // show more characters in decision option
+      this.adg.annotation_width = 160
+
       bus.$on('data-ready', () => {
         // draw ADG
         this.adg.draw('#mn-adg-container', this.prepData())

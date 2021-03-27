@@ -188,7 +188,7 @@ class ADGPlot {
           if (idx < total) {
             let xx = x_start
             let yy = y_start + idx * this.option_font_size
-            let dummy = nd.options.length > this.max_options && idx === this.max_options
+            let dummy = nd.options.length > this.max_options + 1 && idx === this.max_options
 
             // draw things from right to left
             // first is the edge

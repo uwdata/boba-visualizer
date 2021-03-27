@@ -153,7 +153,7 @@ class MonitorDotPlot {
 
       // we do not use the lightest colors in the scheme
       this.colormap = d3.scaleSequential(d3.interpolateBlues)
-        .domain([1.2 * fr[1] - 0.2 * fr[0], fr[0]])
+        .domain([1.25 * fr[1] - 0.25 * fr[0], fr[0]])
     }
   }
 
@@ -252,9 +252,14 @@ class MonitorDotPlot {
         let val = d[this.color_by]
 
         // handle NA and clamp, assuming color_by fields are numeric
-        if (val === 'nan') return '#6c757d'
+        if (val === 'nan' || _.isNaN(val)) return '#6c757d'
         let upper = _.max(this.colormap.domain())
         let lower = _.min(this.colormap.domain())
+        if (this.color_by === SCHEMA.FIT) {
+          // look up the true range because the domain has discarded light colors
+          let fr = store.configs.fit_range || store.fit_range
+          upper = fr[1]
+        }
         val = _.clamp(val, lower, upper)
 
         return this.colormap(val)

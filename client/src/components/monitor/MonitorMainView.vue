@@ -27,7 +27,7 @@
         <snapshot-button></snapshot-button>
       </div>
     </div>
-    
+
     <!--Body-->
     <div class="h-100 d-flex flex-column">
 
@@ -136,6 +136,10 @@
           store.x_range = [store.outcomes[i][SCHEMA.POINT] * 1.1,
             store.outcomes[store.outcomes.length - 1][SCHEMA.POINT] * 1.1]
           if (SCHEMA.FIT in store.configs.schema) {
+            // convert to number
+            _.each(store.outcomes, (d) => {
+              d[SCHEMA.FIT] = Number(d[SCHEMA.FIT])
+            })
             let fits = _.map(_.slice(store.outcomes, i), (d) => d[SCHEMA.FIT])
             fits = _.sortBy(fits)
             store.fit_range = [fits[0], fits[fits.length - 1]]
@@ -160,7 +164,7 @@
        * Set the chart size for a small multiple subplot
        */
       setChartSize (s, nx, ny, x, y, wrap) {
-        let h_max = 160 // max chart height
+        let h_max = 260 // max chart height
         let h_min = 100 // min chart height
         let padding = 20  // space for option title
         let title = 3  // space for decision title
