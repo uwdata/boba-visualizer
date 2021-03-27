@@ -12,3 +12,6 @@ env/
 __pycache__/
 dist/
 build/lib/
+
+# other
+bobaserver/demo/

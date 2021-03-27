@@ -11,8 +11,8 @@
     <!--Progress-->
     <b-form-row class="mn-progress-row">
       <div class="col-6"><progress-card></progress-card></div>
-      <div class="col-3"><outcome-progress-view></outcome-progress-view></div>
       <div class="col-3"><decision-progress-view></decision-progress-view></div>
+      <div class="col-3"><outcome-progress-view></outcome-progress-view></div>
     </b-form-row>
 
     <!--Bottom row-->

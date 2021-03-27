@@ -12,7 +12,7 @@ const COLOR_TYPE = {
 }
 
 const VIEW_TYPE = {
-  FIT: 'Model Fit',
+  FIT: 'Model Quality',
   ERROR: 'Error Messages'
 }
 

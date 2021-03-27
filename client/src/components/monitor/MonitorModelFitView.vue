@@ -8,7 +8,7 @@
     </div>
 
     <!--charts-->
-    <div v-else class="mt-3 h-100">
+    <div v-else class="mt-3 flex-grow-1 overflow-auto">
       <vuescroll :ops="scroll_config">
         <div id="mn-fit-container" ref="container" class="ml-1 mr-3">
           <div v-for="uid in uids" class="mt-2"
