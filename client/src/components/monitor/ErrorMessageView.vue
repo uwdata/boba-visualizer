@@ -59,7 +59,10 @@
     },
     mounted () {
       bus.$on('/monitor/snapshot', () => {
-        this.ready = true
+        if (store.outcomes.length > 0) {
+          // if no universes are run, we don't know if there are errors
+          this.ready = true
+        }
         this.updateData()
       })
 

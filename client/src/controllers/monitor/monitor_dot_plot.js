@@ -252,7 +252,7 @@ class MonitorDotPlot {
         let val = d[this.color_by]
 
         // handle NA and clamp, assuming color_by fields are numeric
-        if (val === 'nan' || _.isNaN(val)) return '#6c757d'
+        if (val === 'nan' || _.isNaN(val)) return '#999'
         let upper = _.max(this.colormap.domain())
         let lower = _.min(this.colormap.domain())
         if (this.color_by === SCHEMA.FIT) {
