@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 from boba.bobarun import BobaRun
 from bobaserver import app, socketio, scheduler
-from .util import read_json, read_key_safe, print_fail
+from .util import read_json, write_json, read_key_safe, print_fail
 import bobaserver.common as common
 
 
@@ -75,7 +75,7 @@ def read_meta():
         s['name'] = key
 
     # check sensitivity flag
-    sen = read_key_safe(vis, ['sensitivity'], 'ks')
+    sen = read_key_safe(vis, ['sensitivity'], 'ad')
     if sen not in ('f', 'ks', 'ad'):
         msg = f'Invalid sensitivity flag "{sen}". Available values:\n'
         msg += ' - "f": algorithm based on the F-test\n'
@@ -125,7 +125,11 @@ def main(input, port, host, monitor):
     app.bobarun = BobaRun(app.data_folder)
     if not monitor:
         check_result_files()
+
+        # compute sensitivity and write scores to file
         app.sensitivity = common.cal_sensitivity()
+        d = {'method': app.visualizer['sensitivity'], 'scores': app.sensitivity}
+        write_json(d, os.path.join(input, 'sensitivity.json'), nice=True)
 
     # print starting message
     s_host = '127.0.0.1' if host == '0.0.0.0' else host

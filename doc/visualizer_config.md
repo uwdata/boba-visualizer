@@ -90,8 +90,8 @@ Here are the available keys:
 Available options are:
 
 - `f`: an algorithm based on the F-test
-- `ks` (default): an algorithm based on Kolmogorov–Smirnov statistic
-- `ad`: the standardized Anderson-Darling criterion for k samples
+- `ks`: an algorithm based on Kolmogorov–Smirnov statistic
+- `ad` (default): the standardized Anderson-Darling criterion for k samples
 
 For more details about these algorithms, please refer to the
 [paper](https://arxiv.org/pdf/2007.05551.pdf).

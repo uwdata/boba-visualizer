@@ -296,7 +296,7 @@ class ADGPlot {
 
   _getColorScale () {
     // color scale
-    let s_max = d3.max(this.nodes, (nd) => Math.sqrt(nd.sensitivity))
+    let s_max = d3.max(this.nodes, (nd) => nd.sensitivity)
     let domain = [0, 1]
     switch (store.configs.sensitivity_test) {
       case SENSITIVITY.KS:

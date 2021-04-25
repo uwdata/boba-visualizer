@@ -48,6 +48,7 @@
       "x_axis": "Coefficient on female",
       "x_axis_fit": "Approved",
       "x_range": [-3, 8]
-    }
+    },
+    "sensitivity": "ad"
   }
 }

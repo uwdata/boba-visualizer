@@ -61,9 +61,10 @@ def read_json(fn):
             err = {'status': 'fail', 'message': msg}
             return err, None
 
-def write_json(data, fn):
+def write_json(data, fn, nice=False):
+    param = {'indent': 4, 'sort_keys': True} if nice else {}
     with open(fn, 'w', encoding='utf-8') as f:
-        json.dump(data, f)
+        json.dump(data, f, **param)
 
 
 def read_key_safe(obj, keys, default):

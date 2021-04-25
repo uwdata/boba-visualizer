@@ -95,4 +95,4 @@ def sensitivity_f (df, dec, options, col):
       ms_w += sum((g[col] - g_mean)**2)
   ms_w /= len(df) - len(groups)
 
-  return ms_b / ms_w
+  return np.sqrt(ms_b / ms_w)

@@ -15,3 +15,6 @@ build/lib/
 
 # other
 bobaserver/demo/
+
+# derived data
+example/mortgage/sensitivity.json
