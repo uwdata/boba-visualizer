@@ -127,6 +127,7 @@ def main(input, port, host, monitor):
         check_result_files()
         app.sensitivity = common.cal_sensitivity()
 
+    # print starting message
     s_host = '127.0.0.1' if host == '0.0.0.0' else host
     msg = """\033[92m
     Server started!
@@ -134,8 +135,12 @@ def main(input, port, host, monitor):
     Press CTRL+C to stop\033[0m""".format(s_host, port)
     print(msg)
 
+    # start server
     scheduler.start()
-    socketio.run(app, host= host, port=f'{port}')
+    if monitor:
+        socketio.run(app, host= host, port=f'{port}')
+    else:
+        app.run(host= host, port=f'{port}')
 
 
 if __name__ == '__main__':
