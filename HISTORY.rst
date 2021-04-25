@@ -2,6 +2,13 @@
 History
 =======
 
+1.1.0 (2021-04-25)
+==================
+
+* Introduce the Boba monitor.
+* Improve the sensitivity test.
+* Add a gallery of static charts, in /#/charts
+
 1.0.3 (2020-10-26)
 ==================
 

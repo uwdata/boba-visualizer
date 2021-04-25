@@ -10,7 +10,7 @@ with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
 requirements = ['flask>=1.1.1', 'Click>=7.0', 'pandas>=1.0.1', 'scipy>=1.4.1',
-    'boba>=1.0.0', 'flask-socketio>=5.0.0', 'apscheduler>=3.7.0',
+    'boba>=1.1.1', 'flask-socketio>=5.0.0', 'apscheduler>=3.7.0',
     'scikit-learn>=0.24.1']
 
 setup_requirements = []
@@ -20,7 +20,7 @@ test_requirements = []
 setup(
     name='boba-visualizer',
     url='https://github.com/yyyliu/boba-visualizer',
-    version='1.0.3',
+    version='1.1.0',
     author="Yang Liu",
     author_email='yliu0@uw.edu',
     license="BSD license",
