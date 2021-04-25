@@ -20,7 +20,7 @@ test_requirements = []
 setup(
     name='boba-visualizer',
     url='https://github.com/yyyliu/boba-visualizer',
-    version='1.1.0',
+    version='1.1.1',
     author="Yang Liu",
     author_email='yliu0@uw.edu',
     license="BSD license",
@@ -42,7 +42,7 @@ setup(
     },
     install_requires=requirements,
     long_description=readme + '\n\n' + history,
-    packages=find_packages(include=['bobaserver']),
+    packages=find_packages(include=['bobaserver', 'bobaserver.*']),
     setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,
