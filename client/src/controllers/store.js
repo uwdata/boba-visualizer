@@ -129,7 +129,7 @@ class Store {
         return
       }
 
-      http.post('/api/get_universes', {})
+      http.post('/api/get_universes')
         .then((response) => {
           let msg = response.data
 
@@ -200,7 +200,7 @@ class Store {
         return
       }
 
-      http.post('/api/get_overview', {})
+      http.post('/api/get_overview')
         .then((response) => {
           let msg = response.data
 
@@ -242,7 +242,7 @@ class Store {
         return
       }
 
-      http.post('/api/get_pred', {})
+      http.post('/api/get_pred')
         .then((response) => {
           let msg = response.data
 
@@ -307,7 +307,7 @@ class Store {
         return
       }
 
-      http.post('/api/get_uncertainty', {})
+      http.post('/api/get_uncertainty')
         .then((response) => {
           let msg = response.data
 
@@ -339,7 +339,7 @@ class Store {
         return
       }
 
-      http.post('/api/get_null', {})
+      http.post('/api/get_null')
         .then((response) => {
           let msg = response.data
 
@@ -393,7 +393,7 @@ class Store {
 
   fetchMonitorSnapshot () {
     return new Promise((resolve, reject) => {
-      http.post('/api/monitor/get_snapshot', {})
+      http.post('/api/monitor/get_snapshot')
         .then((response) => {
           let msg = response.data
           if (msg && msg.status === 'success') {
@@ -408,7 +408,7 @@ class Store {
 
   fetchMonitorStatus () {
     return new Promise((resolve, reject) => {
-      http.post('/api/monitor/inquire_progress', {})
+      http.post('/api/monitor/inquire_progress')
         .then((response) => {
           let msg = response.data
           if (msg && msg.status === 'success') {
@@ -443,7 +443,7 @@ class Store {
 
   resumeRuntime () {
     return new Promise((resolve, reject) => {
-      http.post('/api/monitor/resume_runtime', {})
+      http.post('/api/monitor/resume_runtime')
         .then((rsp) => {
           if (rsp.data && rsp.data.status === 'success') {
             this.running_status = RUN_STATUS.RUNNING
@@ -455,7 +455,7 @@ class Store {
 
   stopRuntime () {
     return new Promise((resolve, reject) => {
-      http.post('/api/monitor/stop_runtime', {})
+      http.post('/api/monitor/stop_runtime')
         .then((rsp) => {
           if (rsp.data && rsp.data.status === 'success') {
             this.running_status = RUN_STATUS.STOPPING
